@@ -1202,7 +1202,7 @@ function renderHome(){
       <div class="card typer"><span class="eyebrow">Те, з чим приходять учні</span><div class="t" id="typer"></div></div>
       <div class="hero-ctas">
         <button class="btn primary" data-view="kabinet">Перейти в кабінет ${I.arrow}</button>
-        <button class="btn" data-view="kursy">Відкрити безкоштовні курси</button>
+        <button class="btn" data-view="kursy" data-ct-go="open">Відкрити безкоштовні курси</button>
       </div>
       <div class="stats">
         <div class="card stat"><b>[N] років</b><span>авторська система, що постійно вдосконалюється</span></div>
@@ -1270,7 +1270,7 @@ function renderHome(){
     </div>
     <div class="card cta">
       <div><h3>Почати можна одразу</h3><p>Зайдіть у розділ «Відкриті курси», перегляньте доступні матеріали й зробіть перший крок без реєстрації.</p></div>
-      <div class="hero-ctas" style="margin:0"><button class="btn primary" data-view="kursy">Спробувати курси безкоштовно ${I.arrow}</button><button class="btn" data-scroll="kontakty">Порадитися з менеджером</button></div>
+      <div class="hero-ctas" style="margin:0"><button class="btn primary" data-view="kursy" data-ct-go="open">Спробувати курси безкоштовно ${I.arrow}</button><button class="btn" data-scroll="kontakty">Порадитися з менеджером</button></div>
     </div>
   </section>
 
@@ -1747,7 +1747,7 @@ function swapRem(){const old=root.querySelector(".rem,.rem-fab");const t=documen
 
 /* ===== Common bindings ===== */
 function bindCommon(){
-  root.querySelectorAll("[data-view]").forEach(b=>b.onclick=()=>{const v=b.dataset.view;if(v==="test-sim")return startTest("sim");goView(v)});
+  root.querySelectorAll("[data-view]").forEach(b=>b.onclick=()=>{const v=b.dataset.view;if(b.dataset.ctGo)courseTab=b.dataset.ctGo;if(v==="test-sim")return startTest("sim");goView(v)});
   root.querySelectorAll("[data-scroll]").forEach(b=>b.onclick=()=>{const id=b.dataset.scroll,el=document.getElementById(id);if(!el)return;
     const navH=(document.querySelector(".nav")?.offsetHeight||0)+20;
     window.scrollTo({top:id==="top"?0:Math.max(0,el.getBoundingClientRect().top+scrollY-navH),behavior:"instant"});
