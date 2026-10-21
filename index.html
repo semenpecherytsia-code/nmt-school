@@ -246,6 +246,19 @@ body.cabmode::before{background:#fff}
 .topics label{display:flex;gap:8px;align-items:center;border:1.5px solid var(--line);border-radius:999px;padding:8px 14px;cursor:pointer;font-weight:600}
 .topics input{accent-color:var(--accent)}
 
+
+/* hover motion */
+.tile{transition:transform .25s ease,box-shadow .25s ease,border-color .25s ease}
+.cab .tile:hover{transform:translateY(-6px) scale(1.05);box-shadow:0 26px 44px -24px rgba(43,25,6,.35)}
+.t1:hover{border-color:#5cc6f2}.t2:hover{border-color:#9b7cf7}.t3:hover{border-color:#43c79a}
+.tile .btn{transition:transform .2s ease,box-shadow .2s ease}.tile:hover .btn{transform:scale(1.06)}
+.ccard,[data-tilt]{transform-style:preserve-3d;will-change:transform}
+.ccard{transition:transform .18s ease-out,border-color .15s,box-shadow .25s}
+.ccard.tilting{box-shadow:0 30px 50px -26px rgba(255,120,60,.6)}
+[data-tilt]{transition:transform .18s ease-out}
+.btn{transition:transform .2s ease,box-shadow .2s ease,border-color .15s,filter .15s}.btn:hover{transform:translateY(-2px)}
+@media (prefers-reduced-motion:reduce){.tile,.ccard,[data-tilt],.btn{transition:none}.cab .tile:hover,.btn:hover{transform:none}}
+
 /* Remember cards */
 .rem-fab{position:fixed;left:max(16px,env(safe-area-inset-left,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:25;display:flex;gap:8px;align-items:center;background:linear-gradient(135deg,#9b5cf0,#ff8a00);color:var(--surface);border:0;border-radius:999px;padding:12px 18px;font-weight:700;box-shadow:0 10px 30px rgba(20,28,51,.25)}
 .rem{position:fixed;left:max(16px,env(safe-area-inset-left,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:26;width:min(440px,calc(100vw - 32px));border-radius:26px;padding:5px;background:linear-gradient(160deg,#9b5cf0,#c77290 55%,#ff8a00);box-shadow:0 20px 50px rgba(20,28,51,.3)}
@@ -1212,7 +1225,7 @@ function renderHome(){
         <div class="card stat"><b>НМТ</b><span>симуляції у форматі іспиту, щоб зняти зайвий стрес</span></div>
       </div>
     </div>
-    <div class="card hero-side">
+    <div class="card hero-side" data-tilt>
       ${photoBox("Фото викладача",["Авторські конспекти","Система прогресу","Особистий кабінет"])}
       <div class="mini"><div><b>Команда професіоналів</b><span>зрозумілий темп, пояснення і повторення</span></div><div><b>Лайфхаки та нюанси підготовки</b><span>від бази до складних тем і задач</span></div></div>
     </div>
@@ -1749,6 +1762,19 @@ function chartSVG(rs){
   const labels=rs.map((p,i)=>i%step?"":`<text x="${pts[i][0]}" y="${H-8}" text-anchor="middle" class="ax">${String(new Date(p.at).getDate()).padStart(2,"0")} ${mon[new Date(p.at).getMonth()]}</text>`).join("");
   return `<svg viewBox="0 0 ${W} ${H}" class="chart" role="img" aria-label="Динаміка результатів">${grid}${pts.length>1?`<path d="${d}" class="ln"/>`:""}<line class="vl" x1="0" x2="0" y1="${t}" y2="${t+ih}" style="display:none"/>${pts.map(p=>`<circle cx="${p[0]}" cy="${p[1]}" r="4.5" class="dt"/>`).join("")}${labels}</svg>`;
 }
+
+
+/* 3D tilt following the cursor (course cards, hero photo) */
+(()=>{if(matchMedia("(prefers-reduced-motion: reduce)").matches)return;
+  let cur=null;
+  const reset=el=>{el.style.transform="";el.classList.remove("tilting")};
+  document.addEventListener("pointermove",e=>{if(e.pointerType!=="mouse")return;
+    const el=e.target.closest&&e.target.closest(".ccard,[data-tilt]");
+    if(cur&&cur!==el){reset(cur);cur=null}if(!el)return;cur=el;
+    const r=el.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5,m=el.matches(".ccard")?10:6;
+    el.classList.add("tilting");el.style.transform=`perspective(900px) rotateX(${(-y*m).toFixed(2)}deg) rotateY(${(x*m).toFixed(2)}deg) translateY(-4px) scale(1.02)`});
+  document.addEventListener("pointerleave",()=>{if(cur){reset(cur);cur=null}});
+})();
 
 /* ===== Remember cards ===== */
 function remHTML(){const c=REMEMBER[remIdx];
