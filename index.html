@@ -451,7 +451,10 @@ select:focus{outline:2px solid var(--accent);outline-offset:1px}
 .dyn-h b{font-family:var(--f-round);font-weight:900}
 .dyn-h select{min-width:200px}
 .dyn-b{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:0;padding:18px}
-.chart-wrap{overflow-x:auto;margin-top:8px}
+.chart-wrap{overflow-x:auto;margin-top:8px;position:relative}
+.chart .vl{stroke:#cfcfcf;stroke-width:1.5}.chart .dt.on{fill:var(--accent)}.chart{cursor:crosshair}
+.ctip{position:absolute;z-index:2;background:#fff;border:1px solid #fde2c4;border-radius:12px;padding:10px 14px;box-shadow:0 10px 24px -10px rgba(43,25,6,.3);pointer-events:none;white-space:nowrap;font-size:14px}
+.ctip b{display:block;font-weight:400;color:var(--ink);margin-bottom:8px}.ctip span{color:var(--accent)}
 .chart{width:100%;min-width:420px;height:auto;display:block}
 .chart .gl{stroke:var(--line);stroke-dasharray:4 4}
 .chart .ax{fill:var(--muted);font-size:11px;font-family:var(--f-body)}
@@ -1013,8 +1016,7 @@ const LES_SETS={};
     for(const [type,L] of plan){
       if(type==="match"){const sp=[];const vals=new Set();for(let k=0;k<60&&sp.length<3;k++){const x=draw(n,L,seen,false,true);if(x&&!vals.has(x.a)){vals.add(x.a);sp.push(x)}}
         if(sp.length===3){TASKS.push(mkMatch(sp,tp));ids.push(TASKS.length-1);continue}
-        sp.forEach(x=>{TASKS.push(mk(x,"one",tp));ids.push(TASKS.length-1)});
-        for(let k=sp.length;k<3&&k<1+sp.length;k++){const x=draw(n,L,seen,false,false);if(x){TASKS.push(mk(x,"one",tp));ids.push(TASKS.length-1)}}continue}
+        {const x=sp[0]||draw(n,L,seen,false,false);if(x){TASKS.push(mk(x,"one",tp));ids.push(TASKS.length-1)}}continue}
       const sp=draw(n,L,seen,type==="short",false)||draw(n,L,new Set(),type==="short",false);
       if(sp){TASKS.push(mk(sp,type,tp));ids.push(TASKS.length-1)}
     }
@@ -1023,7 +1025,7 @@ const LES_SETS={};
   const rep=(k,item)=>Array.from({length:k},()=>item);
   for(let n=1;n<=16;n++){
     LES_SETS[n]={
-      hw:build(n,9001+n*17,[...rep(4,["one",1]),...rep(3,["one",2]),["match",1],...rep(2,["short",2])]),
+      hw:build(n,9001+n*17,[...rep(8,["one",1]),...rep(7,["one",2]),["match",1],["match",1],["match",2],...rep(4,["short",2])]),
       easy:build(n,5003+n*31,[...rep(18,["one",1]),...rep(2,["short",1])]),
       mid:build(n,7019+n*43,[...rep(16,["one",2]),...rep(4,["short",2])]),
       mini:build(n,3011+n*59,[["one",1],["one",2],["one",2],["match",2],["short",2]]),
@@ -1450,18 +1452,20 @@ const COURSES={
 const SIM_COUNT=23;
 // demo history for courses other than the simulations (score on the 100–200 scale, time in seconds)
 const DEMO=[
-  ...[[44,163.5],[40,152],[36,162.8],[33,163],[30,122.4],[25,99.1],[23,155],[18,150.3],[16,155.6],[11,150],[8,149.8],[4,163.2],[0,143.4]].map(([d,s],i)=>({course:"richnyi",type:"ДЗ",at:dAgo(d),score:s,sec:1700+((i*397)%900),id:"dz"+i})),
-  {course:"richnyi",type:"Тематичний тест",at:dAgo(30),score:180,sec:2400,id:"tt1"},
-  {course:"richnyi",type:"Модульний тест",at:dAgo(20),score:159,sec:3100,id:"mt3"},
-  {course:"richnyi",type:"Тематичний тест",at:dAgo(2),score:153,sec:2650,id:"tt2"},
-  {course:"vstup",type:"ДЗ",at:dAgo(15),score:171,sec:1500,id:"v1"},
-  {course:"vstup",type:"ДЗ",at:dAgo(12),score:160,sec:1650,id:"v2"},
-  {course:"vstup",type:"ДЗ",at:dAgo(9),score:148,sec:1820,id:"v3"},
+  ...[[44,163.5],[40,152],[36,162.8],[33,163],[30,122.4],[25,99.1],[23,155],[18,150.3],[16,155.6],[11,150],[8,149.8],[4,163.2],[0,143.4]].map(([d,s],i)=>({course:"richnyi",type:"ДЗ",at:dAgo(d),score:s,sec:1700+((i*397)%900),id:"dz"+i,les:i+1})),
+  {course:"richnyi",type:"Тематичний тест",at:dAgo(30),score:180,sec:2400,id:"tt1",name:"Тематичний тест 1"},
+  {course:"richnyi",type:"Модульний тест",at:dAgo(20),score:159,sec:3100,id:"mt3",name:"Модульний тест 3"},
+  {course:"richnyi",type:"Тематичний тест",at:dAgo(2),score:153,sec:2650,id:"tt2",name:"Тематичний тест 2"},
+  {course:"vstup",type:"ДЗ",at:dAgo(15),score:171,sec:1500,id:"v1",vles:1},
+  {course:"vstup",type:"ДЗ",at:dAgo(12),score:160,sec:1650,id:"v2",vles:2},
+  {course:"vstup",type:"ДЗ",at:dAgo(9),score:148,sec:1820,id:"v3",vles:3},
 ];
 const MODE_TYPE={sim:"НМТ симуляція",rep:"Міні-тест",practice:"Тренажер НМТ",mist:"Тренажер НМТ"};
 function records(){
-  return DEMO.concat(HIST.map((h,i)=>({course:h.mode==="sim"?"nmt":"richnyi",type:MODE_TYPE[h.mode],at:h.at,
-    score:h.mode==="sim"?(h.score||0):100+h.pts/h.max*100,sec:h.sec||0,id:h.mode==="sim"?"sim"+(h.simNo||1):"h"+i})));
+  const lh=(c,n)=>{const x=(COURSES[c].items.filter(i=>i.n))[n-1];return x?x.h:""};
+  return DEMO.map(r=>({...r,name:r.name||(r.les?lh("richnyi",r.les):r.vles?lh("vstup",r.vles):r.type)})).concat(HIST.map((h,i)=>({course:h.mode==="sim"?"nmt":"richnyi",type:MODE_TYPE[h.mode],at:h.at,
+    score:h.mode==="sim"?(h.score||0):100+h.pts/h.max*100,sec:h.sec||0,id:h.mode==="sim"?"sim"+(h.simNo||1):"h"+i,
+    name:h.title||(h.mode==="sim"?"Симуляція НМТ № "+(h.simNo||1):MODES[h.mode].name)})));
 }
 function courseTests(key){if(key==="nmt")return SIM_COUNT;const c=COURSES[key];return c.items.filter(x=>x.n).length*5+c.items.filter(x=>x.test).length}
 function coursePct(key){if(key==="nmt"){const s=simStats();const v=Object.values(s);return v.length?Math.round(v.reduce((a,x)=>a+x.pct,0)/v.length):0}
@@ -1698,6 +1702,20 @@ function cabProgress(cab){
   <div class="avgs">${avgCard("a1","✓","Середній бал ДЗ",avgOf("ДЗ"))}${avgCard("a2","✓","Середній бал симуляцій",avgOf("НМТ симуляція"))}${avgCard("a3","✓","Середній бал тренажеру НМТ",avgOf("Тренажер НМТ"))}</div>
   ${HIST.length?"":`<p class="note" style="margin-top:16px">Дані курсів «Річний курс» і «Вступний курс» тут демонстраційні. Ваші власні результати з’являться після першої симуляції або тренування.</p>`}`;
   bindDD(cab,(k,v)=>{PF[k]=v;if(k==="course")PF.type=null;savePF();render()});
+  bindChart(cab,rs);
+}
+function bindChart(scope,rs){
+  const w=scope.querySelector(".chart-wrap"),svg=w&&w.querySelector("svg.chart");if(!svg||!rs.length)return;
+  const cs=[...svg.querySelectorAll(".dt")],vl=svg.querySelector(".vl"),tip=document.createElement("div");tip.className="ctip";tip.hidden=true;w.appendChild(tip);
+  const show=i=>{const c=cs[i],x=+c.getAttribute("cx"),y=+c.getAttribute("cy"),k=svg.getBoundingClientRect().width/640;
+    cs.forEach((o,j)=>o.classList.toggle("on",j===i));vl.setAttribute("x1",x);vl.setAttribute("x2",x);vl.style.display="";
+    tip.innerHTML=`<b></b><span>Результат : ${(Math.round(rs[i].score*10)/10).toFixed(1)} балів</span>`;tip.querySelector("b").textContent=rs[i].name||rs[i].type;tip.hidden=false;
+    const sr=svg.getBoundingClientRect(),wr=w.getBoundingClientRect(),ox=sr.left-wr.left+w.scrollLeft,oy=sr.top-wr.top+w.scrollTop;
+    const px=ox+x*k,tw=tip.offsetWidth;let left=px+12;if(left+tw>ox+sr.width)left=Math.max(ox,px-12-tw);
+    tip.style.left=left+"px";tip.style.top=(oy+y*k+12)+"px"};
+  const near=e=>{const r=svg.getBoundingClientRect(),vx=(e.clientX-r.left)/r.width*640;let bi=0,bd=1e9;cs.forEach((c,j)=>{const d=Math.abs(+c.getAttribute("cx")-vx);if(d<bd){bd=d;bi=j}});show(bi)};
+  svg.addEventListener("pointermove",near);svg.addEventListener("pointerdown",near);
+  svg.addEventListener("pointerleave",()=>{tip.hidden=true;vl.style.display="none";cs.forEach(o=>o.classList.remove("on"))});
 }
 function dd(id,key,opts,cur,label){
   const sel=opts.find(o=>o[0]===cur)||opts[0];
@@ -1729,7 +1747,7 @@ function chartSVG(rs){
   const mon=["січ.","лют.","бер.","квіт.","трав.","черв.","лип.","серп.","вер.","жовт.","лист.","груд."];
   const step=Math.ceil(rs.length/9);
   const labels=rs.map((p,i)=>i%step?"":`<text x="${pts[i][0]}" y="${H-8}" text-anchor="middle" class="ax">${String(new Date(p.at).getDate()).padStart(2,"0")} ${mon[new Date(p.at).getMonth()]}</text>`).join("");
-  return `<svg viewBox="0 0 ${W} ${H}" class="chart" role="img" aria-label="Динаміка результатів">${grid}${pts.length>1?`<path d="${d}" class="ln"/>`:""}${pts.map((p,i)=>`<circle cx="${p[0]}" cy="${p[1]}" r="4.5" class="dt"><title>${Math.round(rs[i].score*10)/10}</title></circle>`).join("")}${labels}</svg>`;
+  return `<svg viewBox="0 0 ${W} ${H}" class="chart" role="img" aria-label="Динаміка результатів">${grid}${pts.length>1?`<path d="${d}" class="ln"/>`:""}<line class="vl" x1="0" x2="0" y1="${t}" y2="${t+ih}" style="display:none"/>${pts.map(p=>`<circle cx="${p[0]}" cy="${p[1]}" r="4.5" class="dt"/>`).join("")}${labels}</svg>`;
 }
 
 /* ===== Remember cards ===== */
@@ -2366,6 +2384,13 @@ const KN_CSS=`.kn-p{margin:6px 0 8px}
 .kn-mc{border:1.5px solid #f3c48a;border-radius:10px;padding:8px 10px;background:#fffaf3}.kn-mc h5{margin:0 0 4px;font-family:Arial,sans-serif;font-size:13px;color:#b45309;letter-spacing:.01em}
 .rf-paper .f{font-family:"Times New Roman",Times,serif}
 .kn-wb{margin:10px 0;padding:8px 0;border-bottom:1px dashed #ccc}.kn-wb b{margin-right:6px}.kn-wo{display:flex;flex-wrap:wrap;gap:6px 18px;margin:6px 0 4px 22px;font-size:14.5px}
+.rf-paper:has(.kn-wbp){background-color:#fff;background-image:linear-gradient(#e6e6e6 1px,transparent 1px),linear-gradient(90deg,#e6e6e6 1px,transparent 1px);background-size:20px 20px}
+.kn-wi{margin:22px 0 0}.kn-wq{display:flex;align-items:stretch;gap:0;border:1.5px solid #222;background:#fff}
+.kn-wn{flex:none;width:30px;display:grid;place-items:center;background:#3b3b3b;color:#fff;font-family:Arial,sans-serif;font-size:15px;margin:6px;border-radius:2px;align-self:center;height:26px}
+.kn-wx{padding:8px 10px 8px 4px;font-family:Arial,sans-serif;font-size:14.5px;line-height:1.45}
+.kn-wt{width:100%;border-collapse:collapse;margin-top:8px;background:#fff;table-layout:fixed;font-size:14px}.kn-wt th{background:#f9c78f;border:1px solid #888;padding:3px;font-family:Arial,sans-serif;font-weight:700}.kn-wt td{border:1px solid #888;padding:6px 4px;text-align:center;overflow-wrap:anywhere}
+.kn-wa{margin-top:8px;font-family:Arial,sans-serif;font-size:14px}.kn-wa span{display:inline-block;width:120px;border-bottom:1.5px solid #333;margin-left:6px}
+.kn-wsp{height:130px}
 .kn-space{height:46px;border:1px solid #e5e5e5;border-radius:6px;margin:6px 0 0 22px;background:repeating-linear-gradient(#fff 0 22px,#eef 22px 23px)}
 @media (max-width:560px){.kn-map{grid-template-columns:1fr}}`;
 try{document.head.appendChild(Object.assign(document.createElement("style"),{textContent:KN_CSS}))}catch(e){}
@@ -2374,11 +2399,11 @@ const lesKey=(n,set)=>`r${n}-${set}`;
 function lesStat(key){const h=HIST.filter(x=>x.lkey===key);if(!h.length)return null;const l=h[h.length-1];return {tries:h.length,pct:Math.round(l.pts/l.max*100)}}
 function openLesson(course,n){LES={c:course,n};goView("urok")}
 function wbPages(n,title){
-  const ids=LES_SETS[n].wb,txt=s=>s,pg=[];
-  const item=(i,k)=>{const t=TASKS[i];return `<div class="kn-wb"><b>${k+1}.</b>${t.q}${t.t==="one"?`<div class="kn-wo">${t.o.map((o,j)=>`<span>${L[j]}) <span class="f">${o}</span></span>`).join("")}</div>`:""}<div class="kn-space"></div></div>`};
-  pg.push(KT(`Робочий зошит · ${title}`)+KP("Розв’яжи завдання в зошиті, а потім звір відповіді на останній сторінці.")+ids.slice(0,6).map(item).join(""));
-  pg.push(KT(`Робочий зошит · ${title}`)+ids.slice(6).map((i,k)=>item(i,k+6)).join(""));
-  pg.push(KT("Відповіді та короткі розв’язання")+ids.map((i,k)=>{const t=TASKS[i];return `<div class="kn-wb"><b>${k+1}.</b> ${t.t==="one"?`${L[t.a]}) <span class="f">${t.o[t.a]}</span>`:fn3(t.a)} <span style="color:#555">— ${t.why}</span></div>`}).join(""));
+  const ids=LES_SETS[n].wb,pg=[];
+  const item=(i,k)=>{const t=TASKS[i];
+    const tb=t.t==="one"?`<table class="kn-wt"><tr>${L.map(x=>`<th>${x}</th>`).join("")}</tr><tr>${t.o.map(o=>`<td><span class="f">${o}</span></td>`).join("")}</tr></table>`:`<div class="kn-wa">Відповідь: <span></span></div>`;
+    return `<div class="kn-wi"><div class="kn-wq"><b class="kn-wn">${k+1}</b><div class="kn-wx">${t.q}</div></div>${tb}<div class="kn-wsp"></div></div>`};
+  for(let p=0;p<ids.length;p+=4)pg.push(`<div class="kn-wbp">${p===0?KT(`Робочий зошит · ${title}`)+KP("Розв’яжи завдання самостійно. Місце для розв’язання — під кожним завданням."):""}${ids.slice(p,p+4).map((i,j)=>item(i,p+j)).join("")}</div>`);
   return pg;
 }
 const fn3=v=>String(v).replace(".",",").replace("-","−");
