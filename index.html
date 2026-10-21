@@ -1,14 +1,8 @@
-<!doctype html>
-<html lang="uk">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-</head>
-<body>
+<!doctype html><html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>Школа НМТ з математики</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,700;0,800;1,700;1,800&family=Nunito:wght@800;900&family=JetBrains+Mono:wght@500;700&family=Caveat:wght@600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,700;0,800;1,700;1,800&family=Nunito:wght@800;900&family=JetBrains+Mono:wght@500;700&family=Caveat:wght@600&family=STIX+Two+Text:ital,wght@0,400;0,600;1,400&display=swap">
 <style>
 /* Layout: warm squared-paper landing (serif headlines, orange second line, soft rounded cards), then a white student cabinet with the NMT simulator inside. Single light look by design. */
 :root{
@@ -27,7 +21,7 @@
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html{scroll-behavior:auto}
-body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.55;
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.55;
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--bg)}
 h1,h2{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.08;font-weight:800;letter-spacing:-.01em}
@@ -559,47 +553,55 @@ select:focus{outline:2px solid var(--accent);outline-offset:1px}
 @media (max-width:560px){.co-fields{grid-template-columns:1fr}}
 
 /* NMT exam format */
-body.nmtmode{background:#8c8c8c}
+body.nmtmode{background:#fff;padding-left:0;padding-right:0}
 body.nmtmode::before{background:#fff}
-body.nmtmode .cab{max-width:none;padding-top:0}
-body.nmtmode .rem-fab{display:none}
-.nmt{margin-inline:calc(-1 * max(16px,env(safe-area-inset-left,0px)))}
-.n-back{display:block;background:#fff;border:0;width:100%;text-align:left;color:var(--muted);font-size:14px;padding:4px max(16px,env(safe-area-inset-left,0px)) 10px}
-.n-bar{position:sticky;top:calc(env(safe-area-inset-top,0px) + 58px);z-index:12;display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:#8f8f8f;border-bottom:1px solid #7a7a7a;padding:8px max(16px,env(safe-area-inset-left,0px));color:#1b1b1b;font-family:Arial,sans-serif}
+body.nmtmode .rem-fab,body.nmtmode .rem,body.nmtmode.nmtfs .ctop{display:none}
+body.nmtmode .ctop{position:static;margin-inline:0;padding-inline:max(16px,env(safe-area-inset-left,0px));border-bottom:0}
+body.nmtmode .ctop-in{max-width:none}
+.n-back2{background:none;border:0;color:var(--muted);font-size:14px;padding:6px 10px;margin-left:18px}
+.n-back2:hover{color:var(--ink)}
+body.nmtmode .cab{max-width:none;padding:0;margin:0}
+.nmt{background:#fff;min-height:100vh;color:#1b1b1b;font-family:Arial,sans-serif}
+.n-bar{position:sticky;top:0;z-index:12;display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:#fff;border-bottom:1px solid #d9d9d9;padding:calc(env(safe-area-inset-top,0px) + 8px) max(16px,env(safe-area-inset-right,0px)) 8px max(16px,env(safe-area-inset-left,0px));color:#1b1b1b}
 .n-bar b{font-size:14px}
-.n-fs,.n-eye{background:none;border:0;color:#1b1b1b;padding:4px;display:grid;place-items:center}
-.n-eye{background:#a3192a;color:#fff;border-radius:4px;width:30px;height:30px}
-.n-ref{display:inline-flex;gap:6px;align-items:center;background:#9a9a9a;border:1px solid #b11d2c;color:#5a0d14;border-radius:3px;padding:6px 12px;font-size:13px}
-.n-end{background:#a3192a;color:#fff;border:0;border-radius:3px;padding:7px 12px;font-size:13px;font-weight:700}
-.n-time{font-family:Arial,sans-serif;font-weight:700;font-size:17px;min-width:64px;text-align:right}
+.n-fs,.n-eye{background:none;border:0;color:#555;padding:4px;display:grid;place-items:center}
+.n-eye{background:#c8102e;color:#fff;border-radius:4px;width:34px;height:34px}
+.n-ref{display:inline-flex;gap:6px;align-items:center;background:#fff;border:1px solid #c8102e;color:#c8102e;border-radius:3px;padding:7px 12px;font-size:13px}
+.n-ref:hover{background:#fff5f6}
+.n-end{background:#c8102e;color:#fff;border:0;border-radius:3px;padding:8px 14px;font-size:13px;font-weight:700}
+.n-end:hover{background:#a90d27}
+.n-time{font-weight:700;font-size:19px;min-width:70px;text-align:right;color:#333}
 .n-time.hid{visibility:hidden}
-.n-body{display:grid;grid-template-columns:minmax(0,820px) 180px;gap:20px;justify-content:center;padding:20px max(16px,env(safe-area-inset-left,0px)) 60px;background:#8c8c8c;min-height:80vh}
-.n-feed{display:grid;gap:20px;align-content:start;min-width:0}
-.n-card{background:#9a9a9a;border:1px solid #b7646c;box-shadow:0 0 0 3px rgba(163,25,42,.18);border-radius:3px;padding:20px;display:grid;gap:12px;scroll-margin-top:130px;font-family:Arial,sans-serif;color:#1b1b1b}
+.n-body{display:grid;grid-template-columns:minmax(0,926px) 206px;gap:22px;justify-content:center;padding:22px max(16px,env(safe-area-inset-left,0px)) 60px}
+.n-feed{display:grid;gap:22px;align-content:start;min-width:0}
+.n-card{background:#fff;border:1px solid #f6c3c9;box-shadow:0 0 8px 2px rgba(240,90,110,.28);border-radius:3px;padding:24px 22px;display:grid;gap:14px;scroll-margin-top:76px;color:#1b1b1b}
 .n-card h4{font-family:Arial,sans-serif;font-size:14px;font-weight:700}
 .n-q{font-size:15px}
 .n-opts{display:grid;gap:8px}
-.n-opt{display:flex;gap:14px;align-items:center;border:1px solid #b9b9b9;border-radius:3px;padding:11px 14px;cursor:pointer;background:#9d9d9d}
-.n-opt:hover{border-color:#e0e0e0}
-.n-opt input{width:16px;height:16px;accent-color:#a3192a;margin:0}
-.n-opt.sel{border-color:#5a0d14;background:#a5a5a5}
-.n-card .match li b{color:#5a0d14}
-.n-card .cell{background:#a0a0a0;border-color:#bdbdbd;color:#1b1b1b}
-.n-card .cell.on{background:#a3192a;border-color:#a3192a;color:#fff}
-.n-short{font:inherit;font-size:18px;width:220px;max-width:100%;padding:10px 12px;border:1px solid #bdbdbd;border-radius:3px;background:#a5a5a5;color:#111}
-.n-save{justify-self:start;background:#a9a9a9;border:1px solid #bdbdbd;color:#2b2b2b;border-radius:3px;padding:7px 16px;font-size:13px}
-.n-save:not([disabled]){background:#a3192a;border-color:#a3192a;color:#fff}
-.n-save[disabled]{opacity:.75;cursor:default}
-.n-card.saved .n-save[disabled]{color:#1d4d1d}
-.n-side{position:sticky;top:calc(env(safe-area-inset-top,0px) + 120px);align-self:start;background:#9a9a9a;border:1px solid #b0b0b0;border-radius:3px;padding:14px;font-family:Arial,sans-serif}
-.n-side h4{text-align:center;font-size:13px;font-family:Arial,sans-serif;margin-bottom:12px}
+.n-opt{display:flex;gap:16px;align-items:center;border:1px solid #d6d6d6;border-radius:4px;padding:14px 16px;cursor:pointer;background:#fff;min-height:50px}
+.n-opt:hover{border-color:#a8a8a8}
+.n-opt input{width:18px;height:18px;accent-color:#c8102e;margin:0}
+.n-opt.sel{border-color:#c8102e;background:#fff8f9}
+.n-card .match li b{color:#c8102e}
+.n-card .cell{background:#fff;border-color:#d0d0d0;color:#1b1b1b}
+.n-card .cell.on{background:#c8102e;border-color:#c8102e;color:#fff}
+.n-short{font:inherit;font-size:18px;width:220px;max-width:100%;padding:10px 12px;border:1px solid #d0d0d0;border-radius:3px;background:#fff;color:#111}
+.n-save{justify-self:start;background:#efefef;border:1px solid #e3e3e3;color:#9a9a9a;border-radius:3px;padding:8px 18px;font-size:13px}
+.n-save:not([disabled]){background:#c8102e;border-color:#c8102e;color:#fff}
+.n-save[disabled]{cursor:default}
+.n-card.saved .n-save[disabled]{color:#2e7d32}
+.n-side{position:sticky;top:calc(env(safe-area-inset-top,0px) + 76px);align-self:start;background:#fff;border:1px solid #d9d9d9;border-radius:3px;padding:14px 12px}
+.n-side h4{text-align:center;font-size:13px;font-family:Arial,sans-serif;font-weight:400;margin-bottom:12px}
 .n-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
-.n-grid button{height:32px;border:1px solid #bdbdbd;background:#a0a0a0;border-radius:2px;font-weight:700;font-size:12px;color:#1b1b1b}
+.n-grid button{height:38px;border:1px solid #d6d6d6;background:#fff;border-radius:2px;font-weight:700;font-size:12px;color:#1b1b1b}
+.n-grid button:hover{border-color:#999}
 .n-grid button.saved{background:#5e5e5e;color:#fff;border-color:#5e5e5e}
+.n-card .f,.n-card .mono{font-family:"STIX Two Text","Times New Roman",Times,serif;font-size:1.12em;font-variant-numeric:normal;white-space:normal}
+.n-card .f i,.n-card .mono i{font-style:italic}
 .n-start .card{max-width:380px;text-align:center;padding:26px;border-radius:6px;font-family:Arial,sans-serif}
 .n-start h3{font-family:Arial,sans-serif;font-size:16px}
 .n-start p{font-size:12.5px;line-height:1.6}
-.n-go{margin-top:18px;background:#a3192a;color:#fff;border:0;border-radius:3px;padding:10px 26px;font-weight:700}
+.n-go{margin-top:18px;background:#c8102e;color:#fff;border:0;border-radius:3px;padding:10px 26px;font-weight:700}
 .les-top{display:flex;align-items:center;gap:14px;margin-bottom:16px;flex-wrap:wrap}.les-top b{font-weight:800;border-left:1px solid var(--line);padding-left:14px}
 .les-g{display:grid;grid-template-columns:1.25fr 1fr;gap:18px;align-items:start}
 .les-video{position:relative;aspect-ratio:16/9;border-radius:16px;overflow:hidden;cursor:pointer;background:#fbfbfb linear-gradient(#0000 0 0);background-image:linear-gradient(rgba(0,0,0,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(0,0,0,.05) 1px,transparent 1px);background-size:22px 22px;border:1px solid var(--line)}
@@ -628,7 +630,8 @@ body.nmtmode .rem-fab{display:none}
 .refv-x{color:var(--muted)}
 .refv-body{background:#f4f4f4;padding:18px}
 .refv-msg{padding:8px 16px;color:var(--bad);font-size:14px}
-@media (max-width:900px){.n-body{grid-template-columns:1fr}.n-side{position:static;order:-1}.n-grid{grid-template-columns:repeat(auto-fill,minmax(40px,1fr))}.n-bar{top:calc(env(safe-area-inset-top,0px) + 100px)}}
+@media (max-width:900px){.n-body{grid-template-columns:1fr}.n-side{position:static;order:-1}.n-grid{grid-template-columns:repeat(auto-fill,minmax(40px,1fr))}}
+@media (max-width:600px){.n-bar{gap:6px}.n-bar b{font-size:13px}.n-ref,.n-end{font-size:12px;padding:6px 8px}.n-time{font-size:16px;min-width:0}.n-eye{width:30px;height:30px}.n-body{padding-top:14px}.n-card{padding:16px 14px}}
 
 .rf-paper{background:#fff;color:#1a1a1a;font-family:"Times New Roman",Times,Georgia,serif;font-size:15px;line-height:1.5;padding:28px 34px;max-width:780px;margin:0 auto;box-shadow:0 2px 10px rgba(0,0,0,.08)}
 .rf-title{text-align:center;font-size:17px;font-weight:700;margin:4px 0 10px;font-family:inherit}
@@ -1359,6 +1362,7 @@ function renderCab(){
   root.innerHTML=`
   <header class="ctop"><div class="ctop-in">
     <button class="logo" data-view=""><i>√x</i>Назва школи</button>
+    ${view==="test"&&S&&S.mode==="sim"&&S.stage==="test"?`<button class="n-back2" id="nback">← Назад до меню</button>`:""}
     <nav class="cnav">${nav.map(([v,n,ic])=>`<button class="${active===v?"on":""}" data-view="${v}">${ic}${n}</button>`).join("")}</nav>
     <span class="me" title="Учень">УЧ</span>
   </div></header>
@@ -2457,7 +2461,6 @@ function nmtCard(k){
 function renderNmt(cab){
   document.body.classList.add("nmtmode");
   cab.innerHTML=`<div class="nmt">
-    <button class="n-back" id="back">← Назад до меню</button>
     <div class="n-bar"><b>Формат НМТ</b><button class="n-fs" id="fs" aria-label="Повноекранний режим" title="Повноекранний режим"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
       <span style="flex:1"></span>
       <button class="n-ref" id="ref"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M3 5c3-1.3 6-1.3 9 0v15c-3-1.3-6-1.3-9 0V5Zm18 0v15c-3-1.3-6-1.3-9 0V5c3-1.3 6-1.3 9 0Z"/></svg>Довідкові матеріали</button>
@@ -2469,7 +2472,8 @@ function renderNmt(cab){
     ${S.pending?`<div class="modal n-start"><div class="card" role="dialog" aria-modal="true" aria-labelledby="ns-t"><h3 id="ns-t">Формат НМТ</h3><p>Тест відкривається у повноекранному режимі, з інтерфейсом, наближеним до справжнього НМТ. На виконання є 90 хвилин. Після завершення роботи натисніть кнопку «Завершити роботу над тестом» у верхньому правому куті, щоб вийти з повноекранного режиму.</p><button class="n-go" id="ngo">▶ Розпочати тест</button></div></div>`:""}
   </div>`;
   const root2=cab.querySelector(".nmt");
-  const refresh=k=>{document.getElementById("nq"+k).outerHTML=nmtCard(k);const g=root2.querySelector(`[data-jump="${k}"]`);g.classList.toggle("saved",answered(k))};
+  mathify(root2);
+  const refresh=k=>{document.getElementById("nq"+k).outerHTML=nmtCard(k);mathify(document.getElementById("nq"+k));const g=root2.querySelector(`[data-jump="${k}"]`);g.classList.toggle("saved",answered(k))};
   root2.addEventListener("click",e=>{
     const el=e.target.closest("[data-opt],[data-r],[data-save],[data-jump]");if(!el)return;
     if(el.dataset.jump!=null){const c=document.getElementById("nq"+el.dataset.jump);c.scrollIntoView({behavior:"smooth",block:"start"});S.cur=+el.dataset.jump;save();return}
@@ -2482,15 +2486,25 @@ function renderNmt(cab){
     const b=root2.querySelector(`[data-save="${k}"]`);b.disabled=!filled(T(k),val(k));b.textContent="Зберегти відповідь"});
   document.getElementById("finish").onclick=askFinish;
   document.getElementById("ref").onclick=openRef;
-  document.getElementById("back").onclick=()=>{exitFs();goView(S.back||"kabinet")};
+  const nb=document.getElementById("nback");if(nb)nb.onclick=()=>{exitFs();goView(S.back||"kabinet")};
+  document.body.classList.toggle("nmtfs",!!fsEl());
   document.getElementById("eye").onclick=()=>{S.hideT=!S.hideT;save();render()};
-  document.getElementById("fs").onclick=()=>{document.fullscreenElement?exitFs():enterFs()};
+  document.getElementById("fs").onclick=()=>{fsEl()?exitFs():enterFs()};
   const go=document.getElementById("ngo");
-  if(go)go.onclick=()=>{S.pending=false;S.endsAt=Date.now()+MODES.sim.dur*1000;S.left=MODES.sim.dur;S.startedAt=Date.now();save();enterFs();render()};
+  if(go)go.onclick=()=>{S.pending=false;S.endsAt=Date.now()+MODES.sim.dur*1000;S.left=MODES.sim.dur;S.startedAt=Date.now();save();enterFs();render();toTop()};
   if(S.endsAt)startTimer();
 }
-function enterFs(){try{const p=document.documentElement.requestFullscreen?.();if(p&&p.catch)p.catch(()=>{})}catch(e){}}
-function exitFs(){try{if(document.fullscreenElement){const p=document.exitFullscreen();if(p&&p.catch)p.catch(()=>{})}}catch(e){}}
+function mathify(el){
+  el.querySelectorAll(".n-card .f,.n-card .mono,.n-card.f").forEach(f=>{if(f.dataset.m)return;f.dataset.m=1;
+    const w=document.createTreeWalker(f,NodeFilter.SHOW_TEXT),ns=[];while(w.nextNode())ns.push(w.currentNode);
+    ns.forEach(t=>{if(!/[A-Za-z-]/.test(t.data))return;const sp=document.createElement("span");
+      sp.innerHTML=t.data.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/-/g,"−").replace(/(^|[^A-Za-z])([A-Za-z])(?![A-Za-z])/g,"$1<i>$2</i>");
+      t.replaceWith(...sp.childNodes)})})
+}
+const fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement||null;
+function enterFs(){try{const d=document.documentElement,p=(d.requestFullscreen||d.webkitRequestFullscreen)?.call(d);if(p&&p.catch)p.catch(()=>{})}catch(e){}}
+function exitFs(){try{if(fsEl()){const p=(document.exitFullscreen||document.webkitExitFullscreen).call(document);if(p&&p.catch)p.catch(()=>{})}}catch(e){}}
+["fullscreenchange","webkitfullscreenchange"].forEach(ev=>document.addEventListener(ev,()=>document.body.classList.toggle("nmtfs",!!fsEl())));
 
 const isPractice=()=>S.mode==="practice"||S.mode==="mist";
 function val(k){return S.dr&&k in S.dr?S.dr[k]:S.ans[k]}
@@ -2682,5 +2696,4 @@ addEventListener("load",()=>{if(view==="home")toTop()});
 addEventListener("pageshow",e=>{if(e.persisted){if(location.hash)try{history.replaceState(null,"",location.pathname+location.search)}catch(_){}view="home";render();toTop()}});
 </script>
 
-</body>
-</html>
+</body></html>
