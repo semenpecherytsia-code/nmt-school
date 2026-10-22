@@ -298,7 +298,7 @@ button.me{border:0;cursor:pointer;padding:0}
 .q-num{font-family:var(--f-display);font-size:20px}
 .q-type{font-size:13px;color:var(--muted)}
 .q-text{font-size:18px;margin:0 0 22px;max-width:62ch}
-.f{font-family:var(--f-mono);font-size:.95em;white-space:nowrap}
+.f{white-space:nowrap}
 .opts{display:grid;gap:10px}
 .opt{display:grid;grid-template-columns:40px 1fr;gap:14px;align-items:center;text-align:left;background:transparent;border:1.5px solid var(--line);border-radius:12px;padding:10px 14px}
 .opt:hover{border-color:var(--accent)}
@@ -336,7 +336,7 @@ button.me{border:0;cursor:pointer;padding:0}
 .cell:hover{border-color:var(--accent)}
 .cell.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
 .short{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
-.short input{font-family:var(--f-mono);font-size:22px;width:200px;max-width:100%;padding:10px 14px;border:1.5px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)}
+.short input{font-family:"STIX Two Text","Times New Roman",serif;font-size:22px;width:200px;max-width:100%;padding:10px 14px;border:1.5px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)}
 .short input:focus{border-color:var(--accent);outline:none}
 .hint{font-size:13px;color:var(--muted);margin-top:10px}
 .feedback{margin-top:16px;border-radius:12px;padding:12px 16px;font-size:15px}
@@ -1941,7 +1941,7 @@ function chartSVG(rs){
 /* ===== Remember cards ===== */
 function remHTML(){const c=REMEMBER[remIdx];
   return `<div class="rem" role="dialog" aria-label="Запам’ятай"><div class="rem-h"><span>🦉 Запам’ятай</span><button id="rem-x" aria-label="Закрити">×</button></div>
-  <div class="rem-b"><h4>${c.h}</h4><p>${c.p}</p>${c.svg}<div class="rem-f"><button id="rem-p" aria-label="Попередня">←</button><span>${remIdx+1} / ${REMEMBER.length}</span><button id="rem-n" aria-label="Наступна">→</button></div></div></div>`}
+  <div class="rem-b"><h4>${c.h}</h4><p>${tsHTML(c.p)}</p>${c.svg}<div class="rem-f"><button id="rem-p" aria-label="Попередня">←</button><span>${remIdx+1} / ${REMEMBER.length}</span><button id="rem-n" aria-label="Наступна">→</button></div></div></div>`}
 function bindRem(){
   const o=document.getElementById("rem-open");if(o)o.onclick=()=>{remOpen=true;swapRem()};
   const x=document.getElementById("rem-x");if(x)x.onclick=()=>{remOpen=false;swapRem()};
@@ -2112,7 +2112,7 @@ let refPage=0;
 function openRef(){
   const m=document.createElement("div");m.className="refv";m.setAttribute("role","dialog");m.setAttribute("aria-modal","true");m.setAttribute("aria-label","Довідкові матеріали");
   const draw=()=>{m.innerHTML=`<div class="refv-in"><div class="refv-bar"><button class="refv-x" data-x aria-label="Закрити">×</button><div class="refv-nav"><button data-p="-1" ${refPage===0?"disabled":""} aria-label="Попередня сторінка">‹</button><span class="mono">${refPage+1} / ${REF_PAGES.length}</span><button data-p="1" ${refPage===REF_PAGES.length-1?"disabled":""} aria-label="Наступна сторінка">›</button></div><button class="refv-dl" data-dl aria-label="Завантажити" title="Завантажити"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M11 3h2v9.2l3.3-3.3 1.4 1.4L12 16 6.3 10.3l1.4-1.4L11 12.2V3ZM5 18h14v2H5v-2Z"/></svg></button></div>
-    <div class="refv-body"><div class="rf-paper">${REF_PAGES[refPage]}</div></div><p class="refv-msg" hidden></p></div>`;
+    <div class="refv-body"><div class="rf-paper">${tsHTML(REF_PAGES[refPage])}</div></div><p class="refv-msg" hidden></p></div>`;
     m.querySelectorAll("[data-p]").forEach(b=>b.onclick=()=>{refPage=Math.max(0,Math.min(REF_PAGES.length-1,refPage+ +b.dataset.p));draw()});
     m.querySelector("[data-x]").onclick=()=>m.remove();
     m.querySelector("[data-dl]").onclick=downloadRef;
@@ -2125,7 +2125,7 @@ function openRef(){
 async function downloadRef(){
   const msg=document.querySelector(".refv-msg");
   const say=t=>{if(msg){msg.textContent=t;msg.hidden=false}};
-  const html=`<!doctype html><html lang="uk"><head><meta charset="utf-8"><title>Довідкові матеріали НМТ</title><style>body{background:#eee;margin:0;padding:20px}${REF_CSS}.rf-paper{margin-bottom:24px}</style></head><body>${REF_PAGES.map(p=>`<div class="rf-paper">${p}</div>`).join("")}</body></html>`;
+  const html=`<!doctype html><html lang="uk"><head><meta charset="utf-8"><title>Довідкові матеріали НМТ</title><style>body{background:#eee;margin:0;padding:20px}${REF_CSS}${MATH_CSS}.rf-paper{margin-bottom:24px}</style></head><body>${REF_PAGES.map(p=>`<div class="rf-paper">${tsHTML(p)}</div>`).join("")}</body></html>`;
   try{const dl=await window.claude?.use?.("downloads");
     if(!dl){say("Завантаження недоступне в цьому вікні.");return}
     await dl.save({filename:"dovidkovi-materialy-nmt.html",data:new Blob([html],{type:"text/html"})});
@@ -2335,7 +2335,7 @@ const LES_DOCS={
   ["Добуток","<span class='f'>logₐ(xy) = logₐx + logₐy</span>"],
   ["Частка","<span class='f'>logₐ(x/y) = logₐx − logₐy</span>"],
   ["Степінь","<span class='f'>logₐxⁿ = n·logₐx</span>, <span class='f'>log_(aᵏ)b = (1/k)logₐb</span>"],
-  ["Нова основа","<span class='f'>logₐb = log_cb / log_ca</span>"],
+  ["Нова основа","<span class='f'>logₐb = (log<sub>c</sub>b)/(log<sub>c</sub>a)</span>"],
   ["Позначення","<span class='f'>lg b = log₁₀b</span>, <span class='f'>ln b = log_e b</span>"]]),
  kon:[
   KT("Логарифми та їхні властивості")+KB("1. Що таке логарифм")+KP("Логарифм відповідає на запитання: <b>у який степінь треба піднести основу, щоб отримати число?</b>")+
@@ -2348,7 +2348,7 @@ const LES_DOCS={
   KE("Обчисліть <span class='f'>lg 25 + lg 4</span>.",["lg(25 · 4) = lg 100.","= 2."],"2")+
   KE("Обчисліть <span class='f'>log₃54 − log₃2</span>.",["log₃(54 : 2) = log₃27.","= 3."],"3")+
   KN("Ці властивості працюють лише для логарифмів з однаковою основою."),
-  KB("4. Перехід до нової основи")+KR("<span class='f'>logₐb = log_c b / log_c a</span>, &nbsp; зокрема <span class='f'>logₐb = 1 / log_b a</span>")+
+  KB("4. Перехід до нової основи")+KR("<span class='f'>logₐb = (log<sub>c</sub>b)/(log<sub>c</sub>a)</span>, &nbsp; зокрема <span class='f'>logₐb = 1/(log<sub>b</sub>a)</span>")+
   KE("Обчисліть <span class='f'>log₄8</span>.",["Переходимо до основи 2: log₂8 / log₂4.","3 / 2 = 1,5."],"1,5")+
   KB("5. Десятковий логарифм")+KP("lg — логарифм за основою 10: lg 10 = 1, lg 100 = 2, lg 0,1 = −1, lg 0,001 = −3. Кількість нулів підказує відповідь.")+
   KB("6. Як розв’язувати завдання")+KP("1) Подивись на основи — чи можна звести до однієї. 2) Сума/різниця логарифмів → логарифм добутку/частки. 3) Множник перед логарифмом → у показник. 4) Перевір, що числа під логарифмом додатні.")+
@@ -2570,7 +2570,7 @@ const KN_CSS=`.kn-p{margin:6px 0 8px}
 .kn-tb{border-collapse:collapse;margin:8px 0;width:100%;font-size:14.5px}.kn-tb th,.kn-tb td{border:1px solid #bbb;padding:4px 8px;text-align:left}.kn-tb th{background:#eee}
 .kn-map{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
 .kn-mc{border:1.5px solid #f3c48a;border-radius:10px;padding:8px 10px;background:#fffaf3}.kn-mc h5{margin:0 0 4px;font-family:Arial,sans-serif;font-size:13px;color:#b45309;letter-spacing:.01em}
-.rf-paper .f{font-family:"Times New Roman",Times,serif}
+.rf-paper .f{font-family:"STIX Two Text","Times New Roman",Times,serif}
 .kn-wb{margin:10px 0;padding:8px 0;border-bottom:1px dashed #ccc}.kn-wb b{margin-right:6px}.kn-wo{display:flex;flex-wrap:wrap;gap:6px 18px;margin:6px 0 4px 22px;font-size:14.5px}
 .rf-paper:has(.kn-wbp){background-color:#fff;background-image:linear-gradient(#e6e6e6 1px,transparent 1px),linear-gradient(90deg,#e6e6e6 1px,transparent 1px);background-size:20px 20px}
 .kn-wi{margin:22px 0 0}.kn-wq{display:flex;align-items:stretch;gap:0;border:1.5px solid #222;background:#fff}
@@ -2605,7 +2605,7 @@ function openDoc(doc){
   let pg=0;const N0=doc.pages.length;
   const m=document.createElement("div");m.className="refv";m.setAttribute("role","dialog");m.setAttribute("aria-modal","true");m.setAttribute("aria-label",doc.title);
   const draw=()=>{m.innerHTML=`<div class="refv-in"><div class="refv-bar"><button class="refv-x" data-x aria-label="Закрити">×</button><div class="refv-nav"><b class="refv-name">${doc.title}</b>${N0>1?`<button data-p="-1" ${pg===0?"disabled":""} aria-label="Попередня сторінка">‹</button><span>${pg+1} / ${N0}</span><button data-p="1" ${pg===N0-1?"disabled":""} aria-label="Наступна сторінка">›</button>`:""}</div><button class="refv-dl" data-dl aria-label="Завантажити" title="Завантажити">⤓</button></div>
-    <div class="refv-body"><div class="rf-paper">${doc.pages[pg]}</div></div><p class="refv-msg" hidden></p></div>`;
+    <div class="refv-body"><div class="rf-paper">${tsHTML(doc.pages[pg])}</div></div><p class="refv-msg" hidden></p></div>`;
     m.querySelectorAll("[data-p]").forEach(b=>b.onclick=()=>{pg=Math.max(0,Math.min(N0-1,pg+ +b.dataset.p));draw();m.scrollTop=0});
     m.querySelector("[data-x]").onclick=()=>m.remove();
     m.querySelector("[data-dl]").onclick=()=>downloadDoc(doc);
@@ -2617,7 +2617,7 @@ function openDoc(doc){
 }
 async function downloadDoc(doc){
   const msg=document.querySelector(".refv-msg"),say=t=>{if(msg){msg.textContent=t;msg.hidden=false}};
-  const html=`<!doctype html><html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${doc.title}</title><style>body{background:#eee;margin:0;padding:20px}.f{font-family:"Times New Roman",serif}${REF_CSS}${KN_CSS}.rf-paper{margin-bottom:24px}</style></head><body>${doc.pages.map(p=>`<div class="rf-paper">${p}</div>`).join("")}</body></html>`;
+  const html=`<!doctype html><html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${doc.title}</title><style>body{background:#eee;margin:0;padding:20px}.f{font-family:"Times New Roman",serif}${REF_CSS}${KN_CSS}${MATH_CSS}.rf-paper{margin-bottom:24px}</style></head><body>${doc.pages.map(p=>`<div class="rf-paper">${tsHTML(p)}</div>`).join("")}</body></html>`;
   try{const dl=await window.claude?.use?.("downloads");
     if(dl){await dl.save({filename:doc.file,data:new Blob([html],{type:"text/html"})});return}
     const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([html],{type:"text/html"}));a.download=doc.file;document.body.appendChild(a);a.click();a.remove();
@@ -2663,13 +2663,13 @@ function nmtCard(k){
     body=`<div class="n-opts">${t.o.map((o,j)=>`<label class="n-opt${v===j?" sel":""}"><input type="radio" name="n${k}" data-k="${k}" data-opt="${j}" ${v===j?"checked":""}><span class="f">${o}</span></label>`).join("")}</div>`;
   }else if(t.t==="match"){
     const m=v||[null,null,null];
-    body=`<div class="match"><ol>${t.l.map((x,j)=>`<li><b>${j+1}</b><span>${x}</span></li>`).join("")}</ol><ol>${t.r.map((x,j)=>`<li><b>${L[j]}</b><span class="mono">${x}</span></li>`).join("")}</ol></div>
+    body=`<div class="match"><ol>${t.l.map((x,j)=>`<li><b>${j+1}</b><span class="f">${x}</span></li>`).join("")}</ol><ol>${t.r.map((x,j)=>`<li><b>${L[j]}</b><span class="mono">${x}</span></li>`).join("")}</ol></div>
     <div class="grid-wrap"><table class="mgrid"><thead><tr><th></th>${L.map(x=>`<th>${x}</th>`).join("")}</tr></thead><tbody>${t.l.map((_,r)=>`<tr><th>${r+1}</th>${L.map((x,c)=>`<td><button class="cell${m[r]===c?" on":""}" data-k="${k}" data-r="${r}" data-c="${c}" aria-label="${r+1} — ${x}">${x}</button></td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
   }else{
     body=`<input class="n-short" data-k="${k}" data-short inputmode="decimal" autocomplete="off" value="${v??""}" placeholder="Відповідь" aria-label="Відповідь до завдання ${k+1}">`;
   }
-  return `<section class="n-card${answered(k)?" saved":""}" id="nq${k}"><h4>Завдання ${k+1}</h4><p class="n-q">${t.q}</p>${body}
-    <button class="n-save" data-save="${k}" ${dirty&&filled(t,v)?"":"disabled"}>${answered(k)&&!dirty?"Відповідь збережено":"Зберегти відповідь"}</button></section>`;
+  return tsHTML(`<section class="n-card${answered(k)?" saved":""}" id="nq${k}"><h4>Завдання ${k+1}</h4><p class="n-q">${t.q}</p>${body}
+    <button class="n-save" data-save="${k}" ${dirty&&filled(t,v)?"":"disabled"}>${answered(k)&&!dirty?"Відповідь збережено":"Зберегти відповідь"}</button></section>`);
 }
 function renderNmt(cab){
   document.body.classList.add("nmtmode");
@@ -2685,8 +2685,7 @@ function renderNmt(cab){
     ${S.pending?`<div class="modal n-start"><div class="card" role="dialog" aria-modal="true" aria-labelledby="ns-t"><h3 id="ns-t">Формат НМТ</h3><p>Тест відкривається у повноекранному режимі, з інтерфейсом, наближеним до справжнього НМТ. На виконання є 90 хвилин. Після завершення роботи натисніть кнопку «Завершити роботу над тестом» у верхньому правому куті, щоб вийти з повноекранного режиму.</p><button class="n-go" id="ngo">▶ Розпочати тест</button></div></div>`:""}
   </div>`;
   const root2=cab.querySelector(".nmt");
-  mathify(root2);
-  const refresh=k=>{document.getElementById("nq"+k).outerHTML=nmtCard(k);mathify(document.getElementById("nq"+k));const g=root2.querySelector(`[data-jump="${k}"]`);g.classList.toggle("saved",answered(k))};
+  const refresh=k=>{document.getElementById("nq"+k).outerHTML=nmtCard(k);const g=root2.querySelector(`[data-jump="${k}"]`);g.classList.toggle("saved",answered(k))};
   root2.addEventListener("click",e=>{
     const el=e.target.closest("[data-opt],[data-r],[data-save],[data-jump]");if(!el)return;
     if(el.dataset.jump!=null){const c=document.getElementById("nq"+el.dataset.jump);c.scrollIntoView({behavior:"smooth",block:"start"});S.cur=+el.dataset.jump;save();return}
@@ -2695,7 +2694,8 @@ function renderNmt(cab){
     if(el.dataset.opt!=null){setDraft(k,+el.dataset.opt);refresh(k);return}
     if(el.dataset.r!=null){const r=+el.dataset.r,c=+el.dataset.c,m=(val(k)||[null,null,null]).slice();m[r]=m[r]===c?null:c;setDraft(k,m);refresh(k)}
   });
-  root2.addEventListener("input",e=>{const el=e.target;if(el.dataset.short==null)return;const k=+el.dataset.k;setDraft(k,el.value.trim()||null);
+  root2.addEventListener("beforeinput",e=>{if(e.target.dataset.short!=null)numGuard(e)});
+  root2.addEventListener("input",e=>{const el=e.target;if(el.dataset.short==null)return;numClean(el);const k=+el.dataset.k;setDraft(k,el.value.trim()||null);
     const b=root2.querySelector(`[data-save="${k}"]`);b.disabled=!filled(T(k),val(k));b.textContent="Зберегти відповідь"});
   document.getElementById("finish").onclick=askFinish;
   document.getElementById("ref").onclick=openRef;
@@ -2707,13 +2707,69 @@ function renderNmt(cab){
   if(go)go.onclick=()=>{S.pending=false;S.endsAt=Date.now()+MODES.sim.dur*1000;S.left=MODES.sim.dur;S.startedAt=Date.now();save();enterFs();render();toTop()};
   if(S.endsAt)startTimer();
 }
-function mathify(el){
-  el.querySelectorAll(".n-card .f,.n-card .mono,.n-card.f").forEach(f=>{if(f.dataset.m)return;f.dataset.m=1;
-    const w=document.createTreeWalker(f,NodeFilter.SHOW_TEXT),ns=[];while(w.nextNode())ns.push(w.currentNode);
-    ns.forEach(t=>{if(!/[A-Za-z-]/.test(t.data))return;const sp=document.createElement("span");
-      sp.innerHTML=t.data.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/-/g,"−").replace(/(^|[^A-Za-z])([A-Za-z])(?![A-Za-z])/g,"$1<i>$2</i>");
-      t.replaceWith(...sp.childNodes)})})
+/* ===== Math typesetting: formulas look like a school notebook (stacked fractions, radicals, systems) ===== */
+const TS_SUP={"⁰":"0","¹":"1","²":"2","³":"3","⁴":"4","⁵":"5","⁶":"6","⁷":"7","⁸":"8","⁹":"9","ⁿ":"n","ˣ":"x","ʸ":"y","ᵐ":"m","ᵏ":"k","ᶜ":"c","ᵃ":"a","ᵇ":"b","⁺":"+","⁻":"−"};
+const TS_FN=new Set(["log","lg","ln","sin","cos","tg","ctg","tan","cot","arcsin","arccos","arctg","arcctg","max","min","lim","sgn"]);
+const TS_SUB={"₀":"0","₁":"1","₂":"2","₃":"3","₄":"4","₅":"5","₆":"6","₇":"7","₈":"8","₉":"9","ₐ":"a"};
+function tsHTML(h){
+  if(h==null)return h;h=String(h);
+  const keep=[],P=x=>{keep.push(x);return "\u0001"+(keep.length-1)+"\u0002"};
+  // a system written as "A,  B" inside a formula gets a curly brace
+  h=h.replace(/<span class="f">([^<]*?),\s{2,}([^<]*?)<\/span>/g,(_,a,b)=>`<span class="f"><span class="msys"><span>${a}</span><span>${b}</span></span></span>`);
+  // protect markup (all tags except sup/sub, whole svg/style blocks)
+  h=h.replace(/<svg[\s\S]*?<\/svg>|<(style|script)\b[\s\S]*?<\/\1>|<(?!\/?su[pb]>)\/?[A-Za-z!][^>]*>/g,P);
+  const SUPS="⁰¹²³⁴⁵⁶⁷⁸⁹ⁿˣʸᵐᵏᶜᵃᵇ⁺⁻",CH="0-9A-Za-zα-ωπ√∛∜,.·"+SUPS+"₀₁₂₃₄₅₆₇₈₉ₐ",SS="<su[pb]>[^<]*</su[pb]>";
+  const PAR="\\((?:[^()\\u0001]|\\((?:[^()\\u0001]|\\([^()\\u0001]*\\))*\\))*\\)";
+  const PS=`(?:${PAR}(?:[${SUPS}]|${SS})*)`,TOK=`−?(?:[${CH}]|${SS})+`,AT=`(?:${TOK}${PS}*|${PS}+)`;
+  // underscore indices log_c, log_(a^k)
+  h=h.replace(new RegExp(`(log|lg|ln)_(${PAR}|[0-9A-Za-z]+)`,"g"),(m,f,e)=>f+"<sub>"+(e[0]==="("?e.slice(1,-1):e)+"</sub>");
+  // caret powers a^(m/n), 2^x -> superscripts
+  h=h.replace(new RegExp(`\\^(${PAR}|[0-9A-Za-z−-]+)`,"g"),(m,e)=>"<sup>"+(e[0]==="("?e.slice(1,-1):e)+"</sup>");
+  const unwrap=s=>{if(!/^\(.*\)$/.test(s))return s;let d=0;for(let i=0;i<s.length;i++){if(s[i]==="(")d++;else if(s[i]===")"){d--;if(d===0&&i<s.length-1)return s}}return s.slice(1,-1)};
+  const FR=new RegExp(`(?<![${CH}А-Яа-яЇїІіЄєҐґ'’)\\u0001])(${AT}) ?\\/ ?(${AT})(?![А-Яа-яЇїІіЄєҐґ'’(])`,"g");
+  for(let pass=0;pass<2;pass++)h=h.replace(FR,(m,a,b)=>{let tail="";const t=b.match(/[,.]+$/);if(t){tail=t[0];b=b.slice(0,-tail.length)}
+    if(!a||!b||/^[.,]|[.,]$/.test(a))return m;
+    return P('<span class="mf"><span class="mf-n">')+unwrap(a)+P('</span><span class="mf-d">')+unwrap(b)+P('</span></span>')+tail});
+  // vulgar fractions ⅓, ³⁄₅ -> stacked
+  const VF={"½":"1/2","⅓":"1/3","⅔":"2/3","¼":"1/4","¾":"3/4","⅕":"1/5","⅖":"2/5","⅗":"3/5","⅘":"4/5","⅙":"1/6","⅚":"5/6","⅛":"1/8","⅜":"3/8","⅝":"5/8","⅞":"7/8"};
+  const frm=(a,b)=>P('<span class="mf"><span class="mf-n">')+a+P('</span><span class="mf-d">')+b+P('</span></span>');
+  h=h.replace(/[½⅓⅔¼¾⅕⅖⅗⅘⅙⅚⅛⅜⅝⅞]/g,c=>{const [a,b]=VF[c].split("/");return frm(a,b)});
+  h=h.replace(/([⁰¹²³⁴⁵⁶⁷⁸⁹]+)⁄([₀₁₂₃₄₅₆₇₈₉]+)/g,(m,a,b)=>frm([...a].map(c=>TS_SUP[c]).join(""),[...b].map(c=>TS_SUB[c]).join("")));
+  // radicals: √x, √17, √(x − 2), ∛(−8)
+  const PARX=PAR.replace(/\\u0001/g,"");
+  h=h.replace(new RegExp(`([ⁿᵏᵐ]?)([√∛∜])(${PARX}|(?:[0-9A-Za-zα-ωπ]|,(?=[0-9]))+(?:<sup>[^<]*</sup>|[${SUPS}])*)`,"g"),(m,ix,s,r)=>{const i=ix?TS_SUP[ix]:s==="∛"?"3":s==="∜"?"4":"";
+    return P(`<span class="mr${i?" ix":""}">${i?`<span class="mr-i">${i}</span>`:""}<span class="mr-s" aria-label="корінь"></span><span class="mr-b">`)+unwrap(r)+P('</span></span>')});
+  // definite integral limits
+  h=h.replace(/∫([₀₁₂₃₄₅₆₇₈₉−-]+)([⁰¹²³⁴⁵⁶⁷⁸⁹⁻]+)/g,(m,a,b)=>P('<span class="mint">∫<span class="mlim"><span>')+[...b].map(c=>TS_SUP[c]||c).join("")+P('</span><span>')+[...a].map(c=>TS_SUB[c]||c).join("")+P('</span></span></span>'));
+  // unicode super/subscripts -> real ones
+  h=h.replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹ⁿˣʸᵐᵏᶜᵃᵇ⁺⁻]+/g,m=>P("<sup>")+[...m].map(c=>TS_SUP[c]).join("")+P("</sup>"));
+  h=h.replace(/[₀₁₂₃₄₅₆₇₈₉ₐ]+/g,m=>P("<sub>")+[...m].map(c=>TS_SUB[c]).join("")+P("</sub>"));
+  // minus sign and italic single-letter variables
+  h=h.replace(/(^|[^А-Яа-яЇїІіЄєҐґA-Za-z])-(?=[\s0-9A-Za-z(√])/g,"$1−");
+  h=h.replace(/<\/?su[pb]>/g,P);
+  h=h.replace(/&[a-z]+;|&#\d+;|[A-Za-z]+/g,w=>w[0]==="&"||TS_FN.has(w)||w.length>3?w:`<i>${w}</i>`);
+  for(let i=0;i<4&&h.includes("\u0001");i++)h=h.replace(/\u0001(\d+)\u0002/g,(_,n)=>keep[+n]);
+  // tall brackets around a stacked fraction
+  return h.replace(/\((<span class="mf"><span class="mf-n">(?:(?!<span class="mf">)[\s\S])*?<\/span><\/span>)\)/g,'<span class="mp">(</span>$1<span class="mp">)</span>');
 }
+const MATH_CSS=`.f{font-family:"STIX Two Text","Times New Roman",Times,serif;font-size:1.12em;font-variant-numeric:normal}
+.f i,.mf i,.mr i{font-style:italic}
+.f sup,.f sub,.mf sup,.mf sub{font-size:.7em;line-height:0}
+.mf{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;font-family:"STIX Two Text","Times New Roman",Times,serif;font-size:.9em;line-height:1.12;margin:0 .12em;white-space:nowrap}
+.mf-n{border-bottom:.075em solid currentColor;padding:0 .2em .06em}
+.mf-d{padding:.06em .2em 0}
+.mr{white-space:nowrap;display:inline-flex;align-items:stretch;position:relative;vertical-align:-.12em;margin:0 .05em}
+.mr.ix{padding-left:.22em}
+.mr-s{width:.6em;flex:none;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 24' preserveAspectRatio='none'%3E%3Cpath d='M0 13.6 L2.9 12.3 L6.1 20.6 L10.9 0 H12 V1.25 H11.85 L6.75 23.6 H5.6 L2.2 14.6 L0.5 15.2 Z'/%3E%3C/svg%3E") no-repeat 0 0/100% 100%;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 24' preserveAspectRatio='none'%3E%3Cpath d='M0 13.6 L2.9 12.3 L6.1 20.6 L10.9 0 H12 V1.25 H11.85 L6.75 23.6 H5.6 L2.2 14.6 L0.5 15.2 Z'/%3E%3C/svg%3E") no-repeat 0 0/100% 100%}
+.mr-b{border-top:.075em solid currentColor;padding:.1em .12em 0 .08em;line-height:1.1}
+.mr-i{position:absolute;left:.08em;top:-.08em;font-size:.55em;line-height:1}
+.mp{font-size:1.55em;line-height:0;vertical-align:-.1em;font-weight:300}
+.msys{display:inline-flex;flex-direction:column;position:relative;padding-left:.7em;vertical-align:middle;line-height:1.45;text-align:left}
+.msys::before{content:"{";position:absolute;left:0;top:50%;transform:translateY(-52%) scaleY(2.3);font-weight:300}
+.mint{display:inline-flex;align-items:center;white-space:nowrap}.mint{font-size:1.15em}
+.mlim{display:inline-flex;flex-direction:column;font-size:.55em;line-height:1.3;margin:0 .2em 0 .05em}`;
+{const st=document.createElement("style");st.textContent=MATH_CSS+`.savebtn.saved:disabled{opacity:1;background:var(--ok-soft);color:var(--ok);border-color:transparent;cursor:default}`;document.head.appendChild(st)}
+
 const fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement||null;
 function enterFs(){try{const d=document.documentElement,p=(d.requestFullscreen||d.webkitRequestFullscreen)?.call(d);if(p&&p.catch)p.catch(()=>{})}catch(e){}}
 function exitFs(){try{if(fsEl()){const p=(document.exitFullscreen||document.webkitExitFullscreen).call(document);if(p&&p.catch)p.catch(()=>{})}}catch(e){}}
@@ -2723,6 +2779,10 @@ const isPractice=()=>S.mode==="practice"||S.mode==="mist";
 function val(k){return S.dr&&k in S.dr?S.dr[k]:S.ans[k]}
 function setDraft(k,v){S.dr=S.dr||{};S.dr[k]=v;save()}
 function filled(t,v){if(t.t==="match")return !!v&&v.every(x=>x!==null);return v!==null&&v!==undefined&&v!==""}
+// short answers accept only a number: digits, a leading minus, one comma or point
+function numClean(el){const v=el.value,c=v.replace(/−/g,"-").replace(/[^0-9,.\-]/g,"").replace(/(?!^)-/g,"");let sep=0;const c2=c.replace(/[.,]/g,m=>sep++?"":m);if(c2!==v){const p=Math.max(0,(el.selectionStart||c2.length)-(v.length-c2.length));el.value=c2;try{el.setSelectionRange(p,p)}catch(e){}}}
+function numGuard(e){if(e.data&&/[^0-9,.\-−]/.test(e.data))e.preventDefault()}
+function numOnly(el){el.addEventListener("beforeinput",numGuard);el.addEventListener("input",()=>numClean(el))}
 function saveAns(k){
   if(S.dr&&k in S.dr){S.ans[k]=S.dr[k];delete S.dr[k]}
   save();
@@ -2739,7 +2799,7 @@ function renderTest(cab){
       return `<button class="${c}" role="radio" aria-checked="${v===j}" data-opt="${j}" ${locked?"disabled":""}><span class="rd"></span><span class="pl">${L[j]}. <span class="f">${o}</span></span></button>`}).join("")}</div>`;
   }else if(t.t==="match"){
     const m=v||[null,null,null],chip=j=>`<button type="button" class="dm-chip" data-chip="${j}" ${locked?"disabled":""}><span class="f">${t.r[j]}</span></button>`;
-    body=`<div class="dm${locked?" locked":""}"><div class="dm-rows">${t.l.map((x,r)=>`<div class="dm-row"><div class="dm-l"><b>${r+1}</b><span>${x}</span></div><span class="dm-ar" aria-hidden="true">→</span><div class="dm-slot" data-slot="${r}" aria-label="Відповідь до ${r+1}">${m[r]!=null?chip(m[r]):""}</div></div>`).join("")}</div>
+    body=`<div class="dm${locked?" locked":""}"><div class="dm-rows">${t.l.map((x,r)=>`<div class="dm-row"><div class="dm-l"><b>${r+1}</b><span class="f">${x}</span></div><span class="dm-ar" aria-hidden="true">→</span><div class="dm-slot" data-slot="${r}" aria-label="Відповідь до ${r+1}">${m[r]!=null?chip(m[r]):""}</div></div>`).join("")}</div>
       <div class="dm-side"><small>Варіанти</small><div class="dm-pool" data-slot="pool">${t.r.map((_,j)=>m.includes(j)?"":chip(j)).join("")}</div></div></div>
       <p class="hint">Перетягніть варіант у порожню клітинку навпроти завдання (або натисніть варіант, а потім клітинку).</p>`;
   }else{
@@ -2755,11 +2815,11 @@ function renderTest(cab){
   <div class="tframe">
     <div class="tf-h"><h2>${title}</h2><div class="tf-tools"><button class="refbtn" id="ref">${I.book} Довідкові матеріали</button><span class="kindchip">${S.kind||"Тест"}</span></div></div>
     <div class="tf-b">
-      <section class="qq">
+      <section class="qq">${tsHTML(`
         <p class="qt"><b>${k+1}.</b> ${t.q}</p>
         ${body}
-        ${locked?"":`<button class="savebtn" id="saveans" ${filled(t,v)?"":"disabled"}>Зберегти відповідь</button>`}
-        ${fb}
+        ${locked?"":(answered(k)&&!(S.dr&&k in S.dr)?`<button class="savebtn saved" id="saveans" disabled>✓ Відповідь збережено</button>`:`<button class="savebtn" id="saveans" ${filled(t,v)?"":"disabled"}>Зберегти відповідь</button>`)}
+        ${fb}`)}
         ${locked&&k<n-1?`<button class="savebtn" id="nextq">Наступне завдання →</button>`:""}
       </section>
       <aside class="side">
@@ -2776,7 +2836,7 @@ function renderTest(cab){
   cab.querySelectorAll("[data-opt]").forEach(b=>b.onclick=()=>{setDraft(k,+b.dataset.opt);render()});
   const dm=cab.querySelector(".dm");if(dm&&!locked)bindDM(dm,k);
   const inp=document.getElementById("sa");
-  if(inp&&!locked){inp.oninput=()=>{setDraft(k,inp.value.trim()||null);document.getElementById("saveans").disabled=!filled(t,val(k))};
+  if(inp&&!locked){numOnly(inp);inp.addEventListener("input",()=>{setDraft(k,inp.value.trim()||null);const b=document.getElementById("saveans");b.disabled=!filled(t,val(k));b.textContent="Зберегти відповідь";b.classList.remove("saved")});
     inp.onkeydown=e=>{if(e.key==="Enter"&&filled(t,val(k)))saveAns(k)}}
   const sv=document.getElementById("saveans");if(sv)sv.onclick=()=>saveAns(k);
   const nq=document.getElementById("nextq");if(nq)nq.onclick=()=>go(k+1);
@@ -2899,9 +2959,9 @@ function renderResult(cab){
       <h2 style="font-size:20px">Розбір завдань</h2>
       <div class="review">${S.ids.map((i,k)=>{const t=TASKS[i],p=points(k),m=maxp(k),c=p===m?"ok":p>0?"part":"bad";
         return `<div class="card rv ${c}" id="rv${k}"><div class="rv-head"><b>Завдання ${k+1}</b><span class="pill ${c}">${p} з ${m}</span></div>
-          <p>${t.q}</p>
+          ${tsHTML(`<p>${t.q}</p>
           <div class="ans"><div><span>Ваша відповідь:</span> <b>${shown(k)}</b></div><div><span>Правильна:</span> <b>${right(k)}</b></div></div>
-          <div class="why">${t.why}</div></div>`}).join("")}</div>
+          <div class="why">${t.why}</div>`)}</div>`}).join("")}</div>
       ${sim?`<div class="card scale"><h3 style="font-size:16px">Шкала переведення балів</h3>
         <div class="scale-grid">${Object.entries(SCALE).map(([a,v])=>`<div class="${+a===pts?"me":""}"><b>${v}</b>${a} б.</div>`).join("")}</div>
         <p class="note">Шкала орієнтовна. Офіційну таблицю УЦОЯО публікує щороку, і вона може відрізнятися.</p></div>`:""}
