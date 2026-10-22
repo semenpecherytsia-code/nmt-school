@@ -587,6 +587,8 @@ select:focus{outline:2px solid var(--accent);outline-offset:1px}
 .co-fields input:focus{outline:2px solid var(--accent);outline-offset:1px}
 .co-agree{display:flex;gap:10px;align-items:center;font-size:14px}
 .co-err{color:var(--bad);font-weight:700}
+.co-err.ok{color:var(--ok)}
+.auth-fgt{justify-self:end;background:none;border:0;padding:0;color:var(--muted);font:inherit;font-size:13px;text-decoration:underline;cursor:pointer}
 .co-pay{justify-self:start;font-size:17px}
 .co-sum{padding:24px;display:grid;gap:12px;position:sticky;top:100px}
 .co-sum .badge{background:var(--accent);color:#fff}
@@ -1099,10 +1101,13 @@ const REMEMBER=[
 
 /* ===== State ===== */
 function load(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}}
-function store(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
-// accounts live in this browser only: {email:{h,salt,at}}; each account keeps its own progress keys
+function store(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}touch(k)}
+// on the public site accounts live in Firebase (progress follows the user to any device);
+// elsewhere (e.g. the preview) they live in this browser only: {email:{h,salt,at}}
+const CLOUD=/(^|\.)github\.io$|^localhost$|^127\.0\.0\.1$/.test(location.hostname);
 const ACC=load("nmt-accounts")||{};
-const USER=(()=>{let u=null;try{u=localStorage.getItem("nmt-user")}catch(e){}return u&&ACC[u]?u:null})();
+const USER=(()=>{let u=null,c=null;try{u=localStorage.getItem("nmt-user");c=localStorage.getItem("nmt-cloud")}catch(e){}
+  return u&&(CLOUD?c===u:ACC[u])?u:null})();
 const UK=k=>USER?k+":"+USER:k+":guest";
 const KEY=UK("nmt-school-v1"),HKEY=UK("nmt-school-hist"),PKEY=UK("nmt-pf2");
 let S=load(KEY);           // active test session
@@ -1155,8 +1160,65 @@ function render(){
 async function hashPw(pw,salt){const t=salt+"|"+pw;
   try{const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(t));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("")}
   catch(e){let h=2166136261;for(const ch of t){h^=ch.charCodeAt(0);h=Math.imul(h,16777619)}return "f"+(h>>>0).toString(16)}}
+/* ===== Cloud sync (Firebase Auth + Firestore doc users/{uid}) ===== */
+const FB_CFG={apiKey:"AIzaSyBQRkUX5OQ3D7DafxfkIvZT-5AuBDHY7uU",authDomain:"nmt-school.firebaseapp.com",projectId:"nmt-school",
+  storageBucket:"nmt-school.firebasestorage.app",messagingSenderId:"58011797258",appId:"1:58011797258:web:cbffca07e22bf8416edcf3"};
+let fbP=null,pushT=null;
+function fbLoad(){
+  if(fbP)return fbP;
+  const base="https://cdn.jsdelivr.net/npm/firebase@10.14.1/",add=f=>new Promise((ok,no)=>{const sc=document.createElement("script");sc.src=base+f;sc.onload=ok;sc.onerror=no;document.head.appendChild(sc)});
+  fbP=add("firebase-app-compat.js").then(()=>Promise.all([add("firebase-auth-compat.js"),add("firebase-firestore-compat.js")]))
+    .then(()=>{if(!firebase.apps.length)firebase.initializeApp(FB_CFG);return {auth:firebase.auth(),db:firebase.firestore()}});
+  fbP.catch(()=>{fbP=null});
+  return fbP;
+}
+const ATK=()=>"nmt-at:"+USER;
+// every local save of the user's progress is stamped and sent to the cloud a moment later
+function touch(k){
+  if(!USER||![KEY,HKEY,PKEY].includes(k))return;
+  try{localStorage.setItem(ATK(),String(Date.now()))}catch(e){}
+  if(CLOUD){clearTimeout(pushT);pushT=setTimeout(push,1500)}
+}
+async function push(){
+  clearTimeout(pushT);
+  try{const {auth,db}=await fbLoad(),u=auth.currentUser;if(!u)return;
+    await db.collection("users").doc(u.uid).set({email:USER,s:JSON.stringify(S??null),h:JSON.stringify(HIST),
+      pf:JSON.stringify(PF),at:+localStorage.getItem(ATK())||Date.now()});
+  }catch(e){}
+}
+function pull(d){
+  const sv=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
+  sv(KEY,d.s||"null");sv(HKEY,d.h||"[]");if(d.pf&&d.pf!=="null")sv(PKEY,d.pf);sv(ATK(),String(d.at||0));
+  S=JSON.parse(d.s||"null");HIST=JSON.parse(d.h||"[]")||[];if(d.pf&&d.pf!=="null")Object.assign(PF,JSON.parse(d.pf));
+  route();
+}
+async function cloudBoot(){
+  if(!CLOUD||!USER)return;
+  let fb;try{fb=await fbLoad()}catch(e){return}
+  fb.auth.onAuthStateChanged(async u=>{
+    if(!u||(u.email||"").toLowerCase()!==USER){localOut();return}
+    try{const snap=await fb.db.collection("users").doc(u.uid).get(),la=+localStorage.getItem(ATK())||0;
+      if(snap.exists){const d=snap.data();if((d.at||0)>la)return pull(d);if((d.at||0)===la)return}
+      push();
+    }catch(e){}
+  });
+  addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden"&&pushT)push()});
+}
+function fbErr(e){const c=(e&&e.code)||"";
+  if(c==="auth/email-already-in-use")return "Акаунт з такою поштою вже існує. Увійдіть.";
+  if(c==="auth/invalid-credential"||c==="auth/wrong-password"||c==="auth/user-not-found"||c==="auth/invalid-login-credentials")return "Невірна пошта або пароль.";
+  if(c==="auth/invalid-email")return "Введіть коректну пошту.";
+  if(c==="auth/weak-password")return "Пароль має містити щонайменше 6 символів.";
+  if(c==="auth/too-many-requests")return "Забагато спроб. Спробуйте трохи пізніше.";
+  if(c==="auth/network-request-failed"||!c)return "Немає з’єднання з сервером. Перевірте інтернет.";
+  return "Вхід тимчасово недоступний. Спробуйте пізніше.";
+}
+function localOut(){try{localStorage.removeItem("nmt-user");localStorage.removeItem("nmt-cloud")}catch(e){}location.reload()}
 function enter(email){try{localStorage.setItem("nmt-user",email);sessionStorage.setItem("nmt-go",AFTER||"kabinet")}catch(e){}location.reload()}
-function logout(){try{localStorage.removeItem("nmt-user")}catch(e){}location.reload()}
+async function logout(){
+  if(CLOUD&&fbP)try{await push();await (await fbLoad()).auth.signOut()}catch(e){}
+  localOut();
+}
 function renderLogin(){
   const reg=authTab==="up";
   root.innerHTML=`<div class="paper"></div>
@@ -1169,17 +1231,32 @@ function renderLogin(){
         <label>Пароль<input type="password" id="a-pw" autocomplete="${reg?"new-password":"current-password"}" placeholder="${reg?"Щонайменше 6 символів":"Ваш пароль"}" required></label>
         ${reg?`<label>Повторіть пароль<input type="password" id="a-pw2" autocomplete="new-password" required></label>`:""}
         <p class="co-err" id="a-err" hidden></p>
+        ${!reg&&CLOUD?`<button class="auth-fgt" type="button" id="a-fgt">Забули пароль?</button>`:""}
         <button class="btn primary" type="submit" style="justify-content:center">${reg?"Зареєструватися":"Увійти"}</button>
       </form>
-      <p class="auth-note">${reg?"Кожен акаунт має власний прогрес і повний доступ до курсів.":"Ще немає акаунта? Перейдіть на вкладку «Реєстрація»."} Акаунти поки зберігаються лише в цьому браузері.</p>
+      <p class="auth-note">${reg?"Кожен акаунт має власний прогрес і повний доступ до курсів.":"Ще немає акаунта? Перейдіть на вкладку «Реєстрація»."} ${CLOUD?"Прогрес зберігається в акаунті й доступний з будь-якого пристрою.":"Акаунти поки зберігаються лише в цьому браузері."}</p>
     </div></div>`;
   root.querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>{authTab=b.dataset.tab;renderLogin()});
   root.querySelectorAll("[data-view]").forEach(b=>b.onclick=()=>goView(b.dataset.view));
-  const err=t=>{const e=document.getElementById("a-err");e.textContent=t;e.hidden=false};
+  const err=(t,ok)=>{const e=document.getElementById("a-err");e.textContent=t;e.hidden=false;e.classList.toggle("ok",!!ok)};
   document.getElementById("a-mail").focus();
+  const fgt=document.getElementById("a-fgt");
+  if(fgt)fgt.onclick=async()=>{const mail=document.getElementById("a-mail").value.trim().toLowerCase();
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail))return err("Введіть пошту, на яку зареєстровано акаунт.");
+    try{await (await fbLoad()).auth.sendPasswordResetEmail(mail);err("Лист для зміни пароля надіслано на "+mail+".",true)}catch(e){err(fbErr(e))}};
   document.getElementById("auth-f").onsubmit=async e=>{e.preventDefault();
     const mail=document.getElementById("a-mail").value.trim().toLowerCase(),pw=document.getElementById("a-pw").value;
     if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail))return err("Введіть коректну пошту.");
+    if(CLOUD){
+      if(reg&&pw.length<6)return err("Пароль має містити щонайменше 6 символів.");
+      if(reg&&pw!==document.getElementById("a-pw2").value)return err("Паролі не збігаються.");
+      const btn=e.submitter||document.querySelector("#auth-f [type=submit]");btn.disabled=true;
+      try{const {auth}=await fbLoad();
+        if(reg)await auth.createUserWithEmailAndPassword(mail,pw);else await auth.signInWithEmailAndPassword(mail,pw);
+        try{localStorage.setItem("nmt-cloud",mail)}catch(_){}
+        return enter(mail);
+      }catch(x){btn.disabled=false;return err(fbErr(x))}
+    }
     if(reg){
       if(pw.length<6)return err("Пароль має містити щонайменше 6 символів.");
       if(pw!==document.getElementById("a-pw2").value)return err("Паролі не збігаються.");
@@ -2845,6 +2922,7 @@ matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change",()=>{if(v
 // a reload always opens the landing page at the top; saved results stay in storage
 try{history.scrollRestoration="manual";if(location.hash)history.replaceState(null,"",location.pathname+location.search)}catch(e){}
 route();
+cloudBoot();
 try{const g=sessionStorage.getItem("nmt-go");if(g){sessionStorage.removeItem("nmt-go");if(USER)goView(g)}}catch(e){}
 function toTop(){const h=document.documentElement,b=h.style.scrollBehavior;h.style.scrollBehavior="auto";window.scrollTo({top:0,left:0,behavior:"instant"});h.scrollTop=0;document.body.scrollTop=0;h.style.scrollBehavior=b}
 toTop();requestAnimationFrame(toTop);[60,250,600].forEach(t=>setTimeout(()=>{if(view==="home")toTop()},t));
