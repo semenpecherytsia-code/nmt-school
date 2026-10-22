@@ -178,6 +178,18 @@ body.cabmode::before{background:#fff}
 .ctop .logo i{background:none;width:auto;font-size:18px}
 .cnav svg{width:16px;height:16px}
 .me{width:40px;height:40px;border-radius:50%;background:#ffcf9e;color:#fff;display:grid;place-items:center;font-weight:700;font-size:13px}
+.me-w{position:relative}
+button.me{border:0;cursor:pointer;padding:0}
+.me-menu{position:absolute;right:0;top:calc(100% + 8px);z-index:40;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 16px 36px -14px rgba(43,25,6,.3);padding:14px;display:grid;gap:6px;min-width:220px}
+.me-menu small{color:var(--muted);font-size:12px}.me-menu b{font-size:14px;overflow-wrap:anywhere}.me-menu .btn{justify-self:start;margin-top:6px}
+.auth-w{min-height:100vh;display:grid;align-content:center;justify-items:center;gap:10px;padding:40px 0}
+.auth{width:min(420px,100%);padding:28px;display:grid;gap:18px}
+.auth .logo{font-size:18px}.auth-seg{justify-self:center}
+.auth form{display:grid;gap:12px}
+.auth label{display:grid;gap:6px;font-weight:700;font-size:14px}
+.auth input{font:inherit;font-weight:400;border:1px solid #fbdcb8;border-radius:12px;padding:11px 14px;color:var(--ink);min-width:0}
+.auth input:focus{outline:2px solid var(--accent);outline-offset:1px}
+.auth-note{color:var(--muted);font-size:13px;text-align:center}
 .cab{max-width:1160px;margin:0 auto;padding-block:28px 60px}
 .dash{display:grid;grid-template-columns:320px 1fr;gap:20px;align-items:start}
 .newl{padding:24px;text-align:center}
@@ -1086,12 +1098,16 @@ const REMEMBER=[
 ];
 
 /* ===== State ===== */
-const KEY="nmt-school-v1",HKEY="nmt-school-hist";
 function load(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}}
 function store(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+// accounts live in this browser only: {email:{h,salt,at}}; each account keeps its own progress keys
+const ACC=load("nmt-accounts")||{};
+const USER=(()=>{let u=null;try{u=localStorage.getItem("nmt-user")}catch(e){}return u&&ACC[u]?u:null})();
+const UK=k=>USER?k+":"+USER:k+":guest";
+const KEY=UK("nmt-school-v1"),HKEY=UK("nmt-school-hist"),PKEY=UK("nmt-pf2");
 let S=load(KEY);           // active test session
 let HIST=load(HKEY)||[];   // finished attempts
-let tick=null, view="", typerT=null, remIdx=0, remOpen=false;
+let tick=null, view="", typerT=null, remIdx=0, remOpen=false, AFTER="kabinet", authTab="in";
 const root=document.getElementById("root");
 const save=()=>store(KEY,S);
 
@@ -1114,10 +1130,13 @@ addEventListener("scroll",()=>{spy()},{passive:true});
 addEventListener("resize",()=>spy());
 
 /* ===== Router ===== */
-const VIEWS=["oplata","kabinet","kursy","progres","test","urok","kurs-richnyi","kurs-vstup","kurs-nmt"];
+const VIEWS=["oplata","kabinet","kursy","progres","test","urok","kurs-richnyi","kurs-vstup","kurs-nmt","vhid"];
+const PUBLIC=["home","oplata","vhid"];
 function route(){
   const h=location.hash.slice(1);
   view=VIEWS.includes(h)?h:"home";
+  if(!USER&&!PUBLIC.includes(view)){AFTER=view;view="vhid"}
+  if(USER&&view==="vhid")view="kabinet";
   if(view==="test"&&!S)view="kabinet";
   if(view==="urok"&&!LES)view="kurs-richnyi";
   render();
@@ -1127,9 +1146,52 @@ window.addEventListener("hashchange",route);
 
 function render(){
   clearTimeout(typerT);
-  document.body.classList.toggle("cabmode",view!=="home"&&view!=="oplata");
+  document.body.classList.toggle("cabmode",view!=="home"&&view!=="oplata"&&view!=="vhid");
   document.body.classList.remove("nmtmode");
-  if(view==="home")renderHome();else if(view==="oplata")renderCheckout();else renderCab();
+  if(view==="home")renderHome();else if(view==="oplata")renderCheckout();else if(view==="vhid")renderLogin();else renderCab();
+}
+
+/* ===== Login / registration (accounts stored in this browser) ===== */
+async function hashPw(pw,salt){const t=salt+"|"+pw;
+  try{const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(t));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("")}
+  catch(e){let h=2166136261;for(const ch of t){h^=ch.charCodeAt(0);h=Math.imul(h,16777619)}return "f"+(h>>>0).toString(16)}}
+function enter(email){try{localStorage.setItem("nmt-user",email);sessionStorage.setItem("nmt-go",AFTER||"kabinet")}catch(e){}location.reload()}
+function logout(){try{localStorage.removeItem("nmt-user")}catch(e){}location.reload()}
+function renderLogin(){
+  const reg=authTab==="up";
+  root.innerHTML=`<div class="paper"></div>
+  <div class="auth-w"><button class="back" data-view="" style="justify-self:start">← На головну</button>
+    <div class="card auth">
+      <div class="logo" style="justify-content:center"><i>√x</i>Назва школи</div>
+      <div class="seg auth-seg"><button class="${reg?"":"on"}" data-tab="in">Вхід</button><button class="${reg?"on":""}" data-tab="up">Реєстрація</button></div>
+      <form id="auth-f" novalidate>
+        <label>Пошта<input type="email" id="a-mail" autocomplete="email" placeholder="you@example.com" required></label>
+        <label>Пароль<input type="password" id="a-pw" autocomplete="${reg?"new-password":"current-password"}" placeholder="${reg?"Щонайменше 6 символів":"Ваш пароль"}" required></label>
+        ${reg?`<label>Повторіть пароль<input type="password" id="a-pw2" autocomplete="new-password" required></label>`:""}
+        <p class="co-err" id="a-err" hidden></p>
+        <button class="btn primary" type="submit" style="justify-content:center">${reg?"Зареєструватися":"Увійти"}</button>
+      </form>
+      <p class="auth-note">${reg?"Кожен акаунт має власний прогрес і повний доступ до курсів.":"Ще немає акаунта? Перейдіть на вкладку «Реєстрація»."} Акаунти поки зберігаються лише в цьому браузері.</p>
+    </div></div>`;
+  root.querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>{authTab=b.dataset.tab;renderLogin()});
+  root.querySelectorAll("[data-view]").forEach(b=>b.onclick=()=>goView(b.dataset.view));
+  const err=t=>{const e=document.getElementById("a-err");e.textContent=t;e.hidden=false};
+  document.getElementById("a-mail").focus();
+  document.getElementById("auth-f").onsubmit=async e=>{e.preventDefault();
+    const mail=document.getElementById("a-mail").value.trim().toLowerCase(),pw=document.getElementById("a-pw").value;
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail))return err("Введіть коректну пошту.");
+    if(reg){
+      if(pw.length<6)return err("Пароль має містити щонайменше 6 символів.");
+      if(pw!==document.getElementById("a-pw2").value)return err("Паролі не збігаються.");
+      if(ACC[mail])return err("Акаунт з такою поштою вже існує. Увійдіть.");
+      const first=!Object.keys(ACC).length,salt=Math.random().toString(36).slice(2);
+      ACC[mail]={h:await hashPw(pw,salt),salt,at:Date.now()};store("nmt-accounts",ACC);
+      // the first account keeps the progress made before accounts existed
+      if(first)[["nmt-school-v1","nmt-school-v1"],["nmt-school-hist","nmt-school-hist"],["nmt-pf2","nmt-pf2"]].forEach(([o,n])=>{try{const v=localStorage.getItem(o);if(v!=null&&localStorage.getItem(n+":"+mail)==null)localStorage.setItem(n+":"+mail,v)}catch(_){}});
+      return enter(mail)}
+    const a=ACC[mail];if(!a)return err("Акаунт з такою поштою не знайдено. Зареєструйтеся.");
+    if(await hashPw(pw,a.salt)!==a.h)return err("Невірний пароль.");
+    enter(mail)};
 }
 
 /* ===== Icons ===== */
@@ -1400,11 +1462,16 @@ function renderCab(){
     <button class="logo" data-view=""><i>√x</i>Назва школи</button>
     ${view==="test"&&S&&S.mode==="sim"&&S.stage==="test"?`<button class="n-back2" id="nback">← Назад до меню</button>`:""}
     <nav class="cnav">${nav.map(([v,n,ic])=>`<button class="${active===v?"on":""}" data-view="${v}">${ic}${n}</button>`).join("")}</nav>
-    <span class="me" title="Учень">УЧ</span>
+    <div class="me-w"><button class="me" id="me-btn" aria-haspopup="true" aria-expanded="false" title="${USER||""}">${(USER||"уч").replace(/[^a-zа-яіїєґ0-9]/gi,"").slice(0,2).toUpperCase()}</button>
+      <div class="me-menu" id="me-menu" hidden><small>Ви увійшли як</small><b>${USER||""}</b><button class="btn sm" id="logout">Вийти</button></div></div>
   </div></header>
   <main class="cab" id="cab"></main>
   ${remOpen?remHTML():`<button class="rem-fab" id="rem-open">🦉 Запам’ятай</button>`}`;
   const cab=document.getElementById("cab");
+  const mb=document.getElementById("me-btn"),mm=document.getElementById("me-menu");
+  mb.onclick=e=>{e.stopPropagation();mm.hidden=!mm.hidden;mb.setAttribute("aria-expanded",String(!mm.hidden))};
+  mm.onclick=e=>e.stopPropagation();document.addEventListener("click",()=>{mm.hidden=true;mb.setAttribute("aria-expanded","false")},{once:true});
+  document.getElementById("logout").onclick=logout;
   if(view==="kabinet")cabMenu(cab);
   else if(view==="kursy")cabCourses(cab);
   else if(view==="progres")cabProgress(cab);
@@ -1455,55 +1522,52 @@ const fmtD=t=>{const d=new Date(t);return String(d.getDate()).padStart(2,"0")+"/
 const COURSES={
   richnyi:{name:"Річний курс 2027",ico:"Σ",ic:"#ff5a36",year:"2027 рік",until:"05/07/2027",
     items:[
-      {test:"Тематичний тест (жовтень)",kind:"Тематичний тест",pct:53},
-      {n:16,h:"Логарифмічні нерівності",tp:"fun",done:true},
-      {n:15,h:"Логарифмічні рівняння",tp:"alg",done:true},
-      {n:14,h:"Показникові нерівності",tp:"alg",done:true},
-      {n:13,h:"Показникові рівняння",tp:"alg",pct:20},
-      {n:12,h:"Раціональні нерівності",tp:"alg",pct:24},
-      {n:11,h:"Раціональні рівняння",tp:"alg",pct:38},
-      {n:10,h:"Нерівності з однією змінною",tp:"alg",pct:19},
-      {n:9,h:"Рівняння з однією змінною",tp:"alg",pct:36,d:17},
-      {test:"Модульний тест №3",kind:"Модульний тест",pct:59,d:20},
-      {n:8,h:"Логарифми та їхні властивості",tp:"alg",pct:39,d:21},
-      {n:7,h:"Корінь n-го степеня",tp:"alg",pct:31,d:24},
-      {n:6,h:"Раціональні вирази",tp:"alg",pct:29,d:28},
-      {test:"Тематичний тест №1",kind:"Тематичний тест",pct:80,d:30},
-      {n:5,h:"Квадратична функція. Теорема Вієта",tp:"fun",pct:21,d:31},
-      {n:4,h:"Відсотки. Складні відсотки",tp:"alg",pct:38,d:35},
-      {n:3,h:"Пропорції. Частина від числа",tp:"alg",pct:43,d:38},
-      {n:2,h:"Арифметичні задачі, частина 2",tp:"alg",pct:24,d:42},
-      {n:1,h:"Арифметичні задачі, частина 1",tp:"alg",pct:43,d:45},
+      {test:"Тематичний тест (жовтень)",kind:"Тематичний тест"},
+      {n:16,h:"Логарифмічні нерівності",tp:"fun"},
+      {n:15,h:"Логарифмічні рівняння",tp:"alg"},
+      {n:14,h:"Показникові нерівності",tp:"alg"},
+      {n:13,h:"Показникові рівняння",tp:"alg"},
+      {n:12,h:"Раціональні нерівності",tp:"alg"},
+      {n:11,h:"Раціональні рівняння",tp:"alg"},
+      {n:10,h:"Нерівності з однією змінною",tp:"alg"},
+      {n:9,h:"Рівняння з однією змінною",tp:"alg"},
+      {test:"Модульний тест №3",kind:"Модульний тест"},
+      {n:8,h:"Логарифми та їхні властивості",tp:"alg"},
+      {n:7,h:"Корінь n-го степеня",tp:"alg"},
+      {n:6,h:"Раціональні вирази",tp:"alg"},
+      {test:"Тематичний тест №1",kind:"Тематичний тест"},
+      {n:5,h:"Квадратична функція. Теорема Вієта",tp:"fun"},
+      {n:4,h:"Відсотки. Складні відсотки",tp:"alg"},
+      {n:3,h:"Пропорції. Частина від числа",tp:"alg"},
+      {n:2,h:"Арифметичні задачі, частина 2",tp:"alg"},
+      {n:1,h:"Арифметичні задачі, частина 1",tp:"alg"},
     ]},
   vstup:{name:"Вступний курс",ico:"Σ",ic:"#ff9a1f",year:"2026 рік",until:"30/09/2027",
     items:[
-      {test:"Вхідний тест",kind:"Тематичний тест",pct:44},
-      {n:3,h:"Площі плоських фігур",tp:"geo",pct:0},
-      {n:2,h:"Лінійні рівняння",tp:"alg",pct:30,d:6},
-      {n:1,h:"Дроби та дії з ними",tp:"alg",done:true,d:9},
+      {test:"Вхідний тест",kind:"Тематичний тест"},
+      {n:3,h:"Площі плоських фігур",tp:"geo"},
+      {n:2,h:"Лінійні рівняння",tp:"alg"},
+      {n:1,h:"Дроби та дії з ними",tp:"alg"},
     ]},
 };
 const SIM_COUNT=23;
 // demo history for courses other than the simulations (score on the 100–200 scale, time in seconds)
-const DEMO=[
-  ...[[44,163.5],[40,152],[36,162.8],[33,163],[30,122.4],[25,99.1],[23,155],[18,150.3],[16,155.6],[11,150],[8,149.8],[4,163.2],[0,143.4]].map(([d,s],i)=>({course:"richnyi",type:"ДЗ",at:dAgo(d),score:s,sec:1700+((i*397)%900),id:"dz"+i,les:i+1})),
-  {course:"richnyi",type:"Тематичний тест",at:dAgo(30),score:180,sec:2400,id:"tt1",name:"Тематичний тест 1"},
-  {course:"richnyi",type:"Модульний тест",at:dAgo(20),score:159,sec:3100,id:"mt3",name:"Модульний тест 3"},
-  {course:"richnyi",type:"Тематичний тест",at:dAgo(2),score:153,sec:2650,id:"tt2",name:"Тематичний тест 2"},
-  {course:"vstup",type:"ДЗ",at:dAgo(15),score:171,sec:1500,id:"v1",vles:1},
-  {course:"vstup",type:"ДЗ",at:dAgo(12),score:160,sec:1650,id:"v2",vles:2},
-  {course:"vstup",type:"ДЗ",at:dAgo(9),score:148,sec:1820,id:"v3",vles:3},
-];
+const DEMO=[];
 const MODE_TYPE={sim:"НМТ симуляція",rep:"Міні-тест",practice:"Тренажер НМТ",mist:"Тренажер НМТ"};
 function records(){
-  const lh=(c,n)=>{const x=(COURSES[c].items.filter(i=>i.n))[n-1];return x?x.h:""};
-  return DEMO.map(r=>({...r,name:r.name||(r.les?lh("richnyi",r.les):r.vles?lh("vstup",r.vles):r.type)})).concat(HIST.map((h,i)=>({course:h.mode==="sim"?"nmt":"richnyi",type:MODE_TYPE[h.mode],at:h.at,
-    score:h.mode==="sim"?(h.score||0):100+h.pts/h.max*100,sec:h.sec||0,id:h.mode==="sim"?"sim"+(h.simNo||1):"h"+i,
-    name:h.title||(h.mode==="sim"?"Симуляція НМТ № "+(h.simNo||1):MODES[h.mode].name)})));
+  const kindOf=h=>{if(h.mode==="sim")return "НМТ симуляція";const k=h.kind||(h.lkey?(/-hw$/.test(h.lkey)?"ДЗ":/-mini$/.test(h.lkey)?"Міні-тест":"Тренажер"):null);
+    return TYPES.includes(k)?k:k==="Тренажер"||!k?"Тренажер НМТ":k};
+  const courseOf=h=>h.mode==="sim"||!h.lkey?"nmt":/^r\d/.test(h.lkey)?"richnyi":/^t-/.test(h.lkey)?h.lkey.split("-")[1]:/^vstup/.test(h.lkey)?"vstup":"nmt";
+  return HIST.map((h,i)=>({course:courseOf(h),type:kindOf(h),at:h.at,
+    score:h.mode==="sim"?(h.score||0):Math.round((100+h.pts/h.max*100)*10)/10,sec:h.sec||0,id:h.mode==="sim"?"sim"+(h.simNo||1):h.lkey||"h"+i,
+    name:h.title||(h.mode==="sim"?"Симуляція НМТ № "+(h.simNo||1):MODES[h.mode].name)}));
 }
-function courseTests(key){if(key==="nmt")return SIM_COUNT;const c=COURSES[key];return c.items.filter(x=>x.n).length*5+c.items.filter(x=>x.test).length}
+function courseTests(key){if(key==="nmt")return SIM_COUNT;const c=COURSES[key];return c.items.filter(x=>x.n).length*(key==="richnyi"?4:1)+c.items.filter(x=>x.test).length}
+// one result per course item: the lesson homework or the test itself (last attempt)
+const itemKey=(key,x,i)=>x.n?(key==="richnyi"?lesKey(x.n,"hw"):`${key}${x.n}-hw`):`t-${key}-${i}`;
+function itemStat(key,x,i){const k=itemKey(key,x,i),h=HIST.filter(e=>e.lkey===k);if(!h.length)return null;const l=h[h.length-1];return {tries:h.length,pct:Math.round(l.pts/l.max*100),at:l.at}}
 function coursePct(key){if(key==="nmt"){const s=simStats();const v=Object.values(s);return v.length?Math.round(v.reduce((a,x)=>a+x.pct,0)/v.length):0}
-  const it=COURSES[key].items;return Math.round(it.reduce((a,x)=>a+(x.done?100:(x.pct||0)),0)/it.length)}
+  const it=COURSES[key].items;return Math.round(it.reduce((a,x,i)=>a+(itemStat(key,x,i)?.pct||0),0)/it.length)}
 function simStats(){const m={};HIST.filter(h=>h.mode==="sim").forEach(h=>{const n=h.simNo||1;m[n]={score:h.score||0,pct:Math.round(h.pts/h.max*100),tries:(m[n]?.tries||0)+1}});return m}
 
 let courseTab="my";
@@ -1600,12 +1664,12 @@ function cabCourse(cab,key){
     <div class="chips"><span class="chip-s">📖 ${lessons} ${((a,b)=>a===1&&b!==11?"урок":a>=2&&a<=4&&!(b>=12&&b<=14)?"уроки":"уроків")(lessons%10,lessons%100)}</span><span class="chip-s">☑ ${tests} ${plural2(tests)}</span><span class="chip-s">★ ${coursePct(key)}% середній</span>
       <button class="btn primary sm" id="mist">💡 Робота над помилками</button></div>
   </div>
-  <div class="card clist">${c.items.map((x,i)=>x.test?
-    testRow(x.test,{chips:[`<span class="chip-l">${x.kind}</span>`,x.d!=null?`<span class="chip-s">${IC_CAL} ${fmtD(dAgo(x.d))}</span>`:"",`<span class="chip-g">1 спроб</span>`],pct:x.pct,done:true,dataAttr:`data-rep="${i}"`}):
-    `<button class="lrow" data-les="${i}"><span class="play">${IC_PLAY}</span><div class="lb"><b>${x.n}. ${x.h}</b>${x.d!=null?`<span class="chip-s">${IC_CAL} ${fmtD(dAgo(x.d))}</span>`:""}</div>${x.done?IC_OK:`<span class="lp">${x.pct}%</span>`}</button>`
+  <div class="card clist">${c.items.map((x,i)=>{const st=itemStat(key,x,i),dt=st?`<span class="chip-s">${IC_CAL} ${fmtD(st.at)}</span>`:"";return x.test?
+    testRow(x.test,{chips:[`<span class="chip-l">${x.kind}</span>`,dt,st?`<span class="chip-g">${st.tries} спроб</span>`:""],pct:st?st.pct:0,done:!!st,dataAttr:`data-rep="${i}"`}):
+    `<button class="lrow" data-les="${i}"><span class="play">${IC_PLAY}</span><div class="lb"><b>${x.n}. ${x.h}</b>${dt}</div>${st?`<span class="lp">${st.pct}%</span>`:""}</button>`}
   ).join("")}</div>`;
-  cab.querySelectorAll("[data-les]").forEach(b=>b.onclick=()=>{const x=c.items[+b.dataset.les];if(key==="richnyi"&&LES_DOCS[x.n])return openLesson(key,x.n);startTest("practice",[x.tp],{title:x.h,kind:"ДЗ",back:"kurs-"+key})});
-  cab.querySelectorAll("[data-rep]").forEach(b=>b.onclick=()=>{const x=c.items[+b.dataset.rep];startTest("rep",null,{title:x.test,kind:x.kind,back:"kurs-"+key})});
+  cab.querySelectorAll("[data-les]").forEach(b=>b.onclick=()=>{const i=+b.dataset.les,x=c.items[i];if(key==="richnyi"&&LES_DOCS[x.n])return openLesson(key,x.n);startTest("practice",[x.tp],{title:x.h,kind:"ДЗ",back:"kurs-"+key,lkey:itemKey(key,x,i)})});
+  cab.querySelectorAll("[data-rep]").forEach(b=>b.onclick=()=>{const i=+b.dataset.rep,x=c.items[i];startTest("rep",null,{title:x.test,kind:x.kind,back:"kurs-"+key,lkey:itemKey(key,x,i)})});
   document.getElementById("mist").onclick=openMistakes;
 }
 function cabSims(cab){
@@ -1698,8 +1762,8 @@ function openMistakes(){
 /* ===== Progress ===== */
 const PERIODS=[["3","3 дні"],["7","7 днів"],["30","1 місяць"],["60","2 місяці"],["all","За весь час"]];
 const TYPES=["ДЗ","НМТ симуляція","Міні-тест","Модульний тест","Тематичний тест","Тренажер НМТ"];
-const PF=(()=>{let v=null;try{v=JSON.parse(localStorage.getItem("nmt-pf2"))}catch(e){}return v||{course:"richnyi",period:"all",type:null}})();
-const savePF=()=>{try{localStorage.setItem("nmt-pf2",JSON.stringify(PF))}catch(e){}};
+const PF=load(PKEY)||{course:"richnyi",period:"all",type:null};
+const savePF=()=>store(PKEY,PF);
 function cabProgress(cab){
   const all=records();
   const from=PF.period==="all"?0:Date.now()-(+PF.period)*DAY-DAY/2;
@@ -1734,7 +1798,7 @@ function cabProgress(cab){
   </div>
   <h2 class="sub">Середні бали НМТ</h2><p class="subp">Результати у 200-бальній шкалі за обраний період</p>
   <div class="avgs">${avgCard("a1","✓","Середній бал ДЗ",avgOf("ДЗ"))}${avgCard("a2","✓","Середній бал симуляцій",avgOf("НМТ симуляція"))}${avgCard("a3","✓","Середній бал тренажеру НМТ",avgOf("Тренажер НМТ"))}</div>
-  ${HIST.length?"":`<p class="note" style="margin-top:16px">Дані курсів «Річний курс» і «Вступний курс» тут демонстраційні. Ваші власні результати з’являться після першої симуляції або тренування.</p>`}`;
+  ${HIST.length?"":`<p class="note" style="margin-top:16px">Тут з’являться ваші результати після першого завершеного тесту, ДЗ або симуляції.</p>`}`;
   bindDD(cab,(k,v)=>{PF[k]=v;if(k==="course")PF.type=null;savePF();render()});
   bindChart(cab,rs);
 }
@@ -2711,7 +2775,7 @@ function finish(){
   const pts=S.ids.reduce((s,_,k)=>s+points(k),0),max=S.ids.reduce((s,_,k)=>s+maxp(k),0);
   const miss=[...new Set(S.ids.map((i,k)=>points(k)<maxp(k)?TASKS[i].tp:null).filter(Boolean))];
   const wrong=S.ids.filter((i,k)=>points(k)<maxp(k));
-  HIST.push({mode:S.mode,at:Date.now(),pts,max,n:N(),score:S.mode==="sim"?(SCALE[pts]||null):null,miss,wrong,simNo:S.simNo,lkey:S.lkey||null,title:S.title||null,sec:Math.round((Date.now()-(S.startedAt||Date.now()))/1000)});
+  HIST.push({mode:S.mode,at:Date.now(),pts,max,n:N(),score:S.mode==="sim"?(SCALE[pts]||null):null,miss,wrong,simNo:S.simNo,lkey:S.lkey||null,title:S.title||null,kind:S.kind||null,sec:Math.round((Date.now()-(S.startedAt||Date.now()))/1000)});
   store(HKEY,HIST);
   S.stage="result";S.endsAt=null;save();
   if(view!=="test")goView("test");else{render();window.scrollTo({top:0})}
@@ -2781,6 +2845,7 @@ matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change",()=>{if(v
 // a reload always opens the landing page at the top; saved results stay in storage
 try{history.scrollRestoration="manual";if(location.hash)history.replaceState(null,"",location.pathname+location.search)}catch(e){}
 route();
+try{const g=sessionStorage.getItem("nmt-go");if(g){sessionStorage.removeItem("nmt-go");if(USER)goView(g)}}catch(e){}
 function toTop(){const h=document.documentElement,b=h.style.scrollBehavior;h.style.scrollBehavior="auto";window.scrollTo({top:0,left:0,behavior:"instant"});h.scrollTop=0;document.body.scrollTop=0;h.style.scrollBehavior=b}
 toTop();requestAnimationFrame(toTop);[60,250,600].forEach(t=>setTimeout(()=>{if(view==="home")toTop()},t));
 addEventListener("load",()=>{if(view==="home")toTop()});
