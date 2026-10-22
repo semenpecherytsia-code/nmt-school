@@ -2563,9 +2563,8 @@ function setDraft(k,v){S.dr=S.dr||{};S.dr[k]=v;save()}
 function filled(t,v){if(t.t==="match")return !!v&&v.every(x=>x!==null);return v!==null&&v!==undefined&&v!==""}
 function saveAns(k){
   if(S.dr&&k in S.dr){S.ans[k]=S.dr[k];delete S.dr[k]}
-  if(isPractice())S.checked[k]=true;
   save();
-  if(!isPractice()&&k<N()-1)go(k+1);else render();
+  if(k<N()-1)go(k+1);else render();
 }
 function renderTest(cab){
   if(S.stage==="result")return renderResult(cab);
