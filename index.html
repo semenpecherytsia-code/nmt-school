@@ -296,6 +296,22 @@ body.cabmode::before{background:#fff}
 .opt .val{font-family:var(--f-mono);font-size:17px}
 .opt.right{border-color:var(--ok);background:var(--ok-soft)}
 .opt.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.dm{display:grid;grid-template-columns:minmax(0,1fr) 240px;gap:20px;background:#e6f7fc;border-radius:8px;padding:16px;align-items:start}
+.dm-rows{display:grid;gap:10px;min-width:0}
+.dm-row{display:grid;grid-template-columns:minmax(0,1fr) 22px minmax(0,1fr);gap:10px;align-items:center}
+.dm-l{display:flex;gap:10px;align-items:center;background:#dbeafe;border:1px solid #3b82f6;border-radius:6px;padding:7px 10px;min-height:42px;min-width:0;overflow-wrap:anywhere}
+.dm-l b{width:22px;height:22px;border-radius:50%;border:1.5px solid #3b82f6;background:#fff;display:grid;place-items:center;font-size:12px;flex:none;font-family:var(--f-body)}
+.dm-ar{color:#8a8a8a;text-align:center}
+.dm-slot{min-height:44px;border:1.5px dashed #b8c2cc;border-radius:6px;background:#fff;padding:3px;display:grid;align-content:center}
+.dm-slot.over,.dm-pool.over{border-color:#16a34a;background:#f0fdf4}
+.dm-side small{display:block;font-weight:700;color:#666;font-size:12px;margin-bottom:6px}
+.dm-pool{display:grid;gap:8px;border:1.5px dashed #b8c2cc;border-radius:6px;padding:8px;min-height:56px;align-content:start}
+.dm-chip{display:block;width:100%;text-align:left;background:#dcfce7;border:1px solid #16a34a;border-radius:6px;padding:7px 10px;cursor:pointer;touch-action:none;user-select:none;-webkit-user-select:none;font-size:16px;color:var(--ink);overflow-wrap:anywhere}
+.dm-chip:hover{background:#c9f7d8}.dm-chip.sel{outline:2px solid var(--accent);outline-offset:1px}
+.dm-ghost{position:fixed;z-index:60;pointer-events:none;margin:0;box-shadow:0 12px 26px -8px rgba(0,0,0,.35)}
+.dm.locked .dm-chip{cursor:default}
+.dm .f{white-space:normal;font-family:"STIX Two Text","Times New Roman",Times,serif;font-size:1.12em}
+@media (max-width:700px){.dm{grid-template-columns:1fr;padding:12px}.dm-row{grid-template-columns:1fr;gap:4px}.dm-ar{display:none}.dm-rows{gap:14px}}
 .match{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px}
 .match ol{list-style:none;margin:0;padding:0;display:grid;gap:8px}
 .match li{display:flex;gap:10px;align-items:baseline}
@@ -843,6 +859,10 @@ const LES_SETS={};
       return S(fr(n,dd),[fr(a*c,b*d),fr(b*c,a*d),fr(n+1,dd),fr(a+d,b+c),fr(n,dd*2)],`Ділення на дріб — це множення на обернений: ${a}/${b} · ${d}/${c} = ${fr(n,dd)}.`,`Обчисліть ${F(`${a}/${b} : ${c}/${d}`)}.`,`${a}/${b} : ${c}/${d}`)},
   ],
   2:[ // Арифметичні задачі, частина 2 (рух, робота)
+    L=>{const k=ri(0,2),v=pick([40,45,50,60,70,80,90]),t=ri(2,6),s=v*t;
+      if(k===0)return N(s,[v+t,s/2,s+v],`s = v · t = ${v} · ${t} = ${s} км.`,`Автомобіль рухався ${t} год зі швидкістю ${v} км/год. Яку відстань (у км) він подолав?`,`v = ${v} км/год, t = ${t} год; s (км) — ?`);
+      if(k===1)return N(t,[t+1,v/10,s/10],`t = s : v = ${s} : ${v} = ${t} год.`,`Яку кількість годин потрібно, щоб подолати ${s} км зі швидкістю ${v} км/год?`,`s = ${s} км, v = ${v} км/год; t (год) — ?`);
+      return N(v,[v+10,s/2,v-5],`v = s : t = ${s} : ${t} = ${v} км/год.`,`Потяг подолав ${s} км за ${t} год. Знайдіть його швидкість (у км/год).`,`s = ${s} км, t = ${t} год; v (км/год) — ?`)},
     L=>{const v1=ri(4,9)*10,v2=ri(4,9)*10,t=ri(2,L<2?4:6),S0=(v1+v2)*t;
       return N(t,[S0/v1,S0/v2,t+1,(v1+v2)/t].map(x=>Math.round(x*10)/10),`Швидкість зближення ${v1} + ${v2} = ${v1+v2} км/год; t = ${S0} : ${v1+v2} = ${t} год.`,`Із двох міст, відстань між якими ${S0} км, одночасно назустріч одне одному виїхали два автомобілі зі швидкостями ${v1} км/год і ${v2} км/год. Через скільки годин вони зустрінуться?`)},
     L=>{const [a,b,v]=pick([[3,6,2],[4,12,3],[6,12,4],[10,15,6],[12,24,8],[20,30,12],[6,3,2],[12,6,4],[15,10,6],[30,20,12]]);
@@ -1020,7 +1040,8 @@ const LES_SETS={};
   }
   function draw(n,L,seen,wantNum,wantM){
     const gs=G[n];
-    for(let k=0;k<200;k++){const sp=pick(gs)(L);if(!sp||!sp.d||sp.d.length<4)continue;if(wantNum&&sp.num==null)continue;if(wantM&&!sp.m)continue;
+    for(let k=0;k<200;k++){const sp=pick(gs)(L);if(!sp||!sp.d||sp.d.length<4)continue;if(wantNum&&sp.num==null)continue;
+      if(wantM&&!sp.m)sp.m=(/^Розв’яжіть нерівність (<span class="f">[\s\S]*?<\/span>)\.$/.exec(sp.q)||[])[1];if(wantM&&!sp.m)continue;
       if(seen.has(sp.q))continue;seen.add(sp.q);return sp}
     return null;
   }
@@ -2576,12 +2597,10 @@ function renderTest(cab){
     body=`<div class="ros" role="radiogroup">${t.o.map((o,j)=>{let c="ro";if(v===j)c+=" sel";if(locked){if(j===t.a)c+=" right";else if(v===j)c+=" wrong"}
       return `<button class="${c}" role="radio" aria-checked="${v===j}" data-opt="${j}" ${locked?"disabled":""}><span class="rd"></span><span class="pl">${L[j]}. <span class="f">${o}</span></span></button>`}).join("")}</div>`;
   }else if(t.t==="match"){
-    const m=v||[null,null,null];
-    body=`<div class="match"><ol>${t.l.map((x,j)=>`<li><b>${j+1}</b><span>${x}</span></li>`).join("")}</ol>
-      <ol>${t.r.map((x,j)=>`<li><b>${L[j]}</b><span class="mono">${x}</span></li>`).join("")}</ol></div>
-      <div class="grid-wrap"><table class="mgrid"><thead><tr><th></th>${L.map(x=>`<th>${x}</th>`).join("")}</tr></thead><tbody>
-      ${t.l.map((_,r)=>`<tr><th>${r+1}</th>${L.map((x,c)=>`<td><button class="cell${m[r]===c?" on":""}" data-r="${r}" data-c="${c}" ${locked?"disabled":""} aria-label="${r+1} — ${x}">${x}</button></td>`).join("")}</tr>`).join("")}
-      </tbody></table></div><p class="hint">У кожному рядку позначте одну букву. Кожна правильна пара дає 1 бал.</p>`;
+    const m=v||[null,null,null],chip=j=>`<button type="button" class="dm-chip" data-chip="${j}" ${locked?"disabled":""}><span class="f">${t.r[j]}</span></button>`;
+    body=`<div class="dm${locked?" locked":""}"><div class="dm-rows">${t.l.map((x,r)=>`<div class="dm-row"><div class="dm-l"><b>${r+1}</b><span>${x}</span></div><span class="dm-ar" aria-hidden="true">→</span><div class="dm-slot" data-slot="${r}" aria-label="Відповідь до ${r+1}">${m[r]!=null?chip(m[r]):""}</div></div>`).join("")}</div>
+      <div class="dm-side"><small>Варіанти</small><div class="dm-pool" data-slot="pool">${t.r.map((_,j)=>m.includes(j)?"":chip(j)).join("")}</div></div></div>
+      <p class="hint">Перетягніть варіант у порожню клітинку навпроти завдання (або натисніть варіант, а потім клітинку).</p>`;
   }else{
     body=`<div class="short"><input id="sa" inputmode="decimal" autocomplete="off" value="${v??""}" placeholder="Ваша відповідь" aria-label="Відповідь" ${locked?"disabled":""}></div>
       <p class="hint">Запишіть ціле число або десятковий дріб, наприклад 2,5.</p>`;
@@ -2614,7 +2633,7 @@ function renderTest(cab){
     </div>
   </div>`;
   cab.querySelectorAll("[data-opt]").forEach(b=>b.onclick=()=>{setDraft(k,+b.dataset.opt);render()});
-  cab.querySelectorAll("[data-r]").forEach(b=>b.onclick=()=>{const r=+b.dataset.r,c=+b.dataset.c,m=(val(k)||[null,null,null]).slice();m[r]=m[r]===c?null:c;setDraft(k,m);render()});
+  const dm=cab.querySelector(".dm");if(dm&&!locked)bindDM(dm,k);
   const inp=document.getElementById("sa");
   if(inp&&!locked){inp.oninput=()=>{setDraft(k,inp.value.trim()||null);document.getElementById("saveans").disabled=!filled(t,val(k))};
     inp.onkeydown=e=>{if(e.key==="Enter"&&filled(t,val(k)))saveAns(k)}}
@@ -2627,6 +2646,28 @@ function renderTest(cab){
   document.getElementById("back").onclick=()=>goView(backTo);
   document.getElementById("ref").onclick=openRef;
   if(S.endsAt)startTimer();
+}
+function bindDM(dm,k){
+  let sel=null,drag=null;
+  const place=(j,slot)=>{const m=(val(k)||[null,null,null]).slice(),from=m.indexOf(j);
+    if(slot==="pool"){if(from>=0)m[from]=null}else{const r=+slot;if(from>=0)m[from]=m[r];m[r]=j}
+    setDraft(k,m);render()};
+  const slotAt=(x,y)=>{const el=document.elementFromPoint(x,y);return el&&el.closest(".dm [data-slot]")};
+  const clearOver=()=>dm.querySelectorAll(".over").forEach(e=>e.classList.remove("over"));
+  dm.querySelectorAll("[data-chip]").forEach(c=>{
+    c.addEventListener("pointerdown",e=>{if(e.button>0)return;e.preventDefault();drag={c,j:+c.dataset.chip,x:e.clientX,y:e.clientY,g:null};c.setPointerCapture(e.pointerId)});
+    c.addEventListener("pointermove",e=>{if(!drag||drag.c!==c)return;
+      if(!drag.g){if(Math.hypot(e.clientX-drag.x,e.clientY-drag.y)<5)return;const r=c.getBoundingClientRect();drag.g=c.cloneNode(true);drag.g.classList.add("dm-ghost");drag.g.style.width=r.width+"px";drag.dx=e.clientX-r.left;drag.dy=e.clientY-r.top;document.body.appendChild(drag.g);c.style.opacity=".35"}
+      drag.g.style.left=(e.clientX-drag.dx)+"px";drag.g.style.top=(e.clientY-drag.dy)+"px";
+      clearOver();const sl=slotAt(e.clientX,e.clientY);if(sl)sl.classList.add("over")});
+    const end=e=>{if(!drag||drag.c!==c)return;const d=drag;drag=null;clearOver();
+      if(d.g){d.g.remove();c.style.opacity="";const sl=slotAt(e.clientX,e.clientY);if(sl)place(d.j,sl.dataset.slot);return}
+      if(sel===d.j){sel=null;c.classList.remove("sel")}else{dm.querySelectorAll(".dm-chip.sel").forEach(x=>x.classList.remove("sel"));sel=d.j;c.classList.add("sel")}};
+    c.addEventListener("pointerup",end);
+    c.addEventListener("pointercancel",()=>{if(drag&&drag.g)drag.g.remove();c.style.opacity="";drag=null;clearOver()});
+    c.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();dm.querySelectorAll(".dm-chip.sel").forEach(x=>x.classList.remove("sel"));sel=+c.dataset.chip;c.classList.add("sel")}});
+  });
+  dm.querySelectorAll("[data-slot]").forEach(sl=>sl.addEventListener("click",e=>{if(sel===null||e.target.closest("[data-chip]"))return;place(sel,sl.dataset.slot)}));
 }
 function check(){S.checked[S.cur]=true;save();render()}
 function sheetHTML(result){
@@ -2685,11 +2726,11 @@ function startTimer(){clearInterval(tick);
 
 function shown(k){const t=T(k),a=S.ans[k];
   if(t.t==="one")return a===null?"—":L[a];
-  if(t.t==="match")return a.map((x,j)=>`${j+1}${x===null?"—":L[x]}`).join(" ");
+  if(t.t==="match")return a.map((x,j)=>`${j+1} → ${x===null?"—":t.r[x]}`).join("; ");
   return a===null||a===""?"—":String(a)}
 function right(k){const t=T(k);
   if(t.t==="one")return `${L[t.a]} (${t.o[t.a]})`;
-  if(t.t==="match")return t.a.map((x,j)=>`${j+1}${L[x]}`).join(" ");
+  if(t.t==="match")return t.a.map((x,j)=>`${j+1} → ${t.r[x]}`).join("; ");
   return String(t.a).replace(".",",")}
 
 function renderResult(cab){
