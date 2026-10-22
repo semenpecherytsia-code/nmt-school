@@ -832,7 +832,7 @@ const TASKS=[
 const SIM_IDS=TASKS.map((t,i)=>t.x?null:i).filter(i=>i!==null);
 const POOL_N=TASKS.length,POOL=()=>TASKS.slice(0,POOL_N).map((_,i)=>i);
 /* ===== Річний курс: task generators for lessons 1–16 (fixed seed, same tasks on every visit) ===== */
-const LES_SETS={};
+const LES_SETS={},VSTUP_SETS={};
 (function(){
   let s=0;const R=()=>{s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
   const ri=(a,b)=>a+Math.floor(R()*(b-a+1)),pick=a=>a[Math.floor(R()*a.length)],sh=a=>a.map(x=>[x,R()]).sort((p,q)=>p[1]-q[1]).map(z=>z[0]);
@@ -1040,7 +1040,51 @@ const LES_SETS={};
     L=>{const c=ri(1,3),b=ri(1,4),v=3**c-b+1;return N(v,[v-1,v+1,3**c,c+1],`log₃(x${sg(b)}) &gt; ${c} ⇔ x${sg(b)} &gt; ${3**c} ⇔ x &gt; ${3**c-b}; найменше ціле ${v}.`,`Знайдіть найменший цілий розв’язок нерівності ${F(`log₃(x${sg(b)}) &gt; ${c}`)}.`)},
   ],
   };
-  const TP={1:"alg",2:"alg",3:"alg",4:"alg",5:"fun",6:"alg",7:"alg",8:"alg",9:"alg",10:"alg",11:"alg",12:"alg",13:"alg",14:"alg",15:"fun",16:"fun"};
+  // Вступний курс: 101 дроби, 102 лінійні рівняння, 103 площі плоских фігур
+  const lcm=(a,b)=>a/gcd(a,b)*b;
+  G[101]=[
+    G[1][0],G[1][5],G[1][6],
+    L=>{const b=pick(L<2?[3,4,5,7,9]:[7,9,11,13,17]),a=ri(1,b-1);if(gcd(a,b)!==1)return null;const g=pick(L<2?[2,3,4,5]:[6,7,8,9,12]),A=a*g,B=b*g;
+      return S(`${a}/${b}`,[fr(a+1,b+1),`${a+1}/${b}`,`${a}/${b+1}`,`${b}/${a}`,fr(A,B+g),`${A}/${b}`].filter(x=>x!==`${a}/${b}`),`Ділимо чисельник і знаменник на ${g}: ${A}/${B} = ${a}/${b}.`,`Скоротіть дріб ${F(`${A}/${B}`)}.`,`${A}/${B}`)},
+    L=>{const b=pick([2,3,4,5,6]),d=pick([3,4,6,8,9,10,12].filter(z=>z!==b)),a=ri(1,b-1),c=ri(1,d-1),v=lcm(b,d);if(gcd(a,b)!==1||gcd(c,d)!==1)return null;
+      return N(v,[b*d===v?v*2:b*d,b+d,Math.max(b,d),v/2],`НСК(${b}; ${d}) = ${v}.`,`Укажіть найменший спільний знаменник дробів ${F(`${a}/${b}`)} і ${F(`${c}/${d}`)}.`)},
+    L=>{const b=pick([4,5,6,8,10]),a=ri(1,b-1),k=pick(L<2?[2,3,5]:[3,4,6,7]),n=b*k*ri(1,4),v=n/b*a;if(gcd(a,b)!==1)return null;
+      return N(v,[n/b,n*a,v+a,n-v],`${n} : ${b} · ${a} = ${v}.`,`Знайдіть ${F(`${a}/${b}`)} від числа ${n}.`,`${a}/${b} від ${n}`)},
+    L=>{const b=pick([2,4,5,8,10,20,25]),a=ri(1,b-1),v=a/b;if(gcd(a,b)!==1)return null;
+      return N(v,[b/a>9?v*10:b/a,a/10,v+0.1,v*10],`${a} : ${b} = ${fn(v)}.`,`Запишіть дріб ${F(`${a}/${b}`)} у вигляді десяткового дробу.`,`${a}/${b}`)},
+    L=>{const w=ri(1,4),b=pick([2,3,4,5,6,7,8]),a=ri(1,b-1);if(gcd(a,b)!==1)return null;const n=w*b+a;
+      return S(`${n}/${b}`,[fr(w+a,b),fr(w*a+b,b),fr(n,a),fr(n+1,b),fr(n-1,b),fr(w*b+a+b,b)].filter(x=>x.includes("/")),`${w} · ${b} + ${a} = ${n}, отже ${w} ${a}/${b} = ${n}/${b}.`,`Запишіть мішане число ${F(`${w} ${a}/${b}`)} у вигляді неправильного дробу.`,`${w} ${a}/${b}`)},
+    L=>{const d=pick([6,8,10,12]),xs=new Set();while(xs.size<5)xs.add(ri(1,d-1));const fs=[...xs].map(a=>fr(a,d)),best=fr(Math.max(...xs),d);
+      if(new Set(fs).size<5)return null;return S(best,fs,`Зводимо до знаменника ${d}: найбільший чисельник має ${best}.`,"Яке з чисел найбільше?")},
+    L=>{const b=pick([3,4,5,6,8]),d=pick([2,3,4,6].filter(z=>z!==b)),a=ri(1,b-1),c=ri(1,d-1),n=a*d-c*b,dd=b*d;if(n<=0)return null;
+      return S(fr(n,dd),[fr(a-c,b-d||1),fr(a*d+c*b,dd),fr(n,b+d),fr(c*b-a*d||1,dd),fr(n+1,dd)],`${a*d}/${dd} − ${c*b}/${dd} = ${fr(n,dd)}.`,`Обчисліть ${F(`${a}/${b} − ${c}/${d}`)}.`,`${a}/${b} − ${c}/${d}`)},
+  ];
+  G[102]=[
+    G[9][0],G[9][5],
+    L=>{const x=ri(-9,12),a=pick(L<2?[2,3,4,5]:[3,4,6,7,8]),b=ri(-15,15),c=a*x+b;if(!x||!b)return null;
+      return N(x,[-x,c-b,(c+b)/a,x+1],`${a}x = ${fn(c)}${sg(-b)} = ${fn(c-b)}; x = ${fn(x)}.`,`Розв’яжіть рівняння ${F(`${a}x${sg(b)} = ${fn(c)}`)}.`,`${a}x${sg(b)} = ${fn(c)}`)},
+    L=>{const x=ri(-8,10),a=pick([2,3,4,5,6]),b=ri(-6,6);if(!b)return null;const c=a*(x+b);
+      return N(x,[-x,c/a,x+2*b,c-b],`${fn(a)}(x${sg(b)}) = ${fn(c)}; x${sg(b)} = ${fn(c/a)}; x = ${fn(x)}.`,`Розв’яжіть рівняння ${F(`${a}(x${sg(b)}) = ${fn(c)}`)}.`,`${a}(x${sg(b)}) = ${fn(c)}`)},
+    L=>{const a=pick([2,3,4,5,6]),k=ri(-6,8),x=a*k,b=ri(-9,9);if(!b)return null;const c=k+b;
+      return N(x,[k,x+a,c*a,-x],`x/${a} = ${fn(c)}${sg(-b)} = ${fn(k)}; x = ${fn(x)}.`,`Розв’яжіть рівняння ${F(`x/${a}${sg(b)} = ${fn(c)}`)}.`,`x/${a}${sg(b)} = ${fn(c)}`)},
+    L=>{const x=ri(2,15),a=pick([2,3,4,5]),b=ri(2,12),c=a*x+b;
+      return N(x,[x+1,c/a,c-b,x*2],`Нехай число x: ${a}x + ${b} = ${c}, ${a}x = ${c-b}, x = ${x}.`,`Задумали число, помножили його на ${a} і додали ${b}. Отримали ${c}. Яке число задумали?`)},
+    L=>{const x=ri(-6,9),a=ri(2,7),c=ri(1,9);if(a===c)return null;const b=ri(-10,10),d=a*x+b-c*x;
+      return N(x,[-x,x+1,d-b,b-d],`${cx(a)}${sg(b)} = ${cx(c)}${sg(d)}; ${cx(a-c)} = ${fn(d-b)}; x = ${fn(x)}.`,`При якому значенні ${F("x")} вирази ${F(`${cx(a)}${sg(b)}`)} і ${F(`${cx(c)}${sg(d)}`)} набувають рівних значень?`)},
+  ];
+  G[103]=[
+    L=>{const a=ri(3,15),b=ri(2,12),v=a*b;return N(v,[2*(a+b),a+b,v/2,v*2],`S = a · b = ${a} · ${b} = ${v} см².`,`Знайдіть площу прямокутника зі сторонами ${a} см і ${b} см (у см²).`)},
+    L=>{const a=ri(3,12),P=4*a,v=a*a;return N(v,[P,a*4*2,a*2,v/2],`Сторона ${P} : 4 = ${a} см, S = ${a}² = ${v} см².`,`Периметр квадрата дорівнює ${P} см. Знайдіть його площу (у см²).`)},
+    L=>{const a=ri(3,14)*2,h=ri(2,12),v=a*h/2;return N(v,[a*h,a+h,v+h,2*v+a],`S = ½ · a · h = ½ · ${a} · ${h} = ${v} см².`,`Знайдіть площу трикутника, у якого сторона ${a} см, а висота, проведена до неї, ${h} см (у см²).`)},
+    L=>{const a=ri(3,12),b=ri(2,10)*2,v=a*b/2;return N(v,[a*b,a+b,v*3,v+a],`S = ½ · ${a} · ${b} = ${v} см².`,`Катети прямокутного трикутника дорівнюють ${a} см і ${b} см. Знайдіть його площу (у см²).`)},
+    L=>{const a=ri(4,15),h=ri(2,10),v=a*h;return N(v,[2*(a+h),v/2,a+h,v+a],`S = a · h = ${a} · ${h} = ${v} см².`,`Сторона паралелограма дорівнює ${a} см, а висота, проведена до неї, ${h} см. Знайдіть площу паралелограма (у см²).`)},
+    L=>{const a=ri(3,10),b=a+ri(2,8),h=ri(2,8)*2,v=(a+b)/2*h;return N(v,[(a+b)*h,a*b,v/2,a+b+h],`S = (a + b)/2 · h = (${a} + ${b})/2 · ${h} = ${v} см².`,`Основи трапеції дорівнюють ${a} см і ${b} см, а висота ${h} см. Знайдіть площу трапеції (у см²).`)},
+    L=>{const d1=ri(3,12)*2,d2=ri(3,12),v=d1*d2/2;return N(v,[d1*d2,d1+d2,v*2+1,v+d2],`S = d₁ · d₂/2 = ${d1} · ${d2}/2 = ${v} см².`,`Діагоналі ромба дорівнюють ${d1} см і ${d2} см. Знайдіть площу ромба (у см²).`)},
+    L=>{const r=ri(2,9),a=`${r*r}π`;return S(a,[`${2*r}π`,`${r}π`,`${4*r*r}π`,`${r*r*2}π`,`${r*r+1}π`].filter(x=>x!==a),`S = πr² = π · ${r}² = ${a} см².`,`Знайдіть площу круга радіуса ${r} см.`)},
+    L=>{const a=ri(3,12),b=ri(3,12),v=a*b;return N(b,[v-a,v/2,a,b+2],`b = S : a = ${v} : ${a} = ${b} см.`,`Площа прямокутника дорівнює ${v} см², а одна з його сторін ${a} см. Знайдіть другу сторону (у см).`)},
+    L=>{const k=ri(1,4),a=3*k,b=4*k,c=5*k,v=a*b/2;return N(v,[a*b,a*c/2,a+b+c,c*c/2],`Другий катет: √(${c}² − ${a}²) = ${b} см; S = ½ · ${a} · ${b} = ${v} см².`,`Гіпотенуза прямокутного трикутника дорівнює ${c} см, а один із катетів ${a} см. Знайдіть площу трикутника (у см²).`)},
+  ];
+  const TP={101:"alg",102:"alg",103:"geo",1:"alg",2:"alg",3:"alg",4:"alg",5:"fun",6:"alg",7:"alg",8:"alg",9:"alg",10:"alg",11:"alg",12:"alg",13:"alg",14:"alg",15:"fun",16:"fun"};
   function mk(spec,type,tp){
     if(type==="short"&&spec.num!=null)return {t:"short",tp,L:1,x:1,q:spec.q+" У відповіді запишіть число.",a:spec.num,why:spec.why};
     let o=[spec.a,...spec.d.slice(0,4)];
@@ -1052,9 +1096,10 @@ const LES_SETS={};
     const r=sh([...right,...sh(pool).slice(0,2)]);
     return {t:"match",tp,L:1,x:1,q:"Установіть відповідність між завданням (1–3) та відповіддю (А–Д).",l:specs.map(x=>x.m),r,a:right.map(v=>r.indexOf(v)),why:specs.map(x=>`${x.m} → ${x.a}`).join("; ")+"."};
   }
+  const ROT={};// the Вступний курс sets cycle through all task kinds instead of repeating one
   function draw(n,L,seen,wantNum,wantM){
     const gs=G[n];
-    for(let k=0;k<200;k++){const sp=pick(gs)(L);if(!sp||!sp.d||sp.d.length<4)continue;if(wantNum&&sp.num==null)continue;
+    for(let k=0;k<200;k++){const sp=(n>100&&k<gs.length*3?gs[(ROT[n]=((ROT[n]??R()*gs.length|0)+1))%gs.length]:pick(gs))(L);if(!sp||!sp.d||sp.d.length<4)continue;if(wantNum&&sp.num==null)continue;
       if(wantM&&!sp.m)sp.m=(/^Розв’яжіть нерівність (<span class="f">[\s\S]*?<\/span>)\.$/.exec(sp.q)||[])[1];if(wantM&&!sp.m)continue;
       if(seen.has(sp.q))continue;seen.add(sp.q);return sp}
     return null;
@@ -1080,6 +1125,10 @@ const LES_SETS={};
       wb:build(n,1201+n*71,[...rep(6,["one",1]),...rep(6,["one",2])]),
     };
   }
+  // Вступний курс: one mini-test per lesson (5, 6, 7 questions) and a 12-task workbook
+  [[1,5],[2,6],[3,7]].forEach(([n,q])=>{VSTUP_SETS[n]={
+    mini:build(100+n,4021+n*37,[...rep(Math.ceil((q-1)/2),["one",1]),...rep(Math.floor((q-1)/2),["one",2]),["short",2]]),
+    wb:build(100+n,6037+n*29,[...rep(6,["one",1]),...rep(6,["one",2])])}});
 })();
 
 const TOPICS={alg:"Алгебра",geo:"Геометрія",fun:"Функції й тригонометрія",prob:"Ймовірність і статистика"};
@@ -1621,7 +1670,7 @@ const COURSES={
     ]},
   vstup:{name:"Вступний курс",ico:"Σ",ic:"#ff9a1f",year:"2026 рік",until:"30/09/2027",
     items:[
-      {test:"Вхідний тест",kind:"Тематичний тест"},
+      {test:"Симуляція НМТ №23",kind:"НМТ",sim:23},
       {n:3,h:"Площі плоських фігур",tp:"geo"},
       {n:2,h:"Лінійні рівняння",tp:"alg"},
       {n:1,h:"Дроби та дії з ними",tp:"alg"},
@@ -1642,7 +1691,9 @@ function records(){
 function courseTests(key){if(key==="nmt")return SIM_COUNT;const c=COURSES[key];return c.items.filter(x=>x.n).length*(key==="richnyi"?4:1)+c.items.filter(x=>x.test).length}
 // one result per course item: the lesson homework or the test itself (last attempt)
 const itemKey=(key,x,i)=>x.n?(key==="richnyi"?lesKey(x.n,"hw"):`${key}${x.n}-hw`):`t-${key}-${i}`;
-function itemStat(key,x,i){const k=itemKey(key,x,i),h=HIST.filter(e=>e.lkey===k);if(!h.length)return null;const l=h[h.length-1];return {tries:h.length,pct:Math.round(l.pts/l.max*100),at:l.at}}
+function itemStat(key,x,i){
+  if(x.sim){const h=HIST.filter(e=>e.mode==="sim"&&(e.simNo||1)===x.sim);if(!h.length)return null;const l=h[h.length-1];return {tries:h.length,pct:Math.round(l.pts/l.max*100),at:l.at,score:l.score||0}}
+  const k=itemKey(key,x,i),h=HIST.filter(e=>e.lkey===k);if(!h.length)return null;const l=h[h.length-1];return {tries:h.length,pct:Math.round(l.pts/l.max*100),at:l.at}}
 function coursePct(key){if(key==="nmt"){const s=simStats();const v=Object.values(s);return v.length?Math.round(v.reduce((a,x)=>a+x.pct,0)/v.length):0}
   const it=COURSES[key].items;return Math.round(it.reduce((a,x,i)=>a+(itemStat(key,x,i)?.pct||0),0)/it.length)}
 function simStats(){const m={};HIST.filter(h=>h.mode==="sim").forEach(h=>{const n=h.simNo||1;m[n]={score:h.score||0,pct:Math.round(h.pts/h.max*100),tries:(m[n]?.tries||0)+1}});return m}
@@ -1737,15 +1788,17 @@ function cabCourse(cab,key){
   <button class="back" data-view="kursy">← До курсів</button>
   <div class="card chead">
     <span class="cico" style="background:${c.ic}">${c.ico}</span>
-    <div style="flex:1;min-width:0"><h2>${c.name}</h2><div class="chips"><span class="chip-o">${c.year}</span><span class="chip-s">${IC_CAL} до ${c.until}</span></div></div>
+    <div style="flex:1;min-width:0"><h2>${c.name}</h2><div class="chips"><span class="chip-o">${c.year}</span>${key==="vstup"?`<span class="chip-g">Відкритий курс</span>`:""}<span class="chip-s">${IC_CAL} до ${c.until}</span></div></div>
     <div class="chips"><span class="chip-s">📖 ${lessons} ${((a,b)=>a===1&&b!==11?"урок":a>=2&&a<=4&&!(b>=12&&b<=14)?"уроки":"уроків")(lessons%10,lessons%100)}</span><span class="chip-s">☑ ${tests} ${plural2(tests)}</span><span class="chip-s">★ ${coursePct(key)}% середній</span>
       <button class="btn primary sm" id="mist">💡 Робота над помилками</button></div>
   </div>
-  <div class="card clist">${c.items.map((x,i)=>{const st=itemStat(key,x,i),dt=st?`<span class="chip-s">${IC_CAL} ${fmtD(st.at)}</span>`:"";return x.test?
+  <div class="card clist">${c.items.map((x,i)=>{const st=itemStat(key,x,i),dt=st?`<span class="chip-s">${IC_CAL} ${fmtD(st.at)}</span>`:"";return x.sim?
+    testRow(x.test,{chips:[`<span class="chip-l">НМТ</span>`,`<span class="chip-s">⏱ 90 хв</span>`,`<span class="chip-o2">НМТ ${st?st.score:0}</span>`,st?`<span class="chip-g">${st.tries} спроб</span>`:""],pct:st?st.pct:0,done:!!st,dataAttr:`data-simrow="${x.sim}"`}):x.test?
     testRow(x.test,{chips:[`<span class="chip-l">${x.kind}</span>`,dt,st?`<span class="chip-g">${st.tries} спроб</span>`:""],pct:st?st.pct:0,done:!!st,dataAttr:`data-rep="${i}"`}):
     `<button class="lrow" data-les="${i}"><span class="play">${IC_PLAY}</span><div class="lb"><b>${x.n}. ${x.h}</b>${dt}</div>${st?`<span class="lp">${st.pct}%</span>`:""}</button>`}
   ).join("")}</div>`;
-  cab.querySelectorAll("[data-les]").forEach(b=>b.onclick=()=>{const i=+b.dataset.les,x=c.items[i];if(key==="richnyi"&&LES_DOCS[x.n])return openLesson(key,x.n);startTest("practice",[x.tp],{title:x.h,kind:"ДЗ",back:"kurs-"+key,lkey:itemKey(key,x,i)})});
+  cab.querySelectorAll("[data-simrow]").forEach(b=>b.onclick=()=>startTest("sim",null,{simNo:+b.dataset.simrow,back:"kurs-"+key}));
+  cab.querySelectorAll("[data-les]").forEach(b=>b.onclick=()=>{const i=+b.dataset.les,x=c.items[i];if(key==="richnyi"&&LES_DOCS[x.n]||key==="vstup"&&VSTUP_SETS[x.n])return openLesson(key,x.n);startTest("practice",[x.tp],{title:x.h,kind:"ДЗ",back:"kurs-"+key,lkey:itemKey(key,x,i)})});
   cab.querySelectorAll("[data-rep]").forEach(b=>b.onclick=()=>{const i=+b.dataset.rep,x=c.items[i];startTest("rep",null,{title:x.test,kind:x.kind,back:"kurs-"+key,lkey:itemKey(key,x,i)})});
   document.getElementById("mist").onclick=openMistakes;
 }
@@ -2561,6 +2614,25 @@ Object.assign(LES_DOCS,{
 /* ===== Lesson page (Річний курс) ===== */
 let LES=null;
 const KN_CSS=`.kn-p{margin:6px 0 8px}
+.rf-paper:has(.vw-cover){padding:0;overflow:hidden}
+.vw-cover{position:relative;aspect-ratio:210/297;color:#fff;font-family:Arial,"Helvetica Neue",sans-serif;overflow:hidden;container-type:inline-size}
+.vw-art{position:absolute;inset:0;width:100%;height:100%;display:block}
+.vw-c-in{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;text-align:center;padding:4% 6%}
+.vw-brand{font-size:2.2cqw;font-weight:700;opacity:.9;letter-spacing:.04em}
+.vw-t{margin:9% 0 0;font-family:"Nunito",Arial Rounded MT Bold,Arial,sans-serif;font-weight:900;font-size:13cqw;line-height:1;color:#fff;text-shadow:0 3px 0 #0284c7,0 8px 18px rgba(3,70,120,.35);letter-spacing:.01em}
+.vw-t span{display:inline-block;background:#fff;color:#0ea5e9;border-radius:.28em;padding:.04em .22em .1em;margin-left:.12em;text-shadow:none;box-shadow:0 6px 0 #0284c7,0 12px 22px rgba(3,70,120,.3);transform:rotate(-3deg)}
+.vw-sub{margin:7% 0 0;font-size:4.4cqw;font-weight:700;line-height:1.3;text-shadow:0 2px 6px rgba(3,70,120,.35)}
+.vw-topic{margin-top:auto;margin-bottom:22%;background:#84cc16;color:#fff;font-style:italic;font-size:4.6cqw;padding:.35em 1.1em;border-radius:999px;box-shadow:0 5px 0 #4d7c0f,0 10px 20px rgba(0,0,0,.25);max-width:92%}
+.rf-paper:has(.vw-pg){background-color:#fff;background-image:linear-gradient(#e7e7e7 1px,transparent 1px),linear-gradient(90deg,#e7e7e7 1px,transparent 1px);background-size:20px 20px}
+.vw-pg{padding:4px 2px}
+.vw-i{margin:26px 0 0}
+.vw-q{display:flex;align-items:center;gap:10px}
+.vw-n{flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#f6a54b,#e07b14);color:#fff;font-family:Arial,sans-serif;font-size:15px;box-shadow:0 2px 4px rgba(224,123,20,.4)}
+.vw-x{background:#fff;border:2px solid #f0b46e;border-radius:999px;padding:7px 18px;font-family:Arial,sans-serif;font-style:italic;font-weight:700;font-size:15px;line-height:1.45;box-shadow:0 3px 6px rgba(224,123,20,.18)}
+.vw-t5{width:100%;border-collapse:collapse;margin-top:10px;background:#fff;table-layout:fixed;font-size:14.5px}
+.vw-t5 th{color:#e07b14;font-family:Arial,sans-serif;font-weight:700;border:1px solid #333;padding:3px}
+.vw-t5 td{border:1px solid #333;padding:6px 4px;text-align:center}
+.vw-sp{height:150px}
 .kn-rule{border:2px solid #f59e0b;background:#fffbeb;border-radius:8px;padding:8px 12px;margin:10px 0;font-weight:600}
 .kn-note{background:#eef6ff;border-left:4px solid #3b82f6;padding:8px 12px;margin:10px 0;border-radius:0 8px 8px 0;font-size:14.5px}
 .kn-warn{background:#fff1f1;border-left:4px solid #ef4444;padding:8px 12px;margin:10px 0;border-radius:0 8px 8px 0;font-size:14.5px}
@@ -2594,8 +2666,38 @@ function wbPages(n,title){
   for(let p=0;p<ids.length;p+=4)pg.push(`<div class="kn-wbp">${p===0?KT(`Робочий зошит · ${title}`)+KP("Розв’яжи завдання самостійно. Місце для розв’язання — під кожним завданням."):""}${ids.slice(p,p+4).map((i,j)=>item(i,p+j)).join("")}</div>`);
   return pg;
 }
+// Вступний курс workbook: a summer cover page, then 3 tasks per grid page (no answers)
+function vstupWb(n,title){
+  const ids=VSTUP_SETS[n].wb,pg=[];
+  const cover=`<div class="vw-cover" role="img" aria-label="Літній старт · ${title}">
+    <svg class="vw-art" viewBox="0 0 210 297" preserveAspectRatio="none" aria-hidden="true">
+      <defs><linearGradient id="vwSky${n}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0ea5e9"/><stop offset="1" stop-color="#38bdf8"/></linearGradient>
+      <linearGradient id="vwSand${n}" x1="0" y1="0" x2=".6" y2="1"><stop offset="0" stop-color="#a15c0f"/><stop offset=".55" stop-color="#d9770b"/><stop offset="1" stop-color="#ff8a00"/></linearGradient></defs>
+      <rect width="210" height="297" fill="url(#vwSky${n})"/>
+      <rect y="150" width="210" height="147" fill="url(#vwSand${n})"/>
+      <path d="M0 128 C30 118 52 136 84 128 S140 116 170 126 S200 132 210 126 V170 H0Z" fill="#7dd3fc"/>
+      <path d="M0 140 C26 132 50 150 82 142 S138 130 168 140 S198 146 210 140 V176 H0Z" fill="#bae6fd"/>
+      <path d="M0 152 C28 146 56 162 88 154 S140 144 172 154 S200 158 210 152 V184 H0Z" fill="#e0f2fe"/>
+      <path d="M0 162 C30 156 58 172 90 164 S142 154 174 164 S202 168 210 162 V190 C170 182 120 196 70 186 S20 184 0 190Z" fill="#7cc8ee"/>
+      <circle cx="182" cy="34" r="14" fill="#fde047" opacity=".9"/>
+      <g transform="translate(30 214) rotate(-12)"><path d="M0-11 3-3 11-3 4 2 7 10 0 5-7 10-4 2-11-3-3-3Z" fill="#fb923c" stroke="#fff7ed" stroke-width="1.2" stroke-linejoin="round"/></g>
+      <g transform="translate(24 34)"><ellipse rx="9" ry="5.5" fill="#67e8f9"/><path d="M8 0 15-5V5Z" fill="#22d3ee"/><circle cx="-4" cy="-1" r="1.2" fill="#0c4a6e"/></g>
+      <g fill="#fff" opacity=".55"><circle cx="40" cy="60" r="1.6"/><circle cx="44" cy="54" r="1"/><circle cx="170" cy="70" r="1.3"/></g>
+    </svg>
+    <div class="vw-c-in"><span class="vw-brand">Назва школи</span>
+      <h1 class="vw-t">Літній <span>старт</span></h1>
+      <p class="vw-sub">безкоштовний курс підготовки<br>до НМТ з математики</p>
+      <span class="vw-topic">Урок ${n}. ${title}</span></div></div>`;
+  pg.push(cover);
+  const item=(i,k)=>{const t=TASKS[i];
+    const tb=t.t==="one"?`<table class="vw-t5"><tr>${L.map(x=>`<th>${x}</th>`).join("")}</tr><tr>${t.o.map(o=>`<td><span class="f">${o}</span></td>`).join("")}</tr></table>`:`<div class="kn-wa">Відповідь: <span></span></div>`;
+    return `<div class="vw-i"><div class="vw-q"><b class="vw-n">${k+1}</b><div class="vw-x">${t.q}</div></div>${tb}<div class="vw-sp"></div></div>`};
+  for(let p=0;p<ids.length;p+=3)pg.push(`<div class="vw-pg">${ids.slice(p,p+3).map((i,j)=>item(i,p+j)).join("")}</div>`);
+  return pg;
+}
 const fn3=v=>String(v).replace(".",",").replace("-","−");
 function lesDoc(kind){
+  if(LES.c==="vstup"){const x=COURSES.vstup.items.find(i=>i.n===LES.n);return {title:"Робочий зошит",pages:vstupWb(LES.n,x.h),file:`robochyi-zoshyt-vstup-${LES.n}.html`}}
   const n=LES.n,x=COURSES[LES.c].items.find(i=>i.n===n),d=LES_DOCS[n];
   if(kind==="map"||kind==="mini")return {title:kind==="mini"?"Мінілекція":"Мапа",pages:[d.map],file:`mapa-urok-${n}.html`};
   if(kind==="kon")return {title:"Конспект",pages:d.kon,file:`konspekt-urok-${n}.html`};
@@ -2626,32 +2728,33 @@ async function downloadDoc(doc){
 const IC_DOC='<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6Zm-1 7V3.5L18.5 9H13ZM8 13h8v2H8v-2Zm0 4h8v2H8v-2Z"/></svg>';
 const IC_TEST='<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="3" width="14" height="14" rx="2"/><path d="M3 7v12a2 2 0 0 0 2 2h12"/><path d="M12 8.5a2 2 0 1 1 2.5 2c-.6.2-.5.8-.5 1.5M14 14.5v.1"/></svg>';
 function cabLesson(cab){
-  const n=LES.n,c=COURSES[LES.c],x=c.items.find(i=>i.n===n),sets=LES_SETS[n];
-  const row=set=>{const key=lesKey(n,set),st=lesStat(key),name=x.h+(set==="easy"?" (Легкий рівень)":set==="mid"?" (Середній рівень)":"");
-    return `<button class="les-row" data-set="${set}"><span class="les-ic">${IC_TEST}</span><span class="les-nm">${name}</span><span class="les-st">${st?`<span class="les-tr" title="Спроб">✓ ${st.tries}</span><span class="les-pc">${st.pct}%</span>`:`<span class="les-cn">${sets[set].length} завд.</span>`}</span></button>`};
+  const n=LES.n,V=LES.c==="vstup",c=COURSES[LES.c],x=c.items.find(i=>i.n===n),sets=V?VSTUP_SETS[n]:LES_SETS[n];
+  const lk=(n,set)=>V?`vstup${n}-hw`:lesKey(n,set);
+  const row=set=>{const key=lk(n,set),st=lesStat(key),name=x.h+(set==="easy"?" (Легкий рівень)":set==="mid"?" (Середній рівень)":"");
+    return `<button class="les-row" data-set="${set}"><span class="les-ic">${IC_TEST}</span><span class="les-nm">${V?`Урок ${n}. `:""}${name}</span><span class="les-st">${st?`<span class="les-tr" title="Спроб">✓ ${st.tries}</span><span class="les-pc">${st.pct}%</span>`:`<span class="les-cn">${sets[set].length} завд.</span>`}</span></button>`};
   cab.innerHTML=`
   <div class="les-top"><button class="back" data-view="kurs-${LES.c}" style="margin:0">← До курсу</button><b>${x.h}</b></div>
   <div class="les-g">
     <div class="les-l">
       <div class="les-video" id="les-play" role="button" tabindex="0" aria-label="Відтворити відеоурок">
-        <span class="les-badge">НМТ-2027 · Урок ${n}</span>
+        <span class="les-badge">${V?"Літній старт":"НМТ-2027"} · Урок ${n}</span>
         <div class="les-board"><b>${x.h}</b><span>Відеоурок</span></div>
         <span class="les-pl" aria-hidden="true"><svg viewBox="0 0 24 24" width="34" height="34" fill="#fff"><path d="M8 5v14l11-7z"/></svg></span>
         <div class="les-ctrl" aria-hidden="true"><span>▶</span><span class="les-bar"><i></i></span><span>0:00</span><span>⛶</span></div>
-        <p class="les-vmsg" hidden>Відео з’явиться тут, щойно викладач його завантажить. Поки що відкрийте конспект і мапу праворуч.</p>
+        <p class="les-vmsg" hidden>Відео з’явиться тут, щойно викладач його завантажить. Поки що відкрийте ${V?"робочий зошит":"конспект і мапу"} праворуч.</p>
       </div>
-      <button class="les-minib" data-doc="mini">▷ Мінілекція</button>
+      ${V?"":`<button class="les-minib" data-doc="mini">▷ Мінілекція</button>`}
     </div>
     <div class="les-r">
-      <div class="les-mat"><h4>${IC_DOC} Матеріали</h4><div class="les-mb"><button data-doc="kon">${IC_DOC} Конспект</button><button data-doc="wb">${IC_DOC} Робочий Зошит</button><button data-doc="map">${IC_DOC} Мапа</button></div></div>
-      ${["hw","easy","mid","mini"].map(s=>`<h5 class="les-h">${LTXT[s]}</h5>${row(s)}`).join("")}
+      <div class="les-mat"><h4>${IC_DOC} Матеріали</h4><div class="les-mb">${V?"":`<button data-doc="kon">${IC_DOC} Конспект</button>`}<button data-doc="wb">${IC_DOC} Робочий Зошит</button>${V?"":`<button data-doc="map">${IC_DOC} Мапа</button>`}</div></div>
+      ${(V?["mini"]:["hw","easy","mid","mini"]).map(s=>`<h5 class="les-h">${LTXT[s]}</h5>${row(s)}`).join("")}
     </div>
   </div>`;
   const play=document.getElementById("les-play"),showMsg=()=>{play.querySelector(".les-vmsg").hidden=false;play.classList.add("msg")};
   play.onclick=showMsg;play.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();showMsg()}};
   cab.querySelectorAll("[data-doc]").forEach(b=>b.onclick=()=>openDoc(lesDoc(b.dataset.doc)));
   cab.querySelectorAll("[data-set]").forEach(b=>b.onclick=()=>{const s=b.dataset.set;
-    startTest("practice",null,{ids:sets[s].slice(),lkey:lesKey(n,s),title:x.h+(s==="easy"?" · легкий рівень":s==="mid"?" · середній рівень":s==="mini"?" · міні-тест":" · домашнє завдання"),kind:s==="hw"?"ДЗ":s==="mini"?"Міні-тест":"Тренажер",back:"urok"})});
+    startTest("practice",null,{ids:sets[s].slice(),lkey:lk(n,s),title:x.h+(s==="easy"?" · легкий рівень":s==="mid"?" · середній рівень":s==="mini"?" · міні-тест":" · домашнє завдання"),kind:s==="hw"?"ДЗ":s==="mini"?"Міні-тест":"Тренажер",back:"urok"})});
 }
 
 /* ===== NMT exam-format simulation ===== */
