@@ -372,6 +372,7 @@ button.me{border:0;cursor:pointer;padding:0}
 .score.fail{border-color:var(--bad)} .score.fail b{color:var(--bad)}
 .res-top h1{font-size:clamp(22px,3.2vw,32px);margin-bottom:8px}
 .res-top p{color:var(--muted)}
+.res-top .eyebrow{display:block;margin-bottom:6px}
 .breakdown{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px}
 .bd{border-top:2px solid var(--ink);padding-top:8px}
 .bd b{font-family:var(--f-mono);font-size:20px}
@@ -714,6 +715,43 @@ body.nmtmode .cab{max-width:none;padding:0;margin:0}
 .vec{position:relative;display:inline-block}
 .vec::before{content:"→";position:absolute;top:-.85em;left:0;right:0;text-align:center;font-size:.75em;font-style:normal}
 @media (max-width:640px){.rf-paper{padding:18px 14px}.rf-2,.rf-2b{grid-template-columns:1fr}.rf-4{grid-template-columns:1fr 1fr}.rf-5{grid-template-columns:1fr 1fr 1fr}}
+/* ---------- learning path, guest mode ---------- */
+.dash2{display:grid;gap:18px}
+.today{padding:24px 26px;display:grid;gap:10px;border:2px solid var(--accent);background:linear-gradient(135deg,#fff7ec,#fff)}
+.today h3{font-size:22px}.today p{color:var(--muted);max-width:62ch}
+.route{padding:22px 24px}.route-h{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}.route h3{font-size:19px}
+.route-l{list-style:none;margin:14px 0 0;padding:0;display:grid;gap:12px}
+.route-l li{display:grid;grid-template-columns:34px 1fr;gap:12px;padding:14px;border:1px solid var(--line);border-radius:16px;background:#fff}
+.rn{width:34px;height:34px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-weight:800;display:grid;place-items:center}
+.rb{display:grid;gap:6px;min-width:0}.rb small{color:var(--muted);font-size:14px}.rb .chips{display:flex;flex-wrap:wrap;gap:6px}
+.rst{font-size:13px;border-radius:999px;padding:4px 10px;font-weight:700}
+.rst.ok{background:var(--ok-soft);color:var(--ok)}.rst.prac{background:#fff1d6;color:#9a5b00}.rst.seen{background:#eef2ff;color:#3b4aa8}.rst.good{background:#e8f6ff;color:#0b6aa0}.rst.new{background:#f2f2f2;color:#666}
+.route-les{display:flex;flex-wrap:wrap;gap:4px 14px}.route-les .lnk{padding:2px 0;text-align:left}
+.diag-in{padding:28px;display:grid;gap:14px;max-width:760px;margin:0 auto}.diag-in h1{font-size:clamp(28px,4vw,40px)}.diag-in>p{color:var(--muted)}
+.goal{border:1px solid var(--line);border-radius:16px;padding:14px 16px;display:grid;gap:8px;margin:0}.goal legend{font-weight:800;padding:0 6px}
+.goal label{display:flex;gap:10px;align-items:center;font-weight:600;cursor:pointer}.goal input{width:18px;height:18px;accent-color:var(--accent)}.goal small{color:var(--muted);font-size:13px}
+.diag-sum{padding:24px;margin-top:20px}
+.dg-bars{display:grid;gap:10px}.dg-b{display:grid;grid-template-columns:minmax(0,220px) 1fr auto;gap:12px;align-items:center;font-size:14px}.dg-b .rbar{height:9px}.dg-b .rbar i{background:var(--accent)}.dg-b b small{font-weight:500;color:var(--muted)}
+.dg-cols{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}.dg-cols h4{margin-bottom:8px}
+.dg-next{margin-top:18px;padding:16px;border-radius:16px;background:var(--soft);display:flex;gap:14px;justify-content:space-between;align-items:center;flex-wrap:wrap}
+.guest-note{margin-top:14px;padding:12px 14px;border-radius:12px;background:#eef6ff;color:#1d4a7a;font-size:14px}
+.guest-bar{max-width:1160px;margin:12px auto 0;padding:10px 16px;border-radius:14px;background:#eef6ff;color:#1d4a7a;font-size:14px}
+.guest-acts{display:flex;gap:8px;flex-wrap:wrap}
+.rv-help{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.rv-help svg{width:16px;height:16px}
+.tacc{padding:22px 24px;margin:16px 0}.tacc h3{font-size:18px}.tacc .dg-bars{margin-top:12px}
+.les-next{margin-top:8px;display:grid;gap:8px;justify-items:start}.les-next p{margin:0}
+.les-goal{padding:20px 22px;margin-top:18px;display:grid;gap:10px}.les-goal h4{font-size:17px}
+.les-steps{margin:0;padding-left:22px;display:grid;gap:6px}.les-steps li{padding-left:4px}
+.lesson-how{padding:24px;display:grid;gap:14px;align-content:start}.lesson-how h3{font-size:20px}.lesson-how .btn{justify-self:start}
+.cta-b{display:grid;gap:6px;justify-items:start}.cta-b small{font-size:13px;color:var(--muted);max-width:30ch}
+.hero-login{margin-top:14px;font-size:15px;color:var(--muted)}
+.pv{padding:22px;gap:14px}.pv-h{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}.pv-q{font-size:18px}
+.pv-o{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-top:12px}.pv-o>span{border:1px solid var(--line);border-radius:12px;padding:8px 4px;display:grid;justify-items:center;gap:4px;background:#fff}.pv-o b{color:var(--accent);font-size:13px}
+.steps .lnk{text-align:left;padding:0}
+.co-off{padding:14px 16px;border-radius:14px;background:#fff6e8;border:1px solid #fbdcb8;font-size:14px;margin-top:18px}
+.course small.note{margin:0}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:90;background:#2b1906;color:#fff;padding:12px 18px;border-radius:14px;font-size:14px;max-width:calc(100% - 32px);box-shadow:0 10px 30px rgba(0,0,0,.25)}
+@media (max-width:640px){.dg-b{grid-template-columns:1fr auto}.dg-b .rbar{grid-column:1/-1;grid-row:2}.dg-cols{grid-template-columns:1fr}.pv-o{grid-template-columns:repeat(3,minmax(0,1fr))}.today{padding:20px}.route{padding:18px}.diag-in{padding:20px}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}html{scroll-behavior:auto}}
 </style>
 
@@ -832,7 +870,7 @@ const TASKS=[
 const SIM_IDS=TASKS.map((t,i)=>t.x?null:i).filter(i=>i!==null);
 const POOL_N=TASKS.length,POOL=()=>TASKS.slice(0,POOL_N).map((_,i)=>i);
 /* ===== Річний курс: task generators for lessons 1–16 (fixed seed, same tasks on every visit) ===== */
-const LES_SETS={},VSTUP_SETS={};
+const LES_SETS={},VSTUP_SETS={},DIAG_IDS=[];
 (function(){
   let s=0;const R=()=>{s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
   const ri=(a,b)=>a+Math.floor(R()*(b-a+1)),pick=a=>a[Math.floor(R()*a.length)],sh=a=>a.map(x=>[x,R()]).sort((p,q)=>p[1]-q[1]).map(z=>z[0]);
@@ -1113,6 +1151,7 @@ const LES_SETS={},VSTUP_SETS={};
       const sp=draw(n,L,seen,type==="short",false)||draw(n,L,new Set(),type==="short",false);
       if(sp){TASKS.push(mk(sp,type,tp));ids.push(TASKS.length-1)}
     }
+    ids.forEach(i=>{TASKS[i].ln=n});// lesson the task belongs to: theory link and similar tasks
     return ids.sort((a,b)=>({one:0,match:1,short:2}[TASKS[a].t]-{one:0,match:1,short:2}[TASKS[b].t]));
   }
   const rep=(k,item)=>Array.from({length:k},()=>item);
@@ -1129,11 +1168,15 @@ const LES_SETS={},VSTUP_SETS={};
   [[1,5],[2,6],[3,7]].forEach(([n,q])=>{VSTUP_SETS[n]={
     mini:build(100+n,4021+n*37,[...rep(Math.ceil((q-1)/2),["one",1]),...rep(Math.floor((q-1)/2),["one",2]),["short",2]]),
     wb:build(100+n,6037+n*29,[...rep(6,["one",1]),...rep(6,["one",2])])}});
+  // level check: 3 one-answer tasks per key topic, each tagged with its topic
+  [["num",[[101,1],[101,2],[4,1]]],["expr",[[6,1],[6,1],[7,1]]],["eq",[[102,1],[10,1],[9,2]]],["fun",[[5,1],[5,1],[5,2]]],["geo",[[103,1],[103,1],[103,2]]]]
+    .forEach(([dg,list],a)=>list.forEach(([n,L],b)=>{const id=build(n,8101+a*97+b*13,[["one",L]])[0];if(id!=null){TASKS[id].dg=dg;DIAG_IDS.push(id)}}));
 })();
 
 const TOPICS={alg:"Алгебра",geo:"Геометрія",fun:"Функції й тригонометрія",prob:"Ймовірність і статистика"};
 const SCALE={5:100,6:108,7:115,8:123,9:131,10:134,11:137,12:140,13:143,14:145,15:147,16:148,17:149,18:150,19:151,20:152,21:155,22:159,23:163,24:167,25:170,26:173,27:176,28:180,29:184,30:189,31:194,32:200};
-const MODES={sim:{name:"Симуляція НМТ",dur:5400},rep:{name:"Повторення",dur:null},practice:{name:"ШІ-тренажер",dur:null},mist:{name:"Робота над помилками",dur:null}};
+const BRAND="Математика до НМТ";// neutral label until the school name is known
+const MODES={sim:{name:"Симуляція НМТ",dur:5400},rep:{name:"Повторення",dur:null},practice:{name:"Тренажер за рівнем",dur:null},mist:{name:"Робота над помилками",dur:null}};
 
 const REMEMBER=[
  {h:"Теорема Піфагора",p:"У прямокутному трикутнику квадрат <b>гіпотенузи</b> дорівнює сумі квадратів <b>катетів</b>: c² = a² + b².",
@@ -1166,7 +1209,7 @@ const root=document.getElementById("root");
 const save=()=>store(KEY,S);
 
 /* ===== Landing nav: active section ===== */
-const SPY_IDS=["pidhid","format","kursy-info","vidguky","kontakty"];
+const SPY_IDS=["pidhid","format","kursy-info","faq"];
 let spyLock=null;
 function setSpy(id){document.querySelectorAll(".nav-links button").forEach(l=>l.classList.toggle("on",l.dataset.scroll===id))}
 function spy(){
@@ -1184,15 +1227,17 @@ addEventListener("scroll",()=>{spy()},{passive:true});
 addEventListener("resize",()=>spy());
 
 /* ===== Router ===== */
-const VIEWS=["oplata","kabinet","kursy","progres","test","urok","kurs-richnyi","kurs-vstup","kurs-nmt","vhid"];
-const PUBLIC=["home","oplata","vhid"];
+const VIEWS=["oplata","kabinet","kursy","progres","test","urok","kurs-richnyi","kurs-vstup","kurs-nmt","vhid","diag"];
+const PUBLIC=["home","oplata","vhid","diag","kurs-vstup"];
+// guests may use the level check, the free course and any test they started from there
+const guestOK=v=>PUBLIC.includes(v)||v==="urok"&&LES&&LES.c==="vstup"||v==="test"&&!!S;
 function route(){
   const h=location.hash.slice(1);
   view=VIEWS.includes(h)?h:"home";
-  if(!USER&&!PUBLIC.includes(view)){AFTER=view;view="vhid"}
+  if(!USER&&!guestOK(view)){AFTER=view;view="vhid"}
   if(USER&&view==="vhid")view="kabinet";
   if(view==="test"&&!S)view="kabinet";
-  if(view==="urok"&&!LES)view="kurs-richnyi";
+  if(view==="urok"&&!LES)view=USER?"kurs-richnyi":"kurs-vstup";
   render();
 }
 function goView(v){if(location.hash.slice(1)===v)route();else location.hash=v||"top";window.scrollTo({top:0})}
@@ -1247,8 +1292,10 @@ async function cloudBoot(){
   fb.auth.onAuthStateChanged(async u=>{
     if(!u||(u.email||"").toLowerCase()!==USER){localOut();return}
     try{const snap=await fb.db.collection("users").doc(u.uid).get(),la=+localStorage.getItem(ATK())||0;
-      if(snap.exists){const d=snap.data();if((d.at||0)>la)return pull(d);if((d.at||0)===la)return}
-      push();
+      const d=snap.exists?snap.data():null;
+      if(d&&(d.at||0)>la)pull(d);
+      if(mergeGuest()){route();toast("Результати, отримані без входу, перенесено в акаунт.")}
+      else if(!d||(d.at||0)<la)push();
     }catch(e){}
   });
   addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden"&&pushT)push()});
@@ -1273,7 +1320,7 @@ function renderLogin(){
   root.innerHTML=`<div class="paper"></div>
   <div class="auth-w"><button class="back" data-view="" style="justify-self:start">← На головну</button>
     <div class="card auth">
-      <div class="logo" style="justify-content:center"><i>√x</i>Назва школи</div>
+      <div class="logo" style="justify-content:center"><i>√x</i>${BRAND}</div>
       <div class="seg auth-seg"><button class="${reg?"":"on"}" data-tab="in">Вхід</button><button class="${reg?"on":""}" data-tab="up">Реєстрація</button></div>
       <form id="auth-f" novalidate>
         <label>Пошта<input type="email" id="a-mail" autocomplete="email" placeholder="you@example.com" required></label>
@@ -1283,6 +1330,7 @@ function renderLogin(){
         ${!reg&&CLOUD?`<button class="auth-fgt" type="button" id="a-fgt">Забули пароль?</button>`:""}
         <button class="btn primary" type="submit" style="justify-content:center">${reg?"Зареєструватися":"Увійти"}</button>
       </form>
+      ${(load("nmt-school-hist:guest")||[]).length?`<p class="auth-note" style="margin-bottom:8px"><b>Ваші результати без входу (${load("nmt-school-hist:guest").length}) буде перенесено в акаунт.</b></p>`:""}
       <p class="auth-note">${reg?"Кожен акаунт має власний прогрес і повний доступ до курсів.":"Ще немає акаунта? Перейдіть на вкладку «Реєстрація»."} ${CLOUD?"Прогрес зберігається в акаунті й доступний з будь-якого пристрою.":"Акаунти поки зберігаються лише в цьому браузері."}</p>
     </div></div>`;
   root.querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>{authTab=b.dataset.tab;renderLogin()});
@@ -1342,39 +1390,31 @@ const I={
 
 /* ===== Plans & checkout ===== */
 const PLANS={
-  year:{badge:"Основний формат",name:"Системна підготовка до НМТ",desc:"Повний маршрут для тих, кому важливі структура, регулярність і впевнений рух від бази до високого результату.",feat:["живі онлайн-уроки та записи","авторські конспекти й практика","домашні, контроль і відстеження прогресу"],price:"1 900 грн",per:"/ місяць",amount:1900,unit:"міс.",opts:[[1,"1 місяць"],[3,"3 місяці −5%",.95],[9,"Весь рік −15%",.85]]},
-  intensive:{badge:"Коли часу менше",name:"Інтенсив і повторення",desc:"Щоб швидко підтягнути слабкі місця, повторити ключові теми й потренувати те, що найбільше впливає на бали.",feat:["фокус на найважливіших темах","розбір типових помилок і пасток НМТ","короткий маршрут без зайвого перевантаження"],price:"2 400 грн",per:"/ місяць",amount:2400,unit:"міс.",opts:[[1,"1 місяць"],[2,"2 місяці −5%",.95]]},
-  solo:{badge:"Під конкретний запит",name:"Індивідуальний супровід",desc:"Коли потрібен свій темп, окремі акценти або точкова робота над темами, що заважають вийти на максимум.",feat:["діагностика стартового рівня","персональні акценти в підготовці","більше зворотного зв’язку й корекції маршруту"],price:"550 грн",per:"/ урок",amount:550,unit:"ур.",opts:[[4,"4 уроки"],[8,"8 уроків −5%",.95],[16,"16 уроків −10%",.9]]},
+  year:{badge:"Основний формат",name:"Системна підготовка до НМТ",desc:"Повний маршрут для тих, кому важливі структура, регулярність і впевнений рух від бази до високого результату.",feat:["живі онлайн-уроки та записи","авторські конспекти й практика","домашні, контроль і відстеження прогресу"],price:"1 900 грн",per:"/ місяць",amount:1900,unit:"міс.",term:"Ціна за місяць. Період: 1, 3 або 9 місяців (навчальний рік).",opts:[[1,"1 місяць"],[3,"3 місяці −5%",.95],[9,"9 місяців (навчальний рік) −15%",.85]]},
+  intensive:{badge:"Коли часу менше",name:"Інтенсив і повторення",desc:"Щоб швидко підтягнути слабкі місця, повторити ключові теми й потренувати те, що найбільше впливає на бали.",feat:["фокус на найважливіших темах","розбір типових помилок і пасток НМТ","короткий маршрут без зайвого перевантаження"],price:"2 400 грн",per:"/ місяць",amount:2400,unit:"міс.",term:"Ціна за місяць. Період: 1 або 2 місяці.",opts:[[1,"1 місяць"],[2,"2 місяці −5%",.95]]},
+  solo:{badge:"Під конкретний запит",name:"Індивідуальний супровід",desc:"Коли потрібен свій темп, окремі акценти або точкова робота над темами, що заважають вийти на максимум.",feat:["діагностика стартового рівня","персональні акценти в підготовці","більше зворотного зв’язку й корекції маршруту"],price:"550 грн",per:"/ урок",amount:550,unit:"ур.",term:"Ціна за один урок. Пакети: 4, 8 або 16 уроків.",opts:[[4,"4 уроки"],[8,"8 уроків −5%",.95],[16,"16 уроків −10%",.9]]},
 };
-let CO={plan:"year",opt:0,done:false};
+let CO={plan:"year",opt:0};
 const money=n=>Math.round(n).toLocaleString("uk-UA").replace(/,/g," ")+" грн";
 function renderCheckout(){
   const pl=PLANS[CO.plan],o=pl.opts[CO.opt]||pl.opts[0],full=pl.amount*o[0],total=full*(o[2]||1);
   root.innerHTML=`
   <header class="nav"><div class="nav-in">
-    <button class="logo" data-view=""><i>√x</i>Назва школи</button>
+    <button class="logo" data-view=""><i>√x</i>${BRAND}</button>
     <span style="margin-inline:auto"></span>
     <button class="btn sm" data-view="">← На головну</button>
   </div></header>
   <main class="wrap co">
-    <div class="head"><span class="eyebrow">Оформлення</span><h2>Оплата <span class="mark">тарифу</span></h2></div>
+    <div class="head"><span class="eyebrow">Тарифи</span><h2>Деталі <span class="mark">тарифу</span></h2><p>Оберіть тариф і період, щоб побачити підсумкову суму.</p></div>
     <div class="co-g">
       <form class="card co-form" id="co-form" novalidate>
         <h3>Тариф</h3>
         <div class="co-plans">${Object.entries(PLANS).map(([k,x])=>`<label class="co-plan${k===CO.plan?" on":""}"><input type="radio" name="plan" id="pl-${k}" value="${k}" ${k===CO.plan?"checked":""}><span><b>${x.name}</b><small>${x.price} ${x.per}</small></span></label>`).join("")}</div>
         <h3>Період</h3>
         <div class="co-opts">${pl.opts.map((x,i)=>`<label class="co-opt${i===CO.opt?" on":""}"><input type="radio" name="opt" id="op-${i}" value="${i}" ${i===CO.opt?"checked":""}>${x[1]}</label>`).join("")}</div>
-        <h3>Контактні дані</h3>
-        <div class="co-fields">
-          <label for="co-name">Ім’я та прізвище<input id="co-name" autocomplete="name" required placeholder="Наприклад, Олена Коваль"></label>
-          <label for="co-phone">Телефон<input id="co-phone" type="tel" autocomplete="tel" required placeholder="+380 __ ___ __ __"></label>
-          <label for="co-mail">Email<input id="co-mail" type="email" autocomplete="email" required placeholder="you@example.com"></label>
-          <label for="co-note">Коментар<input id="co-note" placeholder="Клас, бажаний бал, зручний час"></label>
-        </div>
-        <label class="co-agree" for="co-ok"><input type="checkbox" id="co-ok"> Погоджуюся з умовами договору-оферти</label>
-        <p class="co-err" id="co-err" hidden></p>
-        <button class="btn primary co-pay" type="submit">Оплатити ${money(total)}</button>
-        <p class="note">Дані картки вводяться вже на захищеній сторінці платіжного сервісу.</p>
+        <div class="co-off" role="note"><b>Онлайн-оплату ще не підключено.</b> Тому тут немає форми з контактами: дані нікуди б не надійшли. Щойно оплату підключать, тут з’явиться перехід на сторінку платіжного сервісу.</div>
+        <button class="btn primary co-pay" type="button" disabled>Оплата ще недоступна</button>
+        <p class="note">Поки що можна почати безкоштовно: <button class="lnk" type="button" data-view="diag">визначити свій рівень</button> або <button class="lnk" type="button" data-free>пройти безкоштовний урок</button>.</p>
       </form>
       <aside class="card co-sum">
         <span class="badge">${pl.badge}</span>
@@ -1382,101 +1422,99 @@ function renderCheckout(){
         <ul class="dots">${pl.feat.map(f=>`<li>${f}</li>`).join("")}</ul>
         <div class="co-line"><span>${o[1].replace(/ −.*/,"")}</span><span>${money(full)}</span></div>
         ${o[2]?`<div class="co-line disc"><span>Знижка</span><span>−${money(full-total)}</span></div>`:""}
-        <div class="co-line tot"><span>До сплати</span><span>${money(total)}</span></div>
+        <div class="co-line tot"><span>Разом</span><span>${money(total)}</span></div>
+        <p class="note" style="margin-top:10px">${pl.term}</p>
       </aside>
     </div>
-    ${CO.done?`<div class="modal" id="co-ok-m"><div class="card"><h3>Заявку сформовано</h3><p>Це демо-версія сайту. Тут покупець переходить на сторінку платіжного сервісу (наприклад, LiqPay, WayForPay або monobank), щоб сплатити ${money(total)}. Щоб оплата запрацювала, сервіс потрібно підключити.</p><div class="acts"><button class="btn primary" id="co-close">Зрозуміло</button></div></div></div>`:""}
   </main>`;
   bindCommon();
-  const FIDS=["co-name","co-phone","co-mail","co-note"];
-  CO.f=CO.f||{};FIDS.forEach(id=>{document.getElementById(id).value=CO.f[id]||""});document.getElementById("co-ok").checked=!!CO.f.ok;
-  const keep=()=>{FIDS.forEach(id=>CO.f[id]=document.getElementById(id).value);CO.f.ok=document.getElementById("co-ok").checked};
-  root.querySelectorAll('input[name="plan"]').forEach(r=>r.onchange=()=>{keep();CO.plan=r.value;CO.opt=0;renderCheckout()});
-  root.querySelectorAll('input[name="opt"]').forEach(r=>r.onchange=()=>{keep();CO.opt=+r.value;renderCheckout()});
-  document.getElementById("co-form").onsubmit=e=>{e.preventDefault();
-    const err=document.getElementById("co-err"),name=document.getElementById("co-name").value.trim(),ph=document.getElementById("co-phone").value.replace(/\D/g,""),em=document.getElementById("co-mail").value.trim();
-    const msg=!name?"Вкажіть ім’я.":ph.length<10?"Вкажіть телефон, щонайменше 10 цифр.":!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)?"Вкажіть коректний email.":!document.getElementById("co-ok").checked?"Підтвердіть згоду з умовами оферти.":"";
-    if(msg){err.textContent=msg;err.hidden=false;return}
-    keep();CO.done=true;renderCheckout()};
-  const c=document.getElementById("co-close");if(c)c.onclick=()=>{CO.done=false;renderCheckout()};
+  root.querySelectorAll('input[name="plan"]').forEach(r=>r.onchange=()=>{CO.plan=r.value;CO.opt=0;renderCheckout();document.getElementById("pl-"+r.value).focus()});
+  root.querySelectorAll('input[name="opt"]').forEach(r=>r.onchange=()=>{CO.opt=+r.value;renderCheckout();document.getElementById("op-"+r.value).focus()});
+  document.getElementById("co-form").onsubmit=e=>e.preventDefault();
 }
 
 /* ===== Landing ===== */
 const PHRASES=["Я постійно роблю дурні помилки","Я знаю формули, але плутаюся в задачах","Геометрія для мене як темний ліс","На тестах я панікую і не встигаю","Мені потрібно хоча б 170 балів","Я пропустив(ла) половину тем у школі"];
-function photoBox(label,tags){
-  return `<div class="photo"><canvas data-art></canvas><div class="ph">${I.img}<b>${label}</b><span>Замініть на своє фото</span></div>${tags?`<div class="photo-tags">${tags.map(t=>`<span>${t}</span>`).join("")}</div>`:""}</div>`;
+function heroPreview(){
+  const t=TASKS[DIAG_IDS[0]];
+  return `<div class="card hero-side pv" data-tilt>
+    <div class="pv-h"><span class="eyebrow">Приклад завдання з діагностики</span><span class="chip-s">1 з 15</span></div>
+    ${tsHTML(`<p class="pv-q">${t.q}</p><div class="pv-o">${t.o.map((o,j)=>`<span><b>${L[j]}</b><span class="f">${o}</span></span>`).join("")}</div>`)}
+    <div class="mini"><div><b>Після діагностики</b><span>що вже добре, що повторити і з якого уроку почати</span></div><div><b>Після кожного тесту</b><span>пояснення до кожного завдання і схожі задачі для помилок</span></div></div>
+  </div>`;
 }
 function renderHome(){
   root.innerHTML=`
   <header class="nav"><div class="nav-in">
-    <button class="logo" data-scroll="top"><i>√x</i>Назва школи</button>
-    <nav class="nav-links">
-      <button data-scroll="pidhid">Підхід</button><button data-scroll="format">Формат</button>
-      <button data-scroll="kursy-info">Курси</button><button data-scroll="vidguky">Відгуки</button><button data-scroll="kontakty">Контакти</button>
+    <button class="logo" data-scroll="top"><i>√x</i>${BRAND}</button>
+    <nav class="nav-links" aria-label="Розділи сторінки">
+      <button data-scroll="pidhid">Підхід</button><button data-scroll="format">Як це працює</button>
+      <button data-scroll="kursy-info">Тарифи</button><button data-scroll="faq">Питання</button>
     </nav>
-    <button class="btn primary sm" data-view="kabinet">Кабінет ${I.arrow}</button>
+    <button class="btn primary sm" data-view="kabinet">${USER?"Кабінет":"Увійти"} ${I.arrow}</button>
   </div></header>
 
   <main class="wrap">
   <section class="hero" id="top">
     <div>
-      <span class="chip"><b></b>Підготовка до НМТ з людським темпом і сильною системою</span>
+      <span class="chip"><b></b>Безкоштовний старт без реєстрації</span>
       <h1>НМТ з математики <br><span class="it">без хаосу.</span></h1>
-      <p class="hero-lead">Викладачі віддаються підготовці на всі 200%: план, практика, контроль і підтримка працюють разом, щоб учень дійшов до свого максимуму.</p>
-      <div class="card typer"><span class="eyebrow">Те, з чим приходять учні</span><div class="t" id="typer"></div></div>
+      <p class="hero-lead">Короткі уроки з конспектом і робочим зошитом, тест після кожної теми, розбір кожної помилки і тренувальні симуляції у форматі НМТ. Почніть з діагностики, щоб побачити, з чого починати саме вам.</p>
       <div class="hero-ctas">
-        <button class="btn primary" data-view="kabinet">Перейти в кабінет ${I.arrow}</button>
-        <button class="btn" data-view="kursy" data-ct-go="open">Відкрити безкоштовні курси</button>
+        <div class="cta-b"><button class="btn primary" data-view="diag">Визначити свій рівень ${I.arrow}</button><small>15 завдань · ≈ 20 хв · одразу видно результат за темами</small></div>
+        <div class="cta-b"><button class="btn" data-free>Спробувати безкоштовний урок</button><small>«Дроби»: конспект, зошит і міні-тест на 5 завдань</small></div>
       </div>
+      <p class="hero-login">${USER?`Ви увійшли як <b>${USER}</b>. <button class="lnk" data-view="kabinet">Перейти в кабінет</button>`:`Уже навчаєтеся? <button class="lnk" data-auth="in">Увійти в кабінет</button>`}</p>
+      <div class="card typer"><span class="eyebrow">Можливо, це про вас</span><div class="t" id="typer"></div></div>
       <div class="stats">
-        <div class="card stat"><b>[N] років</b><span>авторська система, що постійно вдосконалюється</span></div>
-        <div class="card stat"><b>200%</b><span>залученість викладачів у процес і результат</span></div>
-        <div class="card stat"><b>НМТ</b><span>симуляції у форматі іспиту, щоб зняти зайвий стрес</span></div>
+        <div class="card stat"><b>22 завдання</b><span>у тренувальній симуляції: три типи, як у форматі НМТ</span></div>
+        <div class="card stat"><b>16 уроків</b><span>річного курсу з конспектами, зошитами й тестами</span></div>
+        <div class="card stat"><b>3 уроки</b><span>вступного курсу безкоштовно і без реєстрації</span></div>
       </div>
     </div>
-    <div class="card hero-side" data-tilt>
-      ${photoBox("Фото викладача",["Авторські конспекти","Система прогресу","Особистий кабінет"])}
-      <div class="mini"><div><b>Команда професіоналів</b><span>зрозумілий темп, пояснення і повторення</span></div><div><b>Лайфхаки та нюанси підготовки</b><span>від бази до складних тем і задач</span></div></div>
-    </div>
+    ${heroPreview()}
   </section>
 
   <section class="block" id="pidhid">
     <div class="split">
       <div>
-        <div class="head"><span class="eyebrow">Платформа</span><h2>Сучасна платформа <br><span class="mark">для підготовки до НМТ</span></h2>
-          <p>ШІ-тренажер, дієві тести, справжні симуляції НМТ і наочна статистика: усе потрібне зібрано в одному місці.</p></div>
+        <div class="head"><span class="eyebrow">Платформа</span><h2>Що є на платформі <br><span class="mark">вже зараз</span></h2>
+          <p>Що саме ви отримуєте і як це працює.</p></div>
         <div class="feat">
-          <div class="card"><h3>ШІ-тренажер</h3><p>Вбудований тренажер підлаштовує завдання під твій рівень і допомагає швидко закривати помилки.</p></div>
-          <div class="card"><h3>Реальні симуляції НМТ</h3><p>Повні симуляції з тим самим форматом і часом, що на іспиті, тож у день тесту нічого не здивує.</p></div>
-          <div class="card"><h3>Тести, що працюють</h3><p>Короткий тест після кожної теми закріплює матеріал і одразу показує, що засвоєно, а що треба повторити.</p></div>
-          <div class="card"><h3>Все під рукою</h3><p>Конспекти, відео, практика й статистика прогресу на одній платформі, без пошуків по зошитах і чатах.</p></div>
+          <div class="card"><h3>Тренажер за рівнем</h3><p>Обираєте складність і кількість завдань. Тренажер частіше дає теми, у яких ви вже помилялися.</p></div>
+          <div class="card"><h3>Тренувальні симуляції НМТ</h3><p>22 завдання трьох типів і таймер на 90 хвилин. Бал рахуємо за орієнтовною шкалою, офіційну УЦОЯО публікує щороку.</p></div>
+          <div class="card"><h3>Тест після кожної теми</h3><p>Тема вважається засвоєною, коли тест уроку виконано щонайменше на 80%. Перегляд конспекту цього ще не означає.</p></div>
+          <div class="card"><h3>Прогрес за темами</h3><p>Кабінет окремо показує, скільки ви зробили, і наскільки правильно розв’язуєте кожну тему.</p></div>
         </div>
       </div>
-      <div class="card teacher">
-        ${photoBox("Фото викладача")}
-        <div class="teacher-b">
-          <h3>Пояснюємо доти, доки справді стане зрозуміло</h3>
-          <p>Тут не страшно помилятися, перепитувати і без поспіху закривати прогалини. Саме так з’являється впевненість.</p>
-          <div class="tags"><span>[досягнення в школі]</span><span>[олімпіади, конкурси]</span><span>[освіта: ступінь, університет]</span><span>[досвід роботи]</span><span>[стаж викладання, років]</span></div>
-          <div class="quote">“Кожна розібрана помилка — плюс бал на НМТ”</div>
-        </div>
+      <div class="card lesson-how">
+        <h3>Як побудований кожен урок</h3>
+        <ol class="les-steps">
+          <li><b>Мета</b> — що саме ви навчитеся робити.</li>
+          <li><b>Пояснення і формули</b> — короткий конспект без води.</li>
+          <li><b>Розібраний приклад</b> — розв’язання крок за кроком.</li>
+          <li><b>Практика</b> — робочий зошит і тест уроку.</li>
+          <li><b>Розбір помилок</b> — пояснення, конспект теми і схожі завдання з іншими числами.</li>
+          <li><b>Наступний крок</b> — кабінет підкаже, що робити далі.</li>
+        </ol>
+        <button class="btn primary" data-free>Подивитися на прикладі уроку «Дроби» ${I.arrow}</button>
       </div>
     </div>
   </section>
 
   <section class="block" id="format">
-    <div class="head"><span class="eyebrow">Формат навчання</span><h2>Курс <br><span class="mark">під вашу ціль</span></h2>
-      <p>Від бази до складних тем, інтенсиви й симуляції. Оберіть самі або попросіть допомогти з вибором.</p></div>
+    <div class="head"><span class="eyebrow">Як це працює</span><h2>Три кроки <br><span class="mark">до свого маршруту</span></h2>
+      <p>Можна готуватися до НМТ або просто підтягнути шкільну математику: діагностика й маршрут однакові, різниться лише фінальний крок.</p></div>
     <div class="fmt">
       <div class="steps">
-        <div class="card"><span class="n">01</span><h3>Визначаємо рівень</h3><p>Короткий вхідний тест показує, з чого почати і які теми вже не потрібні.</p></div>
-        <div class="card"><span class="n">02</span><h3>Складаємо маршрут</h3><p>Уроки, тести й практика лише ті, що потрібні для вашого бажаного балу.</p></div>
-        <div class="card"><span class="n">03</span><h3>Тренуємо формат</h3><p>Регулярні симуляції, щоб у день НМТ нічого не здавалося новим.</p></div>
+        <div class="card"><span class="n">01</span><h3>Визначаємо рівень</h3><p>Діагностика з 15 завдань із п’яти тем показує, що вже добре і що варто повторити. Це орієнтир для старту, а не прогноз балу.</p><button class="lnk" data-view="diag">Пройти діагностику →</button></div>
+        <div class="card"><span class="n">02</span><h3>Будуємо маршрут</h3><p>Кабінет ставить слабкі теми першими і для кожної показує уроки, тривалість і статус: не розпочато, практика, підтверджено тестом.</p></div>
+        <div class="card"><span class="n">03</span><h3>Тренуємо і перевіряємо</h3><p>Коли теми маршруту підтверджені, переходимо до тренувальних симуляцій НМТ або до повторення шкільних тем.</p></div>
       </div>
       <div class="card tabsbox">
         <div class="tabbtns" id="fmt-tabs">
           <button class="on" data-tab="0">Теорія</button><button data-tab="1">Практика</button>
-          <button data-tab="2">Розбір</button><button data-tab="3">Ритм</button>
+          <button data-tab="2">Розбір</button><button data-tab="3">Формат НМТ</button>
         </div>
         <div class="tabpanel" id="fmt-panel"></div>
       </div>
@@ -1484,56 +1522,49 @@ function renderHome(){
   </section>
 
   <section class="block" id="kursy-info">
-    <div class="head"><span class="eyebrow">Курси</span><h2>Багато курсів, <br><span class="mark">щоб обрати свій.</span></h2></div>
+    <div class="head"><span class="eyebrow">Тарифи</span><h2>Платні формати <br><span class="mark">підготовки</span></h2>
+      <p>Онлайн-оплату ще не підключено, тому оформити тариф на сайті поки не можна. Почати можна безкоштовно: з діагностики і вступного курсу.</p></div>
     <div class="courses">
       ${Object.entries(PLANS).map(([k,pl])=>`<div class="card course${k==="year"?" main":""}"><span class="badge">${pl.badge}</span><h3>${pl.name}</h3>
         <p>${pl.desc}</p>
         <ul class="dots">${pl.feat.map(f=>`<li>${f}</li>`).join("")}</ul>
         <div class="price"><b>${pl.price}</b><span>${pl.per}</span></div>
-        <button class="btn ${k==="year"?"primary":""} plan-btn" data-plan="${k}">Обрати тариф ${I.arrow}</button></div>`).join("")}
+        <small class="note">${pl.term}</small>
+        <button class="btn ${k==="year"?"primary":""} plan-btn" data-plan="${k}">Деталі тарифу ${I.arrow}</button></div>`).join("")}
     </div>
     <div class="card cta">
-      <div><h3>Почати можна одразу</h3><p>Зайдіть у розділ «Відкриті курси», перегляньте доступні матеріали й зробіть перший крок без реєстрації.</p></div>
-      <div class="hero-ctas" style="margin:0"><button class="btn primary" data-view="kursy" data-ct-go="open">Спробувати курси безкоштовно ${I.arrow}</button><button class="btn" data-scroll="kontakty">Порадитися з менеджером</button></div>
-    </div>
-  </section>
-
-  <section class="block" id="vidguky">
-    <div class="head"><span class="eyebrow">Відгуки</span><h2>Коли спочатку страшно, <br><span class="mark">а потім виходить.</span></h2></div>
-    <div class="reviews">
-      ${["А","М","О","Д","Є"].map(l=>`<div class="card rev"><div class="rev-h"><span class="ava">${l}</span><div><b>[Ім’я учня]</b><small>учениця курсу</small></div><span class="score-chip">[бал]</span></div><p>“[Відгук учня: що змінилося після курсу і з яким результатом він склав НМТ.]”</p></div>`).join("")}
+      <div><h3>Почати можна одразу</h3><p>Вступний курс із трьох уроків відкритий без реєстрації: конспект, робочий зошит і міні-тест у кожному уроці.</p></div>
+      <div class="hero-ctas" style="margin:0"><button class="btn primary" data-free>Спробувати безкоштовний урок ${I.arrow}</button><button class="btn" data-view="diag">Визначити свій рівень</button></div>
     </div>
   </section>
 
   </main>
-  <section class="faqsec">
+  <section class="faqsec" id="faq">
     <div class="faq-head"><span class="eyebrow">Питання</span><h2>Часті запитання</h2></div>
     <div class="faq">
-      ${[["Чи підійде курс, якщо база слабка?","Так. Ми не розраховуємо, що учень уже все знає. Спершу вхідний тест показує прогалини, потім закриваємо базу і лише після цього переходимо до складних тем."],
-         ["Чи є записи уроків і матеріали?","Так, усе лежить в особистому кабінеті: записи, конспекти й тести. До будь-якої теми можна повернутися скільки завгодно разів."],
-         ["Що робити, якщо до НМТ залишилося мало часу?","Тоді головне — правильний маршрут: теми, що дають найбільше балів, регулярні симуляції і нічого зайвого. Під це є інтенсив і короткі плани."],
-         ["Чи можна ставити запитання поза уроками?","Так. Незрозуміле краще розібрати одразу, ніж накопичувати. Пишіть викладачу в чат між уроками."],
-         ["Як зрозуміти, який формат підходить саме мені?","Напишіть нам. Після короткої розмови й вхідного тесту порадимо, що краще: повний курс, інтенсив чи індивідуальний супровід."]]
+      ${[["Чи потрібна реєстрація, щоб почати?","Ні. Діагностика і вступний курс доступні одразу. Без акаунта результати зберігаються лише в цьому браузері. Якщо потім зареєструватися на цьому ж пристрої, вони перенесуться в кабінет."],
+         ["Чи підійде, якщо база слабка?","Так. Діагностика покаже прогалини, а маршрут почнеться з основ: дробів, відсотків, рівнянь і виразів."],
+         ["Коли тема вважається засвоєною?","Коли тест уроку виконано щонайменше на 80%. Відкритий конспект чи переглянуте відео — це лише перший крок, тому в кабінеті ці статуси показано окремо."],
+         ["Чи гарантуєте ви бал на НМТ?","Ні. Ми показуємо точність за темами і результати тренувальних симуляцій за орієнтовною шкалою. Бал на іспиті залежить від багатьох чинників."],
+         ["Чи можна підтягнути шкільну математику, а не готуватися до НМТ?","Частково. Зараз є базові теми: дроби, відсотки, рівняння, нерівності, вирази, площі фігур і квадратична функція. Окремого каталогу за класами поки немає."],
+         ["Як оплатити тариф?","Онлайн-оплату ще не підключено, тому на сайті тариф оформити не можна. Ціни вказано в розділі «Тарифи»."]]
         .map(([q,a],i)=>`<details name="faq"${i===0?" open":""}><summary>${q}<i aria-hidden="true">+</i></summary><p>${a}</p></details>`).join("")}
     </div>
   </section>
 
   <footer class="foot" id="kontakty">
     <div class="foot-g">
-      <div><div class="brand">Назва школи</div><p>Підготовка до НМТ з математики, де є людяність, чітка структура і справжня підтримка. Не знаєте, з чого почати? Просто напишіть нам.</p></div>
-      <div><h4>Навігація</h4><ul><li><button data-scroll="pidhid">Підхід</button></li><li><button data-scroll="format">Формат</button></li><li><button data-scroll="kursy-info">Курси</button></li><li><button data-scroll="vidguky">Відгуки</button></li></ul></div>
-      <div><h4>Контакти</h4><ul>
-        <li style="display:flex;gap:10px">${I.mail}<span class="ph-line">email@вашашкола.ua</span></li>
-        <li style="display:flex;gap:10px">${I.pin}<span class="ph-line">Місто, вулиця, будинок</span></li>
-        <li style="display:flex;gap:10px">${I.doc}<span class="ph-line">Реквізити: ФОП, код ЄДРПОУ</span></li></ul></div>
+      <div><div class="brand">${BRAND}</div><p>Уроки, тести, розбір помилок і тренувальні симуляції НМТ з математики в одному кабінеті.</p></div>
+      <div><h4>Навігація</h4><ul><li><button data-scroll="pidhid">Підхід</button></li><li><button data-scroll="format">Як це працює</button></li><li><button data-scroll="kursy-info">Тарифи</button></li><li><button data-scroll="faq">Питання</button></li></ul></div>
+      <div><h4>Почати</h4><ul><li><button data-view="diag">Визначити свій рівень</button></li><li><button data-free>Безкоштовний урок</button></li><li><button data-view="kabinet">${USER?"Кабінет":"Увійти в кабінет"}</button></li></ul></div>
     </div>
-    <div class="foot-b"><span>© 2026 Назва школи</span><div class="soc"><span title="Telegram">${I.tg}</span><span title="Instagram">${I.ig}</span></div></div>
+    <div class="foot-b"><span>© 2026 ${BRAND}</span></div>
   </footer>`;
   bindCommon();
   drawArt();
   startTyper();
   setupFormatTabs();
-  root.querySelectorAll("[data-plan]").forEach(b=>b.onclick=()=>{CO={plan:b.dataset.plan,opt:0,done:false};goView("oplata")});
+  root.querySelectorAll("[data-plan]").forEach(b=>b.onclick=()=>{CO={plan:b.dataset.plan,opt:0};goView("oplata")});
   const dets=[...root.querySelectorAll(".faq details")];
   dets.forEach(d=>d.addEventListener("toggle",()=>{if(d.open)dets.forEach(o=>{if(o!==d)o.open=false})}));
   // nav highlight
@@ -1541,9 +1572,9 @@ function renderHome(){
 }
 const FMT=[
   ["Теорія без води","Кожна тема з короткого конспекту: означення, формула, приклад. Конспекти залишаються в кабінеті.",["конспект на 1–2 сторінки","приклади з розв’язанням","картки «Запам’ятай» для повторення"]],
-  ["Практика щодня","Завдання від простих до рівня НМТ. Тренажер додає ті, де ви помиляєтеся.",["тест після кожної теми","добірки за рівнем складності","завдання всіх трьох типів НМТ"]],
-  ["Розбір помилок","Після кожного тесту бачите правильну відповідь і пояснення. На уроках розбираємо найчастіші помилки групи.",["пояснення до кожного завдання","список тем для повторення","питання викладачу в чаті"]],
-  ["Ритм і таймінг","Регулярні симуляції привчають до формату і часу, тому в день тесту менше стресу.",["симуляція у форматі НМТ","таймер на 90 хвилин","тренування бланку відповідей"]],
+  ["Практика","Завдання від простих до рівня НМТ. Тренажер частіше дає теми, де ви помилялися.",["тест після кожної теми","добірки за рівнем складності","завдання всіх трьох типів НМТ"]],
+  ["Розбір помилок","Після кожного тесту бачите свою і правильну відповідь з поясненням. До кожної помилки можна відкрити конспект теми і розв’язати схожі завдання.",["пояснення до кожного завдання","конспект теми поруч із помилкою","нові завдання на ті самі теми"]],
+  ["Формат НМТ","Тренувальні симуляції привчають до формату і часу. Це не офіційний тест, а тренування.",["22 завдання трьох типів","таймер на 90 хвилин","орієнтовна шкала переведення балів"]],
 ];
 function setupFormatTabs(){
   const box=document.getElementById("fmt-tabs"),panel=document.getElementById("fmt-panel");
@@ -1585,20 +1616,22 @@ function renderCab(){
   const active=view==="test"?"":view.startsWith("kurs-")||view==="urok"?"kursy":view;
   root.innerHTML=`
   <header class="ctop"><div class="ctop-in">
-    <button class="logo" data-view=""><i>√x</i>Назва школи</button>
+    <button class="logo" data-view=""><i>√x</i>${BRAND}</button>
     ${view==="test"&&S&&S.mode==="sim"&&S.stage==="test"?`<button class="n-back2" id="nback">← Назад до меню</button>`:""}
-    <nav class="cnav">${nav.map(([v,n,ic])=>`<button class="${active===v?"on":""}" data-view="${v}">${ic}${n}</button>`).join("")}</nav>
+    ${USER?`<nav class="cnav">${nav.map(([v,n,ic])=>`<button class="${active===v?"on":""}" data-view="${v}">${ic}${n}</button>`).join("")}</nav>
     <div class="me-w"><button class="me" id="me-btn" aria-haspopup="true" aria-expanded="false" title="${USER||""}">${(USER||"уч").replace(/[^a-zа-яіїєґ0-9]/gi,"").slice(0,2).toUpperCase()}</button>
-      <div class="me-menu" id="me-menu" hidden><small>Ви увійшли як</small><b>${USER||""}</b><button class="btn sm" id="logout">Вийти</button></div></div>
+      <div class="me-menu" id="me-menu" hidden><small>Ви увійшли як</small><b>${USER||""}</b><button class="btn sm" id="logout">Вийти</button></div></div>`:`<span style="margin-inline:auto"></span><div class="guest-acts"><button class="btn sm" data-auth="in">Увійти</button><button class="btn primary sm" data-auth="up">Зареєструватися</button></div>`}
   </div></header>
+  ${!USER&&!(view==="test"&&S&&S.stage==="test")?`<div class="guest-bar" role="note">Ви навчаєтеся без акаунта: результати зберігаються лише в цьому браузері. <button class="lnk" data-auth="up">Зареєструйтеся</button>, щоб перенести їх у кабінет і бачити з будь-якого пристрою.</div>`:""}
   <main class="cab" id="cab"></main>
   ${remOpen?remHTML():`<button class="rem-fab" id="rem-open">🦉 Запам’ятай</button>`}`;
   const cab=document.getElementById("cab");
   const mb=document.getElementById("me-btn"),mm=document.getElementById("me-menu");
-  mb.onclick=e=>{e.stopPropagation();mm.hidden=!mm.hidden;mb.setAttribute("aria-expanded",String(!mm.hidden))};
+  if(mb){mb.onclick=e=>{e.stopPropagation();mm.hidden=!mm.hidden;mb.setAttribute("aria-expanded",String(!mm.hidden))};
   mm.onclick=e=>e.stopPropagation();document.addEventListener("click",()=>{mm.hidden=true;mb.setAttribute("aria-expanded","false")},{once:true});
-  document.getElementById("logout").onclick=logout;
+  document.getElementById("logout").onclick=logout;}
   if(view==="kabinet")cabMenu(cab);
+  else if(view==="diag")renderDiagIntro(cab);
   else if(view==="kursy")cabCourses(cab);
   else if(view==="progres")cabProgress(cab);
   else if(view.startsWith("kurs-"))cabCourse(cab,view.slice(5));
@@ -1606,36 +1639,20 @@ function renderCab(){
   else renderTest(cab);
   bindCommon();bindRem();
 }
-function lessonDate(){const d=new Date();d.setDate(d.getDate()+1);d.setHours(16,45,0,0);return d}
-function fmtDate(d){return d.toLocaleDateString("uk-UA",{day:"2-digit",month:"2-digit",year:"numeric"})+" "+d.toLocaleTimeString("uk-UA",{hour:"2-digit",minute:"2-digit"})}
 function cabMenu(cab){
-  const d=lessonDate();
-  const active=S&&S.stage==="test"&&S.endsAt&&S.endsAt>Date.now();
   cab.innerHTML=`
-  <div class="dash">
-    <div class="card newl"><h3>Нові уроки</h3><p>Поки немає нових уроків. Вони з’являться тут після публікації викладачем.</p></div>
-    <div>
-      <div class="lesson">
-        <span class="eyebrow">Онлайн-урок</span>
-        <h3>Логарифмічні рівняння</h3>
-        <div class="row">${I.clock}<span class="mono">${fmtDate(d)}</span></div>
-        <div class="row">${I.cam}<span>Посилання на урок з’явиться тут</span></div>
-        <div class="acts"><button class="btn primary sm" disabled title="Стане активною перед початком уроку">${I.cam}Увійти</button><button class="btn sm" id="sched-t">Усі заплановані</button></div>
-        <div class="sched" id="sched" hidden>
-          ${["Логарифмічні рівняння","Похідна та її застосування","Симуляція НМТ з розбором"].map((n,i)=>{const x=new Date(d);x.setDate(x.getDate()+i*3);return `<div><span>${n}</span><span class="mono">${fmtDate(x)}</span></div>`}).join("")}
-        </div>
-      </div>
-      ${active?`<div class="card" style="padding:16px 20px;margin-top:16px;display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap"><span><b>${MODES[S.mode].name}</b> ще триває</span><button class="btn primary sm" data-view="test">Продовжити</button></div>`:""}
-      <div class="tiles">
-        <div class="card tile t1"><span class="ti">${I.loop}</span><h3>Повторення</h3><p>Автоматичний підбір завдань для впевненого повторення, без обмеження часу.</p><button class="btn primary sm" id="rep-set">Згенерувати тест</button></div>
-        <div class="card tile t2"><span class="ti">${I.spark}</span><h3>ШІ-тренажер</h3><p>Індивідуальний підбір завдань для опрацювання складних моментів.</p><button class="btn primary sm" id="ai-set">Налаштувати</button></div>
-        <div class="card tile t3"><span class="ti">${I.target}</span><h3>Симуляція НМТ</h3><p>Спробуй тест у форматі НМТ: 22 завдання і 90 хвилин.</p><button class="btn primary sm" data-start="sim">Почати</button></div>
-      </div>
+  <div class="dash2">
+    ${todayHTML()}
+    ${routeHTML()}
+    <div class="tiles" style="margin-top:0">
+      <div class="card tile t1"><span class="ti">${I.loop}</span><h3>Повторення</h3><p>Випадкові завдання з усіх тем, без обмеження часу. Кількість обираєте самі.</p><button class="btn primary sm" id="rep-set">Згенерувати тест</button></div>
+      <div class="card tile t2"><span class="ti">${I.spark}</span><h3>Тренажер за рівнем</h3><p>Завдання обраної складності. Частіше трапляються теми, у яких ви вже помилялися.</p><button class="btn primary sm" id="ai-set">Налаштувати</button></div>
+      <div class="card tile t3"><span class="ti">${I.target}</span><h3>Тренувальна симуляція НМТ</h3><p>22 завдання трьох типів і таймер на 90 хвилин, як у форматі НМТ.</p><button class="btn primary sm" data-start="sim">Почати</button></div>
     </div>
   </div>`;
-  document.getElementById("sched-t").onclick=()=>{const s=document.getElementById("sched");s.hidden=!s.hidden};
   document.getElementById("ai-set").onclick=openTrainer;
   document.getElementById("rep-set").onclick=()=>openCount("rep");
+  bindPath(cab);
 }
 function weakTopics(){
   const miss={};HIST.forEach(h=>(h.miss||[]).forEach(tp=>miss[tp]=(miss[tp]||0)+1));
@@ -1685,7 +1702,7 @@ function records(){
     return TYPES.includes(k)?k:k==="Тренажер"||!k?"Тренажер НМТ":k};
   const courseOf=h=>h.mode==="sim"||!h.lkey?"nmt":/^r\d/.test(h.lkey)?"richnyi":/^t-/.test(h.lkey)?h.lkey.split("-")[1]:/^vstup/.test(h.lkey)?"vstup":"nmt";
   return HIST.map((h,i)=>({course:courseOf(h),type:kindOf(h),at:h.at,
-    score:h.mode==="sim"?(h.score||0):Math.round((100+h.pts/h.max*100)*10)/10,sec:h.sec||0,id:h.mode==="sim"?"sim"+(h.simNo||1):h.lkey||"h"+i,
+    score:h.mode==="sim"?(h.score||0):Math.round(h.pts/h.max*100),sec:h.sec||0,id:h.mode==="sim"?"sim"+(h.simNo||1):h.lkey||"h"+i,
     name:h.title||(h.mode==="sim"?"Симуляція НМТ № "+(h.simNo||1):MODES[h.mode].name)}));
 }
 function courseTests(key){if(key==="nmt")return SIM_COUNT;const c=COURSES[key];return c.items.filter(x=>x.n).length*(key==="richnyi"?4:1)+c.items.filter(x=>x.test).length}
@@ -1785,7 +1802,7 @@ function cabCourse(cab,key){
   const c=COURSES[key];
   const lessons=c.items.filter(x=>x.n).length,tests=c.items.filter(x=>x.test).length;
   cab.innerHTML=`
-  <button class="back" data-view="kursy">← До курсів</button>
+  <button class="back" data-view="${USER?"kursy":""}">← ${USER?"До курсів":"На головну"}</button>
   <div class="card chead">
     <span class="cico" style="background:${c.ic}">${c.ico}</span>
     <div style="flex:1;min-width:0"><h2>${c.name}</h2><div class="chips"><span class="chip-o">${c.year}</span>${key==="vstup"?`<span class="chip-g">Відкритий курс</span>`:""}<span class="chip-s">${IC_CAL} до ${c.until}</span></div></div>
@@ -1848,8 +1865,8 @@ function openTrainer(){
   const max=100;let n=10,lvl=2;
   const m=document.createElement("div");m.className="modal";
   m.innerHTML=`<div class="card mist" role="dialog" aria-modal="true" aria-labelledby="tr-t">
-    <div style="display:flex;justify-content:space-between;align-items:center"><h3 id="tr-t">ШІ-тренажер</h3><button class="x" aria-label="Закрити">×</button></div>
-    <p>Оберіть кількість завдань і рівень складності.</p>
+    <div style="display:flex;justify-content:space-between;align-items:center"><h3 id="tr-t">Тренажер за рівнем</h3><button class="x" aria-label="Закрити">×</button></div>
+    <p>Оберіть кількість завдань і рівень складності. Тренажер частіше дає теми, у яких ви вже помилялися.</p>
     <b style="display:block;margin-top:14px">Кількість завдань</b>
     <div class="stepper"><button data-d="-1" aria-label="Менше">−</button><input id="tr-n" class="mono" value="${n}" inputmode="numeric" aria-label="Кількість завдань"><button data-d="1" aria-label="Більше">+</button></div>
     <div class="qpick">${[10,25,50,100].map(v=>`<button data-q="${v}">${v}</button>`).join("")}</div><p class="qhint">Від 1 до 100 завдань</p>
@@ -1865,7 +1882,7 @@ function openTrainer(){
   m.querySelectorAll("[data-l]").forEach(b=>b.onclick=()=>{lvl=+b.dataset.l;m.querySelectorAll("[data-l]").forEach(x=>{const on=x===b;x.classList.toggle("on",on);x.setAttribute("aria-checked",String(on))})});
   m.querySelector(".x").onclick=close;m.querySelector("[data-c]").onclick=close;
   m.onclick=e=>{if(e.target===m)close()};
-  m.querySelector("[data-go]").onclick=()=>{close();startTest("practice",null,{lvl,count:n,title:"ШІ-тренажер · "+["легкий","середній","складний"][lvl-1]+" рівень",kind:"Тренажер"})};
+  m.querySelector("[data-go]").onclick=()=>{close();startTest("practice",null,{lvl,count:n,title:"Тренажер · "+["легкий","середній","складний"][lvl-1]+" рівень",kind:"Тренажер"})};
 }
 function wrongPool(){const w=new Set();HIST.forEach(h=>(h.wrong||[]).forEach(i=>w.add(i)));return [...w]}
 function openMistakes(){
@@ -1874,7 +1891,7 @@ function openMistakes(){
   const m=document.createElement("div");m.className="modal";
   m.innerHTML=`<div class="card mist" role="dialog" aria-modal="true" aria-labelledby="mi-t">
     <div style="display:flex;justify-content:space-between;align-items:center"><h3 id="mi-t">Робота над помилками</h3><button class="x" aria-label="Закрити">×</button></div>
-    <p>${pool.length?`Оберіть кількість завдань із ваших помилок (доступно ${pool.length}).`:"Помилок поки немає, тому тренажер візьме завдання з усіх тем."}</p>
+    <p>${pool.length?`Ви отримаєте нові завдання на ті самі теми, де були помилки (тем із помилками: ${pool.length}). Де нового варіанта немає, завдання повториться.`:"Помилок поки немає, тому тренажер візьме завдання з усіх тем."}</p>
     <b style="display:block;margin-top:14px">Кількість завдань</b>
     <div class="stepper"><button data-d="-1" aria-label="Менше">−</button><input id="mi-n" class="mono" value="${n}" inputmode="numeric" aria-label="Кількість завдань"><button data-d="1" aria-label="Більше">+</button></div>
     <div class="acts" style="justify-content:flex-end"><button class="lnk" data-c>Скасувати</button><button class="btn primary sm" data-go>Почати тест</button></div></div>`;
@@ -1887,6 +1904,131 @@ function openMistakes(){
   m.querySelector(".x").onclick=close;m.querySelector("[data-c]").onclick=close;
   m.onclick=e=>{if(e.target===m)close()};
   m.querySelector("[data-go]").onclick=()=>{close();startTest("mist",null,{count:n})};
+}
+
+/* ===== Learning path: level check, topic route, «what to do today» ===== */
+const DG={
+  num:{name:"Числа, дроби й відсотки",why:"Дроби й відсотки трапляються майже в кожній задачі — і в школі, і на НМТ.",les:[["vstup",1],["richnyi",3],["richnyi",4]]},
+  eq:{name:"Рівняння й нерівності",why:"Найбільша група завдань НМТ і основа шкільної алгебри.",les:[["vstup",2],["richnyi",9],["richnyi",10]]},
+  expr:{name:"Вирази й перетворення",why:"Без спрощення виразів важко розв’язувати рівняння й працювати з функціями.",les:[["richnyi",6],["richnyi",7]]},
+  geo:{name:"Основи геометрії",why:"Площі й властивості фігур є в кожному варіанті НМТ і в шкільних контрольних.",les:[["vstup",3]]},
+  fun:{name:"Функції та графіки",why:"Допомагає читати графіки й розв’язувати задачі про параболу.",les:[["richnyi",5]]},
+};
+const DG_ORDER=["num","eq","expr","geo","fun"];// foundations first
+// every lesson's tasks belong to one topic (vstup lessons are ln 101–103)
+const LN2DG={101:"num",102:"eq",103:"geo",1:"num",2:"num",3:"num",4:"num",5:"fun",6:"expr",7:"expr",8:"expr",9:"eq",10:"eq",11:"eq",12:"eq",13:"eq",14:"eq",15:"eq",16:"eq"};
+const lnOf=(c,n)=>c==="vstup"?100+n:n;
+const topicOf=t=>t.dg||LN2DG[t.ln]||(t.tp==="geo"?"geo":t.tp==="fun"?"fun":null);
+const lesTitle=(c,n)=>(COURSES[c].items.find(i=>i.n===n)||{}).h||"";
+const lesTestKey=(c,n)=>c==="vstup"?`vstup${n}-hw`:lesKey(n,"hw");
+function lesBest(c,n){// latest result of any test inside the lesson
+  const keys=c==="vstup"?[`vstup${n}-hw`]:["hw","easy","mid","mini"].map(s=>lesKey(n,s));
+  const h=HIST.filter(e=>keys.includes(e.lkey));if(!h.length)return null;const l=h[h.length-1];return Math.round(l.pts/l.max*100)}
+const lastDiag=()=>{for(let i=HIST.length-1;i>=0;i--)if(HIST[i].lkey==="diag"&&HIST[i].dg)return HIST[i];return null};
+function topicStatus(k){
+  const d=lastDiag(),dg=d&&d.dg[k],tests=DG[k].les.map(([c,n])=>lesBest(c,n)).filter(v=>v!=null),seen=DG[k].les.some(([c,n])=>(PF.seen||{})[c+n]);
+  if(tests.some(v=>v>=80))return {s:"ok",t:"Підтверджено тестом"};
+  if(tests.length)return {s:"prac",t:"Практика розпочата"};
+  if(seen)return {s:"seen",t:"Урок відкрито, тест ще не пройдено"};
+  if(dg&&dg[0]===dg[1])return {s:"good",t:"Добре за діагностикою"};
+  return {s:"new",t:"Не розпочато"};
+}
+function routeTopics(){
+  const d=lastDiag();if(!d)return [];
+  const weak=k=>{const x=d.dg[k];return x?x[0]/x[1]<2/3:false};
+  return [...DG_ORDER.filter(weak),...DG_ORDER.filter(k=>!weak(k))];
+}
+function nextLesson(k){for(const [c,n] of DG[k].les){const b=lesBest(c,n);if(b==null||b<80)return [c,n]}return DG[k].les[0]}
+function topicTasks(k,cnt){const lns=new Set(DG[k].les.map(([c,n])=>lnOf(c,n)));
+  return shuffle(TASKS.map((t,i)=>i).filter(i=>lns.has(TASKS[i].ln)&&TASKS[i].t!=="match"&&!TASKS[i].dg)).slice(0,cnt)}
+function startTopicPractice(k){startTest("practice",null,{ids:topicTasks(k,5),title:"Тренування · "+DG[k].name,kind:"Тренажер",back:"kabinet"})}
+function startDiag(){startTest("rep",null,{ids:DIAG_IDS.slice(),title:"Діагностика рівня",kind:"Діагностика",lkey:"diag",back:"diag",diag:true})}
+const lesDur=n=>n===1?"≈ 1 год":`≈ ${n} год`;
+function todayHTML(){
+  const d=lastDiag(),goal=PF.goal||"nmt";
+  let main;
+  if(S&&S.stage==="test")main={h:`Продовжити: ${S.title||MODES[S.mode].name}`,p:`Ви зупинилися на завданні ${S.cur+1} з ${N()}. Відповіді збережено.`,b:`<button class="btn primary" data-view="test">Продовжити ${I.arrow}</button>`};
+  else if(!d)main={h:"Визначте свій рівень",p:"15 завдань із 5 тем, близько 20 хвилин. Після неї з’явиться маршрут і перше завдання.",b:`<button class="btn primary" data-view="diag">Почати діагностику ${I.arrow}</button>`};
+  else{const k=routeTopics().find(x=>topicStatus(x).s!=="ok");
+    if(k){const [c,n]=nextLesson(k);main={h:`Урок: ${lesTitle(c,n)}`,p:`Тема «${DG[k].name}». Прочитайте конспект, розв’яжіть робочий зошит і пройдіть тест уроку.`,b:`<button class="btn primary" data-open-les="${c}:${n}">Відкрити урок ${I.arrow}</button><button class="btn" data-topic-prac="${k}">5 завдань для тренування</button>`}}
+    else main=goal==="nmt"?{h:"Тренувальна симуляція НМТ",p:"Усі теми маршруту підтверджено. Перевірте себе у форматі НМТ.",b:`<button class="btn primary" data-start-sim="1">Почати симуляцію ${I.arrow}</button>`}
+      :{h:"Повторення",p:"Усі теми маршруту підтверджено. Невеликий мікс завдань допоможе не забути.",b:`<button class="btn primary" id="rep-set2">Згенерувати повторення ${I.arrow}</button>`}}
+  return `<div class="card today"><span class="eyebrow">Що робити сьогодні</span><h3>${main.h}</h3><p>${main.p}</p><div class="hero-ctas" style="margin:0">${main.b}</div></div>`;
+}
+function routeHTML(){
+  const ks=routeTopics();
+  if(!ks.length)return `<div class="card route"><h3>Мій маршрут</h3><p class="note">Маршрут з’явиться після діагностики: ми покажемо, які теми повторити першими і з яких уроків почати.</p></div>`;
+  return `<div class="card route"><div class="route-h"><h3>Мій маршрут</h3><button class="lnk" data-view="diag">Пройти діагностику ще раз</button></div>
+    <ol class="route-l">${ks.map((k,i)=>{const st=topicStatus(k),x=DG[k],dg=lastDiag().dg[k];
+      return `<li><span class="rn">${i+1}</span><div class="rb"><b>${x.name}</b><small>${x.why}</small>
+        <div class="chips"><span class="chip-s">Діагностика: ${dg?dg[0]+" з "+dg[1]:"—"}</span><span class="chip-s">${x.les.length} ${x.les.length===1?"урок":"уроки"} · ${lesDur(x.les.length)}</span><span class="rst ${st.s}">${st.t}</span></div>
+        <div class="route-les">${x.les.map(([c,n])=>{const b=lesBest(c,n);return `<button class="lnk" data-open-les="${c}:${n}">${lesTitle(c,n)}${c==="vstup"?" (безкоштовно)":""}${b!=null?` · ${b}%`:""}</button>`}).join("")}</div></div></li>`}).join("")}</ol>
+    <p class="note">Тема вважається засвоєною, коли тест уроку виконано щонайменше на 80%. Перегляд конспекту чи відео сам по собі цього не означає.</p></div>`;
+}
+function bindPath(scope){
+  scope.querySelectorAll("[data-open-les]").forEach(b=>b.onclick=()=>{const [c,n]=b.dataset.openLes.split(":");openLesson(c,+n)});
+  scope.querySelectorAll("[data-topic-prac]").forEach(b=>b.onclick=()=>startTopicPractice(b.dataset.topicPrac));
+  scope.querySelectorAll("[data-start-sim]").forEach(b=>b.onclick=()=>startTest("sim",null,{simNo:1}));
+  const r2=scope.querySelector("#rep-set2");if(r2)r2.onclick=()=>openCount("rep");
+}
+// level check summary shown on the result screen
+function diagSummary(){
+  const dg={};S.ids.forEach((i,k)=>{const t=TASKS[i].dg;if(!t)return;dg[t]=dg[t]||[0,0];dg[t][1]++;if(points(k)===maxp(k))dg[t][0]++});
+  const good=DG_ORDER.filter(k=>dg[k]&&dg[k][0]/dg[k][1]>=2/3),weak=DG_ORDER.filter(k=>dg[k]&&dg[k][0]/dg[k][1]<2/3);
+  const first=weak[0]||null,[c,n]=first?nextLesson(first):[null,null];
+  return `<div class="card diag-sum">
+    <h2 style="font-size:20px;margin:0 0 6px">Ваш результат за темами</h2>
+    <p class="note" style="margin:0 0 14px">Це коротка перевірка з 15 завдань. Вона показує, з чого почати, але не є прогнозом балу НМТ чи шкільної оцінки.</p>
+    <div class="dg-bars">${DG_ORDER.map(k=>{const x=dg[k]||[0,0],p=x[1]?Math.round(x[0]/x[1]*100):0;return `<div class="dg-b"><span>${DG[k].name}</span><div class="rbar"><i style="width:${p}%"></i></div><b>${x[0]} з ${x[1]}</b></div>`}).join("")}</div>
+    <div class="dg-cols">
+      <div><h4>Що вже добре</h4>${good.length?`<ul class="dots">${good.map(k=>`<li>${DG[k].name}</li>`).join("")}</ul>`:`<p class="note">Поки жодна тема не набрала 2 з 3. Це нормально на старті: маршрут почнеться з основ.</p>`}</div>
+      <div><h4>Що варто повторити</h4>${weak.length?`<ul class="dots">${weak.map(k=>`<li>${DG[k].name}</li>`).join("")}</ul>`:`<p class="note">Явних прогалин не видно. Можна переходити до складніших тем і тренувальних симуляцій.</p>`}</div>
+    </div>
+    ${first?`<div class="dg-next"><div><b>З чого почати:</b> ${DG[first].name}<br><span class="note">Наступний урок: ${lesTitle(c,n)}${c==="vstup"?" — безкоштовний, без реєстрації":""}</span></div><button class="btn primary" data-open-les="${c}:${n}">Відкрити урок ${I.arrow}</button></div>`:""}
+    ${USER?`<p class="note" style="margin:12px 0 0">Маршрут збережено в кабінеті, у блоці «Що робити сьогодні».</p>`:`<div class="guest-note">Результат збережено лише в цьому браузері. <button class="lnk" data-auth="up">Зареєструйтеся</button>, щоб перенести його в акаунт і отримати маршрут у кабінеті.</div>`}
+  </div>`;
+}
+// fresh variants of the tasks a student got wrong: same lesson topic, different numbers
+function freshVariants(ids,count){
+  const used=new Set(),out=[];
+  for(const id of shuffle(ids)){if(out.length>=count)break;const t=TASKS[id];
+    const alt=t.ln?shuffle(TASKS.map((x,i)=>i).filter(i=>i!==id&&TASKS[i].ln===t.ln&&TASKS[i].t===t.t&&!TASKS[i].dg&&!used.has(i)))[0]:null;
+    const pickId=alt!=null?alt:id;if(!used.has(pickId)){used.add(pickId);out.push(pickId)}}
+  return out;
+}
+function similarIds(ln,exclude,k){return shuffle(TASKS.map((x,i)=>i).filter(i=>TASKS[i].ln===ln&&TASKS[i].t!=="match"&&!TASKS[i].dg&&!exclude.includes(i))).slice(0,k)}
+function theoryDoc(ln){if(ln>100){const n=ln-100;return {title:"Конспект · "+lesTitle("vstup",n),pages:VSTUP_DOCS[n].kon,file:`konspekt-vstup-${n}.html`}}
+  return LES_DOCS[ln]?{title:"Конспект · "+lesTitle("richnyi",ln),pages:LES_DOCS[ln].kon,file:`konspekt-urok-${ln}.html`}:null}
+// guest results move into the account after sign-in
+function mergeGuest(){
+  if(!USER)return false;
+  const gh=load("nmt-school-hist:guest"),gp=load("nmt-pf2:guest");
+  if(!gh||!gh.length){if(gp)try{localStorage.removeItem("nmt-pf2:guest")}catch(e){}return false}
+  const have=new Set(HIST.map(h=>h.at+"|"+h.lkey));
+  gh.forEach(h=>{if(!have.has(h.at+"|"+h.lkey))HIST.push(h)});HIST.sort((a,b)=>a.at-b.at);
+  if(gp){PF.seen={...(gp.seen||{}),...(PF.seen||{})};if(!PF.goal&&gp.goal)PF.goal=gp.goal;savePF()}
+  store(HKEY,HIST);
+  try{["nmt-school-hist:guest","nmt-pf2:guest","nmt-school-v1:guest"].forEach(k=>localStorage.removeItem(k))}catch(e){}
+  return true;
+}
+function renderDiagIntro(cab){
+  const goal=PF.goal||"nmt";
+  cab.innerHTML=`<div class="card diag-in">
+    <span class="eyebrow">Безкоштовно, без реєстрації</span>
+    <h1 class="plain">Визначте свій рівень</h1>
+    <p>15 завдань з п’яти тем: числа й дроби, вирази, рівняння й нерівності, функції, геометрія. У кожному завданні одна правильна відповідь із п’яти.</p>
+    <ul class="dots"><li>Займе близько 20 хвилин, таймера немає.</li><li>Після завершення побачите, що вже добре, які теми повторити і з якого уроку почати.</li><li>Пояснення до кожного завдання відкриються в розборі.</li><li>Це не прогноз балу НМТ, а орієнтир для старту.</li></ul>
+    <fieldset class="goal"><legend>Яка ваша ціль?</legend>
+      <label><input type="radio" name="goal" value="nmt" ${goal==="nmt"?"checked":""}> Підготовка до НМТ</label>
+      <label><input type="radio" name="goal" value="school" ${goal==="school"?"checked":""}> Покращити знання зі шкільної математики</label>
+      <small>Для шкільної математики зараз є базові теми: дроби, відсотки, рівняння, нерівності, вирази, площі фігур і квадратична функція. Каталогу за класами поки немає.</small>
+    </fieldset>
+    <div class="hero-ctas"><button class="btn primary" id="dg-go">Почати діагностику ${I.arrow}</button><button class="btn" data-open-les="vstup:1">Спершу безкоштовний урок</button></div>
+    ${USER?"":`<p class="note">Ви не увійшли в акаунт, тому результат збережеться лише в цьому браузері. Після реєстрації його можна буде перенести в кабінет.</p>`}
+  </div>`;
+  cab.querySelectorAll('input[name="goal"]').forEach(r=>r.onchange=()=>{PF.goal=r.value;savePF()});
+  document.getElementById("dg-go").onclick=startDiag;
+  bindPath(cab);
 }
 
 /* ===== Progress ===== */
@@ -1904,7 +2046,8 @@ function cabProgress(cab){
   const total=courseTests(PF.course),doneIds=new Set(inC.map(r=>r.id)).size;
   const days=new Set(inC.map(r=>new Date(r.at).toDateString())).size;
   const timed=rs.filter(r=>r.sec>0),avgSec=timed.length?Math.round(timed.reduce((a,r)=>a+r.sec,0)/timed.length):0;
-  const avgOf=t=>{const x=all.filter(r=>r.score>0&&r.at>=from&&r.type===t&&(t!=="ДЗ"||r.course===PF.course||PF.course==="nmt"));return x.length?{v:String(Math.round(x.reduce((a,r)=>a+r.score,0)/x.length*10)/10),n:x.length}:null};
+  const avgOf=t=>{const x=all.filter(r=>(t==="НМТ симуляція"?r.score>0:true)&&r.at>=from&&r.type===t&&(t!=="ДЗ"||r.course===PF.course||PF.course==="nmt"));return x.length?{v:String(Math.round(x.reduce((a,r)=>a+r.score,0)/x.length*10)/10)+(t==="НМТ симуляція"?"":"%"),n:x.length}:null};
+  const simT=PF.type==="НМТ симуляція";
   const names={nmt:"Симуляції НМТ",richnyi:COURSES.richnyi.name,vstup:COURSES.vstup.name};
   const avgCard=(cls,ic,t,a)=>`<div class="card avg ${cls}"><div class="avg-h"><span class="aic">${ic}</span><b>${t}</b></div>${a?`<div class="avg-v">${a.v}</div><small>${a.n} ${plural2(a.n)} у вибірці</small>`:`<div class="avg-dash"></div><small>Ще немає результатів</small>`}</div>`;
   cab.innerHTML=`
@@ -1914,30 +2057,40 @@ function cabProgress(cab){
     <span class="flab" id="l-pf-p">за період</span>${dd("pf-p","period",PERIODS,PF.period)}
   </div>
   <div class="kpis">
-    <div class="card kpi"><div class="kh"><span class="kic o">${I.target}</span><b class="kv o">${total?Math.round(doneIds/total*100):0}%</b></div><h3>Охоплення курсу</h3><small>${doneIds} із ${total} тестів за період</small></div>
+    <div class="card kpi"><div class="kh"><span class="kic o">${I.target}</span><b class="kv o">${total?Math.round(doneIds/total*100):0}%</b></div><h3>Виконано тестів курсу</h3><small>${doneIds} із ${total} за період. Це активність, а не рівень знань.</small></div>
     <div class="card kpi"><div class="kh"><span class="kic b">${IC_CAL}</span><b class="kv b">${days}</b></div><h3>Активних днів</h3><small>днів із завершеними тестами</small></div>
     <div class="card kpi"><div class="kh"><span class="kic p">${I.cap}</span><b class="kv p">${total}</b></div><h3>Тестів у курсі</h3><small>включно з тестами в уроках</small></div>
   </div>
+  ${topicAccHTML(from)}
   <div class="card dyn">
     <div class="dyn-h"><b>Результати за типом тесту</b>${dd("pf-t","type",TYPES.map(t=>[t,t]),PF.type,"Тип тесту")}</div>
     <div class="dyn-b">
-      <div style="min-width:0"><h3>Динаміка результатів</h3><small>200-бальна шкала НМТ</small><div class="chart-wrap">${chartSVG(rs)}</div></div>
+      <div style="min-width:0"><h3>Динаміка результатів</h3><small>${simT?"Орієнтовний бал за 200-бальною шкалою":"Відсоток правильних відповідей"}</small><div class="chart-wrap">${chartSVG(rs,simT?200:100)}</div></div>
       <div class="atime"><h3>Середній час виконання</h3><small>За останні тести в обраному періоді</small>
         <div class="atime-c"><span class="clk">${I.clock}</span><div class="tv">${avgSec?`${Math.floor(avgSec/60)} хв ${avgSec%60} с`:"—"}</div><small>на основі ${timed.length} тестів</small></div></div>
     </div>
   </div>
-  <h2 class="sub">Середні бали НМТ</h2><p class="subp">Результати у 200-бальній шкалі за обраний період</p>
-  <div class="avgs">${avgCard("a1","✓","Середній бал ДЗ",avgOf("ДЗ"))}${avgCard("a2","✓","Середній бал симуляцій",avgOf("НМТ симуляція"))}${avgCard("a3","✓","Середній бал тренажеру НМТ",avgOf("Тренажер НМТ"))}</div>
+  <h2 class="sub">Середні результати</h2><p class="subp">ДЗ і тренажер — відсоток правильних відповідей; симуляції — орієнтовний бал за шкалою НМТ</p>
+  <div class="avgs">${avgCard("a1","✓","Домашні завдання",avgOf("ДЗ"))}${avgCard("a2","✓","Тренувальні симуляції",avgOf("НМТ симуляція"))}${avgCard("a3","✓","Тренажер",avgOf("Тренажер НМТ"))}</div>
   ${HIST.length?"":`<p class="note" style="margin-top:16px">Тут з’являться ваші результати після першого завершеного тесту, ДЗ або симуляції.</p>`}`;
   bindDD(cab,(k,v)=>{PF[k]=v;if(k==="course")PF.type=null;savePF();render()});
-  bindChart(cab,rs);
+  bindChart(cab,rs,simT);
 }
-function bindChart(scope,rs){
+// accuracy per topic from every finished test (only attempts that remember their tasks)
+function topicAccHTML(from){
+  const acc={};HIST.filter(h=>h.ids&&h.at>=from).forEach(h=>{const w=new Set(h.wrong||[]);h.ids.forEach(i=>{const t=TASKS[i];if(!t)return;const k=topicOf(t);if(!k)return;acc[k]=acc[k]||[0,0];acc[k][1]++;if(!w.has(i))acc[k][0]++})});
+  const ks=DG_ORDER.filter(k=>acc[k]);
+  if(!ks.length)return `<div class="card tacc"><h3>Точність за темами</h3><p class="note">Тут буде видно, які теми ви розв’язуєте впевнено, а які варто повторити. Почніть з діагностики: 15 завдань, близько 20 хвилин.</p><div class="hero-ctas" style="margin-top:12px"><button class="btn primary sm" data-view="diag">Пройти діагностику ${I.arrow}</button></div></div>`;
+  return `<div class="card tacc"><h3>Точність за темами</h3><p class="note">Частка правильно розв’язаних завдань за обраний період. Саме це показує рівень знань.</p>
+    <div class="dg-bars">${ks.map(k=>{const [a,b]=acc[k],p=Math.round(a/b*100);return `<div class="dg-b"><span>${DG[k].name}</span><div class="rbar"><i style="width:${p}%"></i></div><b>${p}% <small>(${a} з ${b})</small></b></div>`}).join("")}</div>
+    ${ks.length<DG_ORDER.length?`<p class="note" style="margin-top:10px">Ще без даних: ${DG_ORDER.filter(k=>!acc[k]).map(k=>DG[k].name).join(", ")}.</p>`:""}</div>`;
+}
+function bindChart(scope,rs,simT){
   const w=scope.querySelector(".chart-wrap"),svg=w&&w.querySelector("svg.chart");if(!svg||!rs.length)return;
   const cs=[...svg.querySelectorAll(".dt")],vl=svg.querySelector(".vl"),tip=document.createElement("div");tip.className="ctip";tip.hidden=true;w.appendChild(tip);
   const show=i=>{const c=cs[i],x=+c.getAttribute("cx"),y=+c.getAttribute("cy"),k=svg.getBoundingClientRect().width/640;
     cs.forEach((o,j)=>o.classList.toggle("on",j===i));vl.setAttribute("x1",x);vl.setAttribute("x2",x);vl.style.display="";
-    tip.innerHTML=`<b></b><span>Результат : ${(Math.round(rs[i].score*10)/10).toFixed(1)} балів</span>`;tip.querySelector("b").textContent=rs[i].name||rs[i].type;tip.hidden=false;
+    tip.innerHTML=`<b></b><span>Результат: ${simT?(Math.round(rs[i].score*10)/10).toFixed(1)+" балів":Math.round(rs[i].score)+"%"}</span>`;tip.querySelector("b").textContent=rs[i].name||rs[i].type;tip.hidden=false;
     const sr=svg.getBoundingClientRect(),wr=w.getBoundingClientRect(),ox=sr.left-wr.left+w.scrollLeft,oy=sr.top-wr.top+w.scrollTop;
     const px=ox+x*k,tw=tip.offsetWidth;let left=px+12;if(left+tw>ox+sr.width)left=Math.max(ox,px-12-tw);
     tip.style.left=left+"px";tip.style.top=(oy+y*k+12)+"px"};
@@ -1963,10 +2116,10 @@ function bindDD(scope,onPick){
 }
 document.addEventListener("click",()=>document.querySelectorAll(".dd.open").forEach(x=>{x.classList.remove("open");x.querySelector(".dd-menu").hidden=true;x.querySelector(".dd-btn").setAttribute("aria-expanded","false")}));
 function plural2(n){const a=n%10,b=n%100;return a===1&&b!==11?"тест":a>=2&&a<=4&&!(b>=12&&b<=14)?"тести":"тестів"}
-function chartSVG(rs){
+function chartSVG(rs,top=200){
   const W=640,H=260,l=36,r=16,t=14,b=30,iw=W-l-r,ih=H-t-b;
-  const y=v=>t+ih-(v/200)*ih;
-  const grid=[0,50,100,150,200].map(v=>`<line x1="${l}" x2="${W-r}" y1="${y(v)}" y2="${y(v)}" class="gl"/><text x="${l-8}" y="${y(v)+4}" text-anchor="end" class="ax">${v}</text>`).join("");
+  const y=v=>t+ih-(v/top)*ih;
+  const grid=[0,.25,.5,.75,1].map(f=>f*top).map(v=>`<line x1="${l}" x2="${W-r}" y1="${y(v)}" y2="${y(v)}" class="gl"/><text x="${l-8}" y="${y(v)+4}" text-anchor="end" class="ax">${v}</text>`).join("");
   if(!rs.length)return `<svg viewBox="0 0 ${W} ${H}" class="chart">${grid}<text x="${l+iw/2}" y="${t+ih/2}" text-anchor="middle" class="ax">Немає результатів за цей період</text></svg>`;
   const pts=rs.map((p,i)=>[rs.length===1?l+iw/2:l+12+i*(iw-24)/(rs.length-1),y(p.score)]);
   let d=`M${pts[0][0]},${pts[0][1]}`;
@@ -2012,19 +2165,22 @@ function bindCommon(){
     window.scrollTo({top:id==="top"?0:Math.max(0,el.getBoundingClientRect().top+scrollY-navH),behavior:"instant"});
     if(SPY_IDS.includes(id)){spyAt=scrollY;spyLock=id;setSpy(id)}});
   root.querySelectorAll("[data-start]").forEach(b=>b.onclick=()=>startTest(b.dataset.start));
+  root.querySelectorAll("[data-auth]").forEach(b=>b.onclick=()=>{authTab=b.dataset.auth;AFTER="kabinet";goView("vhid")});
+  root.querySelectorAll("[data-free]").forEach(b=>b.onclick=()=>openLesson("vstup",1));
 }
+function toast(t){const el=document.createElement("div");el.className="toast";el.setAttribute("role","status");el.textContent=t;document.body.appendChild(el);setTimeout(()=>el.remove(),6000)}
 
 /* ===== Test engine ===== */
 function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 function startTest(mode,topics,opt={}){
   let ids;
-  if(opt.ids){ids=opt.ids}else if(opt.lvl){ids=pickByDifficulty(opt.lvl,opt.count||10)}else if(mode==="mist"){const pool=wrongPool();ids=shuffle(pool.length?pool:POOL()).slice(0,opt.count||10).sort((a,b)=>TYPEORD[TASKS[a].t]-TYPEORD[TASKS[b].t])}else
+  if(opt.ids){ids=opt.ids}else if(opt.lvl){ids=pickByDifficulty(opt.lvl,opt.count||10)}else if(mode==="mist"){const pool=wrongPool();ids=(pool.length?freshVariants(pool,opt.count||10):shuffle(POOL()).slice(0,opt.count||10)).sort((a,b)=>TYPEORD[TASKS[a].t]-TYPEORD[TASKS[b].t])}else
   if(mode==="sim")ids=SIM_IDS.slice();
   else if(mode==="rep")ids=shuffle(POOL()).slice(0,opt.count||10).sort((a,b)=>TYPEORD[TASKS[a].t]-TYPEORD[TASKS[b].t]);
   else ids=shuffle(POOL().filter(i=>topics.includes(TASKS[i].tp))).sort((a,b)=>TYPEORD[TASKS[a].t]-TYPEORD[TASKS[b].t]);
   const dur=MODES[mode].dur,pend=mode==="sim";
   S={mode,ids,stage:"test",cur:0,ans:ids.map(i=>TASKS[i].t==="match"?[null,null,null]:null),checked:ids.map(()=>false),flags:[],pending:pend,endsAt:dur&&!pend?Date.now()+dur*1000:null,left:dur,startedAt:Date.now(),simNo:opt.simNo||null,dr:{},lvl:opt.lvl||null,
-    title:opt.title||null,kind:opt.kind||{sim:"НМТ",rep:"Міні-тест",practice:"Тренажер",mist:"Помилки"}[mode],back:opt.back||(mode==="sim"&&opt.simNo?"kurs-nmt":"kabinet"),lkey:opt.lkey||null};
+    title:opt.title||null,kind:opt.kind||{sim:"НМТ",rep:"Міні-тест",practice:"Тренажер",mist:"Помилки"}[mode],back:opt.back||(mode==="sim"&&opt.simNo?"kurs-nmt":USER?"kabinet":"kurs-vstup"),lkey:opt.lkey||null,diag:!!opt.diag};
   save();goView("test");if(dur&&!pend)startTimer();
 }
 const TYPEORD={one:0,match:1,short:2};
@@ -2612,6 +2768,44 @@ Object.assign(LES_DOCS,{
   KN("Порада: намалюй числову пряму і познач на ній і ОДЗ, і розв’язок нерівності — так перетин видно одразу.")]},
 });
 /* ===== Lesson page (Річний курс) ===== */
+/* ===== Вступний курс: short notes (goal, explanation, formulas, worked example, typical mistakes) ===== */
+const VSTUP_DOCS={
+  1:{goal:"Навчитися скорочувати дроби, зводити їх до спільного знаменника й виконувати чотири дії з дробами.",
+    kon:[KT("Дроби та дії з ними")+KS("Мета: впевнено скорочувати дроби, додавати, віднімати, множити й ділити їх.")+
+      KB("1. Що таке дріб")+KP("Дріб <span class='f'>a/b</span> означає: ціле поділили на <i>b</i> рівних частин і взяли <i>a</i> з них. <b>Чисельник</b> <i>a</i> пишемо вгорі, <b>знаменник</b> <i>b</i> — унизу, і він не дорівнює нулю.")+
+      KR("Основна властивість: <span class='f'>a/b = (a·k)/(b·k)</span>, де <i>k</i> ≠ 0")+
+      KP("Скоротити дріб — поділити чисельник і знаменник на їхній спільний дільник. Найзручніше ділити одразу на НСД.")+
+      KE("Скоротіть дріб <span class='f'>18/24</span>.",["НСД(18; 24) = 6.","18 : 6 = 3, 24 : 6 = 4."],"<span class='f'>3/4</span>")+
+      KB("2. Додавання й віднімання")+KR("<span class='f'>a/b ± c/d = (a·d ± c·b)/(b·d)</span>")+
+      KP("Спершу зводимо дроби до спільного знаменника (найкраще до НСК знаменників), потім додаємо чи віднімаємо чисельники. Знаменник не змінюється.")+
+      KE("Обчисліть <span class='f'>2/3 + 1/4</span>.",["Спільний знаменник: НСК(3; 4) = 12.","<span class='f'>2/3 = 8/12</span>, <span class='f'>1/4 = 3/12</span>.","<span class='f'>8/12 + 3/12 = 11/12</span>."],"<span class='f'>11/12</span>")+
+      KB("3. Множення й ділення")+KR("<span class='f'>a/b · c/d = (a·c)/(b·d)</span>; &nbsp; <span class='f'>a/b : c/d = a/b · d/c</span>")+
+      KE("Обчисліть <span class='f'>3/5 : 9/10</span>.",["Ділення замінюємо множенням на обернений дріб: <span class='f'>3/5 · 10/9</span>.","<span class='f'>(3·10)/(5·9) = 30/45 = 2/3</span>."],"<span class='f'>2/3</span>")+
+      KB("4. Мішані числа й десяткові дроби")+KP("Мішане число <span class='f'>2 1/3</span> переводимо в неправильний дріб: <span class='f'>(2·3 + 1)/3 = 7/3</span>. Щоб записати дріб десятковим, ділимо чисельник на знаменник: <span class='f'>3/4</span> = 3 : 4 = 0,75.")+
+      KW("Типова помилка: додавати окремо чисельники й знаменники. <span class='f'>1/2 + 1/3</span> ≠ <span class='f'>2/5</span>, правильно <span class='f'>5/6</span>.")+
+      KN("Після конспекту розв’яжи робочий зошит, а потім пройди міні-тест: він покаже, чи тема справді засвоєна.")]},
+  2:{goal:"Навчитися розв’язувати лінійні рівняння й складати рівняння за умовою задачі.",
+    kon:[KT("Лінійні рівняння")+KS("Мета: розв’язувати рівняння виду ax + b = c і зводити до нього складніші.")+
+      KB("1. Головна ідея")+KP("Розв’язати рівняння — знайти значення змінної, при якому рівність правильна. Обидві частини рівняння можна змінювати однаково: додавати чи віднімати те саме число, множити чи ділити на те саме число, відмінне від нуля.")+
+      KR("<span class='f'>ax + b = c</span> &nbsp;⇒&nbsp; <span class='f'>ax = c − b</span> &nbsp;⇒&nbsp; <span class='f'>x = (c − b)/a</span>, якщо <i>a</i> ≠ 0")+
+      KE("Розв’яжіть рівняння <span class='f'>4x − 7 = 13</span>.",["Переносимо −7 вправо зі зміною знака: 4<i>x</i> = 13 + 7 = 20.","Ділимо на 4: <i>x</i> = 5.","Перевірка: 4 · 5 − 7 = 13 ✓"],"5")+
+      KB("2. Змінна в обох частинах")+KP("Доданки зі змінною збираємо ліворуч, числа — праворуч. При перенесенні через знак «=» знак доданка змінюється.")+
+      KE("Розв’яжіть рівняння <span class='f'>5x + 2 = 2x − 10</span>.",["5<i>x</i> − 2<i>x</i> = −10 − 2.","3<i>x</i> = −12, <i>x</i> = −4."],"−4")+
+      KB("3. Дужки й дроби")+KP("Спочатку розкриваємо дужки або позбуваємося знаменника, домноживши обидві частини на нього.")+
+      KE("Розв’яжіть рівняння <span class='f'>x/3 + 2 = 6</span>.",["<span class='f'>x/3</span> = 6 − 2 = 4.","<i>x</i> = 4 · 3 = 12."],"12")+
+      KB("4. Задачі на складання рівняння")+KP("Позначаємо невідоме через <i>x</i>, записуємо умову рівністю і розв’язуємо. Наприклад: «задумане число помножили на 3 і додали 9, отримали 42» — це 3<i>x</i> + 9 = 42, звідки <i>x</i> = 11.")+
+      KW("Типова помилка: забути змінити знак при перенесенні доданка в іншу частину рівняння.")+
+      KN("Завжди роби перевірку: підстав знайдене число в початкове рівняння.")]},
+  3:{goal:"Запам’ятати формули площ основних фігур і навчитися застосовувати їх у задачах.",
+    kon:[KT("Площі плоских фігур")+KS("Мета: знаходити площі прямокутника, квадрата, трикутника, паралелограма, трапеції, ромба й круга.")+
+      KB("1. Формули")+KTB(["Фігура","Площа"],[["Прямокутник зі сторонами <i>a</i>, <i>b</i>","<span class='f'>S = a·b</span>"],["Квадрат зі стороною <i>a</i>","<span class='f'>S = a²</span>"],["Трикутник (сторона <i>a</i>, висота <i>h</i> до неї)","<span class='f'>S = (a·h)/2</span>"],["Прямокутний трикутник з катетами <i>a</i>, <i>b</i>","<span class='f'>S = (a·b)/2</span>"],["Паралелограм","<span class='f'>S = a·h</span>"],["Трапеція з основами <i>a</i>, <i>b</i> і висотою <i>h</i>","<span class='f'>S = (a + b)/2 · h</span>"],["Ромб з діагоналями <i>d₁</i>, <i>d₂</i>","<span class='f'>S = (d₁·d₂)/2</span>"],["Круг радіуса <i>r</i>","<span class='f'>S = πr²</span>"]])+
+      KE("Основи трапеції 5 см і 9 см, висота 4 см. Знайдіть площу.",["<span class='f'>S = (5 + 9)/2 · 4</span>.","<span class='f'>S = 7 · 4 = 28</span> см²."],"28 см²")+
+      KE("Периметр квадрата 20 см. Знайдіть його площу.",["Сторона: 20 : 4 = 5 см.","<span class='f'>S = 5² = 25</span> см²."],"25 см²")+
+      KB("2. Одиниці вимірювання")+KP("Площу вимірюють у квадратних одиницях: см², м². Якщо сторони дано в різних одиницях, спершу переведи їх в однакові.")+
+      KW("Типова помилка: у формулі площі трикутника забути поділити на 2, або взяти сторону замість висоти.")+
+      KN("Якщо відомі гіпотенуза й катет прямокутного трикутника, другий катет знайди за теоремою Піфагора: <span class='f'>b = √(c² − a²)</span>.")]},
+};
+
 let LES=null;
 const KN_CSS=`.kn-p{margin:6px 0 8px}
 .rf-paper:has(.vw-cover){padding:0;overflow:hidden}
@@ -2657,7 +2851,7 @@ try{document.head.appendChild(Object.assign(document.createElement("style"),{tex
 const LTXT={hw:"Домашнє завдання",easy:"Додаткові тести легкий рівень",mid:"Додаткові тести середній рівень",mini:"Міні-тест"};
 const lesKey=(n,set)=>`r${n}-${set}`;
 function lesStat(key){const h=HIST.filter(x=>x.lkey===key);if(!h.length)return null;const l=h[h.length-1];return {tries:h.length,pct:Math.round(l.pts/l.max*100)}}
-function openLesson(course,n){LES={c:course,n};goView("urok")}
+function openLesson(course,n){LES={c:course,n};PF.seen=PF.seen||{};if(!PF.seen[course+n]){PF.seen[course+n]=1;savePF()}goView("urok")}
 function wbPages(n,title){
   const ids=LES_SETS[n].wb,pg=[];
   const item=(i,k)=>{const t=TASKS[i];
@@ -2684,7 +2878,7 @@ function vstupWb(n,title){
       <g transform="translate(24 34)"><ellipse rx="9" ry="5.5" fill="#67e8f9"/><path d="M8 0 15-5V5Z" fill="#22d3ee"/><circle cx="-4" cy="-1" r="1.2" fill="#0c4a6e"/></g>
       <g fill="#fff" opacity=".55"><circle cx="40" cy="60" r="1.6"/><circle cx="44" cy="54" r="1"/><circle cx="170" cy="70" r="1.3"/></g>
     </svg>
-    <div class="vw-c-in"><span class="vw-brand">Назва школи</span>
+    <div class="vw-c-in"><span class="vw-brand">${BRAND}</span>
       <h1 class="vw-t">Літній <span>старт</span></h1>
       <p class="vw-sub">безкоштовний курс підготовки<br>до НМТ з математики</p>
       <span class="vw-topic">Урок ${n}. ${title}</span></div></div>`;
@@ -2697,6 +2891,7 @@ function vstupWb(n,title){
 }
 const fn3=v=>String(v).replace(".",",").replace("-","−");
 function lesDoc(kind){
+  if(LES.c==="vstup"&&kind==="kon")return theoryDoc(100+LES.n);
   if(LES.c==="vstup"){const x=COURSES.vstup.items.find(i=>i.n===LES.n);return {title:"Робочий зошит",pages:vstupWb(LES.n,x.h),file:`robochyi-zoshyt-vstup-${LES.n}.html`}}
   const n=LES.n,x=COURSES[LES.c].items.find(i=>i.n===n),d=LES_DOCS[n];
   if(kind==="map"||kind==="mini")return {title:kind==="mini"?"Мінілекція":"Мапа",pages:[d.map],file:`mapa-urok-${n}.html`};
@@ -2727,6 +2922,17 @@ async function downloadDoc(doc){
 }
 const IC_DOC='<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6Zm-1 7V3.5L18.5 9H13ZM8 13h8v2H8v-2Zm0 4h8v2H8v-2Z"/></svg>';
 const IC_TEST='<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="3" width="14" height="14" rx="2"/><path d="M3 7v12a2 2 0 0 0 2 2h12"/><path d="M12 8.5a2 2 0 1 1 2.5 2c-.6.2-.5.8-.5 1.5M14 14.5v.1"/></svg>';
+// lesson status kept apart: opened, practised, understanding confirmed by the test (≥ 80%)
+function lesNextHTML(c,n){
+  const b=lesBest(c,n),items=COURSES[c].items.filter(i=>i.n).map(i=>i.n).sort((a,b)=>a-b),nx=items.find(v=>v>n);
+  const st=b==null?"Урок відкрито. Тест ще не пройдено.":b>=80?`Розуміння підтверджено: тест виконано на ${b}%.`:`Практику розпочато: останній тест ${b}%. Для підтвердження потрібно 80%.`;
+  let act;
+  if(b==null||b<80)act=`<p>Пройдіть ${c==="vstup"?"міні-тест":"домашнє завдання"} вище, щоб перевірити, як ви зрозуміли тему.</p>`;
+  else if(nx)act=`<button class="btn primary sm" data-open-les="${c}:${nx}">Наступний урок: ${lesTitle(c,nx)} ${I.arrow}</button>`;
+  else if(c==="vstup")act=USER?`<button class="btn primary sm" data-view="diag">Пройти діагностику рівня ${I.arrow}</button>`:`<p>Безкоштовні уроки пройдено. <button class="lnk" data-auth="up">Зареєструйтеся</button>, щоб зберегти результати.</p>`;
+  else act=`<button class="btn sm" data-view="kurs-${c}">До списку уроків</button>`;
+  return `<div class="les-next"><h5 class="les-h">Наступний крок</h5><p class="note">${st}</p>${act}</div>`;
+}
 function cabLesson(cab){
   const n=LES.n,V=LES.c==="vstup",c=COURSES[LES.c],x=c.items.find(i=>i.n===n),sets=V?VSTUP_SETS[n]:LES_SETS[n];
   const lk=(n,set)=>V?`vstup${n}-hw`:lesKey(n,set);
@@ -2741,18 +2947,22 @@ function cabLesson(cab){
         <div class="les-board"><b>${x.h}</b><span>Відеоурок</span></div>
         <span class="les-pl" aria-hidden="true"><svg viewBox="0 0 24 24" width="34" height="34" fill="#fff"><path d="M8 5v14l11-7z"/></svg></span>
         <div class="les-ctrl" aria-hidden="true"><span>▶</span><span class="les-bar"><i></i></span><span>0:00</span><span>⛶</span></div>
-        <p class="les-vmsg" hidden>Відео з’явиться тут, щойно викладач його завантажить. Поки що відкрийте ${V?"робочий зошит":"конспект і мапу"} праворуч.</p>
+        <p class="les-vmsg" hidden>Відео до цього уроку ще не завантажено. Усе потрібне для уроку вже є в конспекті праворуч: пояснення, формули й розібрані приклади.</p>
       </div>
       ${V?"":`<button class="les-minib" data-doc="mini">▷ Мінілекція</button>`}
     </div>
     <div class="les-r">
-      <div class="les-mat"><h4>${IC_DOC} Матеріали</h4><div class="les-mb">${V?"":`<button data-doc="kon">${IC_DOC} Конспект</button>`}<button data-doc="wb">${IC_DOC} Робочий Зошит</button>${V?"":`<button data-doc="map">${IC_DOC} Мапа</button>`}</div></div>
+      <div class="les-mat"><h4>${IC_DOC} Матеріали</h4><div class="les-mb"><button data-doc="kon">${IC_DOC} Конспект</button><button data-doc="wb">${IC_DOC} Робочий Зошит</button>${V?"":`<button data-doc="map">${IC_DOC} Мапа</button>`}</div></div>
       ${(V?["mini"]:["hw","easy","mid","mini"]).map(s=>`<h5 class="les-h">${LTXT[s]}</h5>${row(s)}`).join("")}
+      ${lesNextHTML(LES.c,n)}
     </div>
-  </div>`;
+  </div>
+  ${V?`<div class="card les-goal"><h4>Як пройти урок</h4><p><b>Мета:</b> ${VSTUP_DOCS[n].goal}</p>
+    <ol class="les-steps"><li><b>Конспект</b> — пояснення, формули й розібраний приклад (≈ 15 хв).</li><li><b>Робочий зошит</b> — 12 завдань для самостійної роботи на папері, без відповідей (≈ 25 хв).</li><li><b>Міні-тест</b> — ${sets.mini.length} завдань із поясненнями після перевірки (≈ 10 хв).</li><li><b>Розбір помилок</b> — у результаті тесту біля кожної помилки є конспект і схожі завдання.</li></ol></div>`:""}`;
   const play=document.getElementById("les-play"),showMsg=()=>{play.querySelector(".les-vmsg").hidden=false;play.classList.add("msg")};
   play.onclick=showMsg;play.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();showMsg()}};
   cab.querySelectorAll("[data-doc]").forEach(b=>b.onclick=()=>openDoc(lesDoc(b.dataset.doc)));
+  bindPath(cab);
   cab.querySelectorAll("[data-set]").forEach(b=>b.onclick=()=>{const s=b.dataset.set;
     startTest("practice",null,{ids:sets[s].slice(),lkey:lk(n,s),title:x.h+(s==="easy"?" · легкий рівень":s==="mid"?" · середній рівень":s==="mini"?" · міні-тест":" · домашнє завдання"),kind:s==="hw"?"ДЗ":s==="mini"?"Міні-тест":"Тренажер",back:"urok"})});
 }
@@ -2785,7 +2995,7 @@ function renderNmt(cab){
       <button class="n-eye" id="eye" aria-label="${S.hideT?"Показати таймер":"Сховати таймер"}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/>${S.hideT?'<path d="M3 3l18 18"/>':""}</svg></button></div>
     <div class="n-body"><div class="n-feed" id="feed">${S.ids.map((_,k)=>nmtCard(k)).join("")}</div>
       <aside class="n-side"><h4>Завдання</h4><div class="n-grid" id="ngrid">${S.ids.map((_,k)=>`<button class="${answered(k)?"saved":""}" data-jump="${k}">${k+1}</button>`).join("")}</div></aside></div>
-    ${S.pending?`<div class="modal n-start"><div class="card" role="dialog" aria-modal="true" aria-labelledby="ns-t"><h3 id="ns-t">Формат НМТ</h3><p>Тест відкривається у повноекранному режимі, з інтерфейсом, наближеним до справжнього НМТ. На виконання є 90 хвилин. Після завершення роботи натисніть кнопку «Завершити роботу над тестом» у верхньому правому куті, щоб вийти з повноекранного режиму.</p><button class="n-go" id="ngo">▶ Розпочати тест</button></div></div>`:""}
+    ${S.pending?`<div class="modal n-start"><div class="card" role="dialog" aria-modal="true" aria-labelledby="ns-t"><h3 id="ns-t">Формат НМТ</h3><p>Це тренувальна симуляція: 22 завдання трьох типів, як у форматі НМТ, і 90 хвилин на виконання. Інтерфейс наближений до іспиту, але це не офіційний тест УЦОЯО, а бал за шкалою орієнтовний. Тест відкривається у повноекранному режимі. Після завершення роботи натисніть кнопку «Завершити роботу над тестом» у верхньому правому куті, щоб вийти з повноекранного режиму.</p><button class="n-go" id="ngo">▶ Розпочати тест</button></div></div>`:""}
   </div>`;
   const root2=cab.querySelector(".nmt");
   const refresh=k=>{document.getElementById("nq"+k).outerHTML=nmtCard(k);const g=root2.querySelector(`[data-jump="${k}"]`);g.classList.toggle("saved",answered(k))};
@@ -3015,7 +3225,8 @@ function finish(){
   const pts=S.ids.reduce((s,_,k)=>s+points(k),0),max=S.ids.reduce((s,_,k)=>s+maxp(k),0);
   const miss=[...new Set(S.ids.map((i,k)=>points(k)<maxp(k)?TASKS[i].tp:null).filter(Boolean))];
   const wrong=S.ids.filter((i,k)=>points(k)<maxp(k));
-  HIST.push({mode:S.mode,at:Date.now(),pts,max,n:N(),score:S.mode==="sim"?(SCALE[pts]||null):null,miss,wrong,simNo:S.simNo,lkey:S.lkey||null,title:S.title||null,kind:S.kind||null,sec:Math.round((Date.now()-(S.startedAt||Date.now()))/1000)});
+  let dg=null;if(S.diag){dg={};S.ids.forEach((i,k)=>{const t=TASKS[i].dg;if(!t)return;dg[t]=dg[t]||[0,0];dg[t][1]++;if(points(k)===maxp(k))dg[t][0]++})}
+  HIST.push({mode:S.mode,at:Date.now(),pts,max,n:N(),ids:S.ids.slice(),dg,score:S.mode==="sim"?(SCALE[pts]||null):null,miss,wrong,simNo:S.simNo,lkey:S.lkey||null,title:S.title||null,kind:S.kind||null,sec:Math.round((Date.now()-(S.startedAt||Date.now()))/1000)});
   store(HKEY,HIST);
   S.stage="result";S.endsAt=null;save();
   if(view!=="test")goView("test");else{render();window.scrollTo({top:0})}
@@ -3041,30 +3252,34 @@ function renderResult(cab){
   const pts=S.ids.reduce((s,_,k)=>s+points(k),0),max=S.ids.reduce((s,_,k)=>s+maxp(k),0);
   const sim=S.mode==="sim",score=sim?SCALE[pts]:null,pct=Math.round(pts/max*100);
   const byType=tp=>{let p=0,m=0;S.ids.forEach((i,k)=>{if(TASKS[i].t===tp){p+=points(k);m+=maxp(k)}});return m?`${p}/${m}`:"—"};
-  const head=sim?(score?(score>=180?"Чудовий результат":score>=150?"Добрий результат":"Поріг подолано"):"Потрібно ще попрактикуватися"):(pct>=80?"Чудово!":pct>=50?"Непогано, є що підтягнути":"Варто повторити ці теми");
+  const wrongIdx=S.ids.map((_,k)=>k).filter(k=>points(k)<maxp(k));
+  const head=S.diag?"Діагностику завершено":sim?(score?(score>=180?"Чудовий результат":score>=150?"Добрий результат":"Поріг подолано"):"Потрібно ще попрактикуватися"):(pct>=80?"Чудово!":pct>=50?"Непогано, є що підтягнути":"Варто повторити ці теми");
   cab.innerHTML=`
   <div class="card res-top">
-    <div class="score${sim&&!score?" fail":""}"><div><b>${sim?(score??"—"):pct+"%"}</b><span>${sim?(score?"бал НМТ":"поріг не подолано"):"правильно"}</span></div></div>
+    <div class="score${sim&&!score?" fail":""}"><div><b>${sim?(score??"—"):pct+"%"}</b><span>${sim?(score?"орієнтовний бал":"поріг не подолано"):"правильно"}</span></div></div>
     <div>
-      <span class="eyebrow">${MODES[S.mode].name} · результат</span>
+      <span class="eyebrow">${S.diag?"Діагностика":MODES[S.mode].name} · результат</span>
       <h1>${head}</h1>
       <p>Тестовий бал: <b class="mono">${pts} з ${max}</b>. ${sim&&!score?"Щоб подолати поріг, потрібно набрати щонайменше 5 тестових балів.":""}</p>
-      <div class="breakdown">
+      ${S.diag?"":`<div class="breakdown">
         <div class="bd"><b>${byType("one")}</b><span>одна відповідь</span></div>
         <div class="bd"><b>${byType("match")}</b><span>логічні пари</span></div>
         <div class="bd"><b>${byType("short")}</b><span>коротка відповідь</span></div>
-      </div>
-      <div class="hero-ctas"><button class="btn primary" id="again">Пройти ще раз</button><button class="btn" id="tomenu">До кабінету</button></div>
+      </div>`}
+      <div class="hero-ctas">${wrongIdx.length&&!S.diag?`<button class="btn primary" id="fix">Потренувати помилки на нових завданнях</button>`:""}<button class="btn${wrongIdx.length||S.diag?"":" primary"}" id="again">Пройти ще раз</button><button class="btn" id="tomenu">${USER?"До кабінету":"До вступного курсу"}</button></div>
     </div>
   </div>
+  ${S.diag?diagSummary():""}
   <div class="test" style="margin-top:20px">
     <div style="min-width:0">
       <h2 style="font-size:20px">Розбір завдань</h2>
+      ${wrongIdx.length?`<p class="note" style="margin:6px 0 0">Помилки — звичайна частина навчання. Біля кожної є пояснення, а також посилання на конспект теми і схожі завдання з іншими числами.</p>`:""}
       <div class="review">${S.ids.map((i,k)=>{const t=TASKS[i],p=points(k),m=maxp(k),c=p===m?"ok":p>0?"part":"bad";
         return `<div class="card rv ${c}" id="rv${k}"><div class="rv-head"><b>Завдання ${k+1}</b><span class="pill ${c}">${p} з ${m}</span></div>
           ${tsHTML(`<p>${t.q}</p>
           <div class="ans"><div><span>Ваша відповідь:</span> <b>${shown(k)}</b></div><div><span>Правильна:</span> <b>${right(k)}</b></div></div>
-          <div class="why">${t.why}</div>`)}</div>`}).join("")}</div>
+          <div class="why">${t.why}</div>`)}
+          ${p<m&&t.ln&&theoryDoc(t.ln)?`<div class="rv-help"><button class="btn sm" data-theory="${t.ln}">${I.book} Конспект теми</button><button class="btn sm" data-similar="${k}">Схожі завдання</button></div>`:""}</div>`}).join("")}</div>
       ${sim?`<div class="card scale"><h3 style="font-size:16px">Шкала переведення балів</h3>
         <div class="scale-grid">${Object.entries(SCALE).map(([a,v])=>`<div class="${+a===pts?"me":""}"><b>${v}</b>${a} б.</div>`).join("")}</div>
         <p class="note">Шкала орієнтовна. Офіційну таблицю УЦОЯО публікує щороку, і вона може відрізнятися.</p></div>`:""}
@@ -3074,7 +3289,13 @@ function renderResult(cab){
   const mode=S.mode,topics=[...new Set(S.ids.map(i=>TASKS[i].tp))];
   const again={simNo:S.simNo,count:N(),title:S.title,kind:S.kind,back:S.back,lvl:S.lvl,...(S.lkey?{ids:S.ids.slice(),lkey:S.lkey}:{})};
   document.getElementById("again").onclick=()=>startTest(mode,topics,again);
-  document.getElementById("tomenu").onclick=()=>{S=null;save();goView("kabinet")};
+  document.getElementById("tomenu").onclick=()=>{S=null;save();goView(USER?"kabinet":"kurs-vstup")};
+  const fx=document.getElementById("fix");
+  if(fx)fx.onclick=()=>startTest("mist",null,{ids:freshVariants(wrongIdx.map(k=>S.ids[k]),Math.max(3,wrongIdx.length)),title:"Робота над помилками",kind:"Помилки",back:S.back});
+  cab.querySelectorAll("[data-theory]").forEach(b=>b.onclick=()=>openDoc(theoryDoc(+b.dataset.theory)));
+  cab.querySelectorAll("[data-similar]").forEach(b=>b.onclick=()=>{const id=S.ids[+b.dataset.similar],t=TASKS[id];
+    startTest("practice",null,{ids:similarIds(t.ln,[id],3),title:"Схожі завдання · "+(t.ln>100?lesTitle("vstup",t.ln-100):lesTitle("richnyi",t.ln)),kind:"Тренажер",back:S.back})});
+  bindPath(cab);
   cab.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>document.getElementById("rv"+b.dataset.go).scrollIntoView({behavior:"smooth",block:"center"}));
 }
 
@@ -3084,6 +3305,7 @@ let rt;addEventListener("resize",()=>{clearTimeout(rt);rt=setTimeout(()=>{if(vie
 matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change",()=>{if(view==="home")drawArt()});
 // a reload always opens the landing page at the top; saved results stay in storage
 try{history.scrollRestoration="manual";if(location.hash)history.replaceState(null,"",location.pathname+location.search)}catch(e){}
+if(!CLOUD&&mergeGuest())setTimeout(()=>toast("Результати, отримані без входу, перенесено в акаунт."),300);
 route();
 cloudBoot();
 try{const g=sessionStorage.getItem("nmt-go");if(g){sessionStorage.removeItem("nmt-go");if(USER)goView(g)}}catch(e){}
