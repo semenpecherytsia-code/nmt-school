@@ -508,6 +508,14 @@ h1[tabindex="-1"]:focus,h2[tabindex="-1"]:focus{outline:none}
 }
 @media (min-width:1800px){.wrap{max-width:1320px}.shop-wrap{max-width:1480px}}
 
+/* таймер і тир */
+.hud-time{font-variant-numeric:tabular-nums;gap:5px}.hud-time svg{width:20px;height:20px}
+.hud-time.low{border-color:#d23a3a;color:#b3362b;animation:bump .5s ease infinite}
+body.tir #world{cursor:none}
+.chapter.tir .lv{border-color:#ffb766;background:linear-gradient(180deg,#fff,#fff3e3)}
+.chapter.tir h3{color:#c96a00}
+@media (max-width:560px){.hud-time{padding:4px 9px;font-size:15px;min-height:36px}}
+
 </style>
 <div id="app">
   <canvas id="world" aria-hidden="true"></canvas>
@@ -1424,7 +1432,14 @@ const LEVELS=[
 ];
 /* старий порядок рівнів (v1) → новий індекс */
 const V1_MAP={0:0,1:1,2:2,3:3,4:5,5:6,6:7,7:4,8:9,9:10,10:8,11:11};
-OWL.ARCADE={CHAPTERS,LEVELS,V1_MAP,quadTxt,MIX_POOL};
+/* тир: усі тригонометричні вирази з числовим значенням */
+const SQ={"√2/2":Math.SQRT2/2,"√3/2":Math.sqrt(3)/2,"√3":Math.sqrt(3),"−√2/2":-Math.SQRT2/2,"−√3/2":-Math.sqrt(3)/2};
+const valOf=t=>{if(t in SQ)return SQ[t];const f=frOf(t);return f?f.v:null};
+const TRIG_ALL={};
+function trigAll(hard){const k=hard?1:0;if(TRIG_ALL[k])return TRIG_ALL[k];const seen=new Set(),out=[];
+  for(const [t,vs,w] of (hard?TV_EASY.concat(TV_HARD):TV_EASY).concat(trigCombos())){const v=valOf(vs);if(v==null||seen.has(t))continue;seen.add(t);out.push({t,v,vs,w})}
+  return TRIG_ALL[k]=out}
+OWL.ARCADE={CHAPTERS,LEVELS,V1_MAP,quadTxt,MIX_POOL,trigAll};
 })();
 
 /* ---- state.js ---- */
@@ -1508,6 +1523,7 @@ function questsFor(now){
 function defaults(){return{
   v:2,coins:0,gems:0,created:Date.now(),
   special:{d:{key:"",stars:0},w:{key:"",stars:0}},
+  tir:{stars:0,best:0},
   streak:{last:"",n:0,best:0},lb:{week:"",pts:0},
   settings:{speed:1,math:0,control:"move",calmTimer:false,volume:0.7,muted:false,music:true,motion:"system"},
   arcade:{stars:{},open:1,tutDone:false,results:0,seen:[]},
@@ -1530,7 +1546,7 @@ function validateV2(o){
   S.coins=int(o.coins,0,1e7,0);S.gems=int(o.gems,0,1e6,0);
   if(isObj(o.streak))S.streak={last:str(o.streak.last,20,""),n:int(o.streak.n,0,1e5,0),best:int(o.streak.best,0,1e5,0)};
   if(isObj(o.lb))S.lb={week:str(o.lb.week,20,""),pts:int(o.lb.pts,0,1e7,0)};
-  if(isObj(o.special))for(const k of ["d","w"]){const v=o.special[k];if(isObj(v))S.special[k]={key:str(v.key,20,""),stars:int(v.stars,0,3,0)}}S.created=num(o.created,0,1e14,Date.now());
+  if(isObj(o.tir))S.tir={stars:int(o.tir.stars,0,3,0),best:int(o.tir.best,0,1e4,0)};if(isObj(o.special))for(const k of ["d","w"]){const v=o.special[k];if(isObj(v))S.special[k]={key:str(v.key,20,""),stars:int(v.stars,0,3,0)}}S.created=num(o.created,0,1e14,Date.now());
   if(isObj(o.settings)){const s=o.settings;S.settings={speed:int(s.speed,0,2,1),math:int(s.math,0,1,0),control:["move","buttons"].includes(s.control)?s.control:"move",calmTimer:!!s.calmTimer,volume:num(s.volume,0,1,0.7),muted:!!s.muted,music:s.music!==false,motion:["system","reduce","full"].includes(s.motion)?s.motion:"system"}}
   if(isObj(o.arcade)){const st={};if(isObj(o.arcade.stars))for(const [k,v] of Object.entries(o.arcade.stars)){const i=+k;if(Number.isInteger(i)&&i>=0&&i<12&&Number.isInteger(v)&&v>=0&&v<=3)st[i]=v}
     S.arcade={stars:st,open:int(o.arcade.open,1,12,1),tutDone:!!o.arcade.tutDone,results:int(o.arcade.results,0,1e7,0),seen:Array.isArray(o.arcade.seen)?[...new Set(o.arcade.seen.filter(x=>Number.isInteger(x)&&x>=0&&x<12))]:[]}}
@@ -1697,15 +1713,19 @@ const GOAL=8,LIVES=3,ROTATE_EVERY=4,SPLASH=2.4;
 
 /* ---------------- чиста логіка раунду ---------------- */
 function newRound(opts){
+  if(opts.tir)return withTime(newTir(opts));
   const L=LEVELS[opts.level];const seed=opts.seed||OWL.newSeed();const R=OWL.makeRng(seed);
   const st=L.setup(R,opts.math||0);
-  return{level:opts.level,L,R,seed,st,math:opts.math||0,speed:opts.speed??1,mode:opts.mode||"move",calmTimer:!!opts.calmTimer,tutorial:!!opts.tutorial,
+  return withTime({level:opts.level,L,R,seed,st,math:opts.math||0,speed:opts.speed??1,mode:opts.mode||"move",calmTimer:!!opts.calmTimer,tutorial:!!opts.tutorial,
     fall:FALL[opts.speed??1]*(L.slow||1),maxItems:L.slow?3:4,goal:opts.tutorial?1:GOAL,lives:LIVES,missCosts:(opts.speed??1)===2,
     items:[],log:[],correct:0,wrongCaught:0,missed:0,streak:0,maxStreak:0,coins:0,
     t:0,spawnT:0.3,sinceOk:0,phase:"splash",splashT:SPLASH,splashText:L.rule(st),pendingRotate:false,ended:false,result:null,nextId:1,
     tut:opts.tutorial?{step:1,msg:"Ця хмаринка дорівнює 10. Підстав під неї кошик!"}:null,
-    calm:null};
+    calm:null,timeLimit:0,timeLeft:0});
 }
+/* ліміт часу на рівень: з запасом для гравця без помилок */
+function timeFor(G){if(G.tutorial)return 0;if(G.mode==="tir")return TIR_TIME;if(G.mode==="buttons")return 150;return Math.ceil((G.goal*G.fall*1.6+15)/5)*5}
+function withTime(G){G.timeLimit=timeFor(G);G.timeLeft=G.timeLimit;return G}
 function ruleText(G){return G.tutorial?"Лови вирази, що дорівнюють 10":G.L.rule(G.st)}
 function makeItem(G,ok,forced){
   let it;
@@ -1747,7 +1767,7 @@ function finish(G,won){
   G.ended=true;G.phase="end";
   const errors=G.wrongCaught+G.missed;
   const stars=won?(errors===0?3:errors<=2?2:1):0;
-  G.result={won,stars,correct:G.correct,wrong:G.wrongCaught,missed:G.missed,coins:won?[0,30,45,60][stars]:5+Math.floor(G.correct/2),maxStreak:G.maxStreak,log:G.log.slice(),level:G.level,tutorial:G.tutorial};
+  G.result={won,stars,timeout:!!G.timeout,tir:G.mode==="tir",correct:G.correct,wrong:G.wrongCaught,missed:G.missed,coins:won?[0,30,45,60][stars]:5+Math.floor(G.correct/2),maxStreak:G.maxStreak,log:G.log.slice(),level:G.level,tutorial:G.tutorial};
 }
 function rotateMix(G){
   const pool=OWL.ARCADE.MIX_POOL;let j;do{j=G.R.pick(pool)}while(j===G.st.i);
@@ -1761,6 +1781,8 @@ function step(G,dt,catchTest){
   const ev=[];if(G.ended)return ev;
   G.t+=dt;
   if(G.phase==="splash"){G.splashT-=dt;if(G.splashT<=0)G.phase="play";return ev}
+  if(G.timeLimit){G.timeLeft=Math.max(0,G.timeLeft-dt);if(G.timeLeft<=0){G.timeout=true;finish(G,G.correct>=G.goal);ev.push({type:"timeout"});return ev}}
+  if(G.mode==="tir")return tirStep(G,dt,ev);
   if(G.tutorial)return tutorialStep(G,dt,catchTest,ev);
   if(G.mode==="buttons")return calmStep(G,dt,ev);
   G.spawnT-=dt;
@@ -1815,6 +1837,65 @@ function tutorialStep(G,dt,catchTest,ev){
   }
   return ev;
 }
+
+/* ---------------- тир: сова стріляє по хмаринках ---------------- */
+const TIR_GOAL=7,TIR_TIME=75;
+const E=1e-9;
+const TIR_RULES=[
+  {txt:"Лови вирази, значення яких більші за 1",f:v=>v>1+E,yes:"більше за 1",no:"не більше за 1"},
+  {txt:"Лови вирази з відʼємним значенням",f:v=>v<-E,yes:"відʼємне",no:"не відʼємне"},
+  {txt:"Лови вирази, що дорівнюють 0",f:v=>Math.abs(v)<E,yes:"дорівнює 0",no:"не 0"},
+  {txt:"Лови вирази, що дорівнюють 1",f:v=>Math.abs(v-1)<E,yes:"дорівнює 1",no:"не 1"},
+  {txt:"Лови вирази, що дорівнюють 1/2",f:v=>Math.abs(v-.5)<E,yes:"дорівнює 1/2",no:"не 1/2"},
+  {txt:"Лови вирази з додатним значенням",f:v=>v>E,yes:"додатне",no:"не додатне"}];
+function newTir(opts){
+  const seed=opts.seed||OWL.newSeed(),R=OWL.makeRng(seed),math=opts.math||0;
+  const ri=opts.rule!=null?opts.rule:R.int(0,TIR_RULES.length-1),rule=TIR_RULES[ri];
+  const pool=OWL.ARCADE.trigAll(!!math);
+  const L={name:"Тригонометричний тир",rule:()=>rule.txt};
+  const rows=opts.rows||3,cols=opts.cols||4;
+  const G={level:opts.level,L,R,seed,st:{},math,speed:1,mode:"tir",tir:{rule,ri,ok:pool.filter(x=>rule.f(x.v)),no:pool.filter(x=>!rule.f(x.v)),rows,cols,off:[],v:[],slots:[]},
+    tutorial:false,goal:TIR_GOAL,lives:LIVES,missCosts:false,items:[],log:[],correct:0,wrongCaught:0,missed:0,streak:0,maxStreak:0,coins:0,
+    t:0,phase:"splash",splashT:SPLASH,splashText:rule.txt,ended:false,result:null,nextId:1,timeLimit:0,timeLeft:0};
+  const base=(math?.05:.034);
+  for(let r=0;r<rows;r++){G.tir.off.push(R.f());G.tir.v.push((r%2?-1:1)*base*(.85+R.f()*.3))}
+  for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){G.tir.slots.push({row:r,col:c,item:null,wait:0})}
+  for(const sl of G.tir.slots)tirFill(G,sl);
+  return G;
+}
+function tirFill(G,sl){
+  const T=G.tir,live=G.items.filter(i=>i.state==="live");
+  const okNow=live.filter(i=>i.ok).length;
+  let ok=okNow<2?true:okNow>=Math.ceil(T.slots.length*.45)?false:G.R.chance(.4);
+  if(!G.seenAll)G.seenAll=new Set();
+  const src=ok?T.ok:T.no;let x,tries=0;
+  do{x=G.R.pick(src);tries++}while(tries<120&&(G.seenAll.has(x.t)||live.some(i=>i.t===x.t)));
+  if(G.seenAll.size>src.length*.8)G.seenAll.clear();
+  G.seenAll.add(x.t);
+  const why=`${x.w} — ${ok?T.rule.yes:T.rule.no}`;
+  const it={id:G.nextId++,t:x.t,ok,why,rule:T.rule.txt,row:sl.row,col:sl.col,state:"live",age:0,w:0,h:0,fs:0,nx:.5,p:0};
+  sl.item=it;G.items.push(it);return it;
+}
+function tirStep(G,dt,ev){
+  const T=G.tir;
+  for(let r=0;r<T.rows;r++)T.off[r]=(T.off[r]+T.v[r]*dt+1)%1;
+  for(const it of G.items){it.age+=dt;if(it.state!=="live")it.dead=(it.dead||0)+dt}
+  G.items=G.items.filter(i=>i.state==="live"||i.dead<.45);
+  for(const sl of T.slots)if(!sl.item){sl.wait-=dt;if(sl.wait<=0)tirFill(G,sl)}
+  return ev;
+}
+/* постріл по хмаринці id; повертає події */
+function tirShoot(G,id){
+  const ev=[];if(G.ended||G.phase!=="play"||G.mode!=="tir")return ev;
+  const it=G.items.find(i=>i.id===id&&i.state==="live");if(!it)return ev;
+  it.state=it.ok?"hit":"wrong";
+  const sl=G.tir.slots.find(s=>s.item===it);if(sl){sl.item=null;sl.wait=.9}
+  ev.push({type:it.ok?"good":"bad",it});
+  record(G,it,it.ok?"caught-ok":"caught-wrong");
+  return ev;
+}
+/* позиція хмаринки тиру: u — частка кола, рядки рівномірно між HUD і совою */
+function tirU(G,it){const T=G.tir;return((it.col/T.cols+T.off[it.row])%1+1)%1}
 
 /* ---------------- малювання ---------------- */
 const PAL={
@@ -1897,7 +1978,16 @@ function Renderer(cv){
     if(w>maxW){fs=Math.max(13,fs*maxW/w);tw=mathWidth(ctx,it.t,fs);w=Math.min(maxW,tw+fs*2.4)}
     it.fs=fs;it.w=Math.max(w,fs*6);it.h=fs*(/[\dπ]\/\d/.test(it.t)?3.3:2.6);
   };
+  V.measureFs=function(it,maxW){const fs=it.fs,tw=mathWidth(ctx,it.t,fs);it.w=Math.min(maxW,Math.max(tw+fs*2.2,fs*5));it.h=fs*(/[\dπ]\/\d/.test(it.t)?3.3:2.6)};
+  V.tirHit=function(G,px,py){let best=null;for(const it of G.items){if(it.state!=="live")continue;const {x,y}=V.itemXY(it);const dx=(px-x)/(it.w/2+6),dy=(py-y)/(it.h/2+6);const d=dx*dx+dy*dy;if(d<=1&&(!best||d<best.d))best={it,d,x,y}}return best};
+  V.tirLayout=function(G){const T=G.tir,sw=V.W/Math.max(1,T.cols-1);const top=(V.topPad||0)+6,bot=V.rimY()-150*V.SC*.35;return{sw,top,rowH:Math.max(40,(bot-top)/T.rows)}};
   V.itemXY=function(it){
+    const G=V.G;
+    if(G&&G.mode==="tir"&&it.row!=null){
+      const Lt=V.tirLayout(G);
+      if(!it.w){V.measure(it);const maxW=Lt.sw-14;if(it.w>maxW){it.fs=Math.max(11,it.fs*maxW/it.w);V.measureFs(it,maxW)}const mh=Lt.rowH*.86;if(it.h>mh){const k=mh/it.h;it.fs=Math.max(11,it.fs*k);V.measureFs(it,maxW)}}
+      const u=tirU(G,it);return{x:u*(V.W+Lt.sw)-Lt.sw/2,y:Lt.top+Lt.rowH*(it.row+.5)};
+    }
     if(!it.w)V.measure(it);
     const half=it.w/2;const x=clamp(it.nx*V.W,half+8,V.W-half-8);
     const yRim=V.rimY()-it.h*.25;const y0=Math.min((V.topPad||0)-it.h*.55,yRim*.4);const y=y0+it.p*(yRim-y0);
@@ -2054,7 +2144,7 @@ function Renderer(cv){
     if(o.basketT>0)o.basketT=Math.max(0,o.basketT-dt);
     if(o.jumpT>0)o.jumpT=Math.max(0,o.jumpT-dt);
     o.glow=G&&G.streak>=5&&!G.ended?1:0;
-    const playing=G&&!G.ended&&G.phase==="play"&&G.mode!=="buttons";
+    const playing=G&&!G.ended&&G.phase==="play"&&G.mode!=="buttons"&&G.mode!=="tir";
     if(playing){
       const maxV=1.35;
       const kd=(keys.r?1:0)-(keys.l?1:0);
@@ -2065,7 +2155,7 @@ function Renderer(cv){
     }else if(!G){
       if(o.target==null||Math.abs(o.target-o.nx)<.01){if(Math.random()<dt*.4)o.target=.2+Math.random()*.6}
       if(o.target!=null){const dx=o.target-o.nx;o.vx=clamp(dx*2,-.25,.25)}
-    }else{o.vx=0;if(G.mode==="buttons")o.nx+=(.5-o.nx)*Math.min(1,dt*6)}
+    }else{o.vx=0;if(G.mode==="buttons"||G.mode==="tir")o.nx+=(.5-o.nx)*Math.min(1,dt*6)}
     o.nx=clamp(o.nx+o.vx*dt,0,1);
     o.dir=Math.abs(o.vx)>.05?Math.sign(o.vx):0;
     for(const p of V.parts){p.life-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=300*dt}
@@ -2073,6 +2163,7 @@ function Renderer(cv){
     for(const f of V.floats){f.life-=dt;f.y-=46*dt}
     V.floats=V.floats.filter(f=>f.life>0);
     if(V.shake>0)V.shake=Math.max(0,V.shake-dt);
+    if(V.laser)V.laser.life-=dt;
     for(const c of V.deco){if(!V.reduce)c.x+=c.v*dt;if(c.x>1.25)c.x=-.25}
   };
   V.poof=function(x,y,col,n=10){if(V.reduce)return;for(let i=0;i<n;i++){const a=Math.random()*6.28,s=60+Math.random()*140;V.parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-40,life:.7,max:.7,col,r:3+Math.random()*4})}};
@@ -2084,12 +2175,19 @@ function Renderer(cv){
     const BP=BG[V.bgId]||{};ctx.globalAlpha=BP.stars?.12:BP.clouds?.6:.8;ctx.fillStyle="#fff";for(const c of V.deco){const w=110*c.s*V.SC*1.4,h=42*c.s*V.SC*1.2;cloud(c.x*W,c.y*H,w,h);ctx.fill()}ctx.globalAlpha=1;
     ctx.save();
     if(V.shake>0&&!V.reduce)ctx.translate((Math.random()-.5)*10*V.shake/.3,(Math.random()-.5)*6*V.shake/.3);
+    V.G=G;
     if(G)for(const it of G.items){
       const {x,y}=V.itemXY(it);
+      const fade=it.state==="hit"||it.state==="wrong";if(fade){const k=Math.max(0,1-(it.dead||0)/.45);ctx.save();ctx.globalAlpha=k;ctx.translate(x,y);const sc=it.state==="hit"?1+(1-k)*.25:1;ctx.scale(sc,sc);ctx.translate(-x,-y)}
       ctx.save();ctx.shadowColor="rgba(40,70,100,.25)";ctx.shadowBlur=14;ctx.shadowOffsetY=5;ctx.fillStyle="#fffdf7";cloud(x,y,it.w,it.h);ctx.fill();ctx.restore();
       ctx.fillStyle="#2b1906";ctx.font=`700 ${it.fs}px ${FONT}`;ctx.textAlign="center";ctx.textBaseline="middle";drawMath(ctx,it.t,x,y+it.h*.08,it.fs);
+      if(fade){if(it.state==="wrong"){ctx.strokeStyle="#d23a3a";ctx.lineWidth=4;cloud(x,y,it.w,it.h);ctx.stroke()}ctx.restore()}
     }
     if(!V.hideOwl)drawOwl(V.owlX(),V.groundY(),V.SC);
+    if(G&&G.mode==="tir"){
+      if(V.laser&&V.laser.life>0){const k=V.laser.life/.3;ctx.save();ctx.globalAlpha=k;ctx.strokeStyle=V.laser.ok?"#ff3b3b":"#ff3b3b";ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(V.owlX(),V.rimY()+8*V.SC);ctx.lineTo(V.laser.x,V.laser.y);ctx.stroke();ctx.restore()}
+      if(V.aim&&!G.ended){const {x,y}=V.aim,r=13*V.SC+4;ctx.save();ctx.strokeStyle="#e0262d";ctx.lineWidth=2.5;ctx.globalAlpha=.9;ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.moveTo(x-r-6,y);ctx.lineTo(x+r+6,y);ctx.moveTo(x,y-r-6);ctx.lineTo(x,y+r+6);ctx.stroke();ctx.restore()}
+    }
     for(const p of V.parts){ctx.globalAlpha=Math.max(0,p.life/p.max);ctx.fillStyle=p.col;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,7);ctx.fill()}
     ctx.globalAlpha=1;
     for(const f of V.floats){ctx.globalAlpha=Math.max(0,Math.min(1,f.life*1.6));ctx.font=`800 ${Math.round(20*V.SC+6)}px ${FONT}`;ctx.textAlign="center";ctx.lineWidth=5;ctx.strokeStyle="rgba(255,253,247,.95)";ctx.strokeText(f.t,f.x,f.y);ctx.fillStyle=f.col;ctx.fillText(f.t,f.x,f.y)}
@@ -2098,7 +2196,7 @@ function Renderer(cv){
   return V;
 }
 const FONT='"Segoe UI","Noto Sans","Roboto","Helvetica Neue",Arial,sans-serif';
-OWL.ARC={newRound,step,calmAct,record,checkEnd,finish,rotateMix,spawn,makeItem,Renderer,FALL,SPEED_NAMES,GOAL,LIVES,ROTATE_EVERY,ruleText,CALM_TIME};
+OWL.ARC={tirShoot,TIR_RULES,TIR_GOAL,TIR_TIME,timeFor,newRound,step,calmAct,record,checkEnd,finish,rotateMix,spawn,makeItem,Renderer,FALL,SPEED_NAMES,GOAL,LIVES,ROTATE_EVERY,ruleText,CALM_TIME};
 })();
 
 /* ---- cloud.js ---- */
@@ -2173,6 +2271,7 @@ OWL.getState=()=>S;
 
 /* ---------------- icons ---------------- */
 const IC={
+  clock:`<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8" fill="#fff" stroke="#c96a00" stroke-width="2"/><path d="M12 9v4l3 2" stroke="#c96a00" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M9 3h6" stroke="#c96a00" stroke-width="2" stroke-linecap="round"/></svg>`,
   gem:'<svg class="gem-ic" viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="gmA" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f0d6ff"/><stop offset=".45" stop-color="#b06cff"/><stop offset="1" stop-color="#5a1fb8"/></linearGradient><clipPath id="gmC"><path d="M16 2l11 8-4 18H9L5 10z"/></clipPath></defs><path d="M16 3.5l11 8-4 17H9l-4-17z" fill="#3d1288" transform="translate(0 1)"/><path d="M16 2l11 8-4 18H9L5 10z" fill="url(#gmA)" stroke="#4a17a0" stroke-width="1.2" stroke-linejoin="round"/><path d="M5 10h22M16 2l-4 8 4 18 4-18z" fill="none" stroke="#e8c8ff" stroke-width=".8" opacity=".7"/><g fill="#fff" opacity=".95"><path d="M11.2 14.5l1.2-2.6 1.6 2"/><path d="M20.8 14.5l-1.2-2.6-1.6 2"/><ellipse cx="16" cy="19" rx="5" ry="5.6"/></g><circle cx="14.1" cy="17.6" r="1.5" fill="#4a17a0"/><circle cx="17.9" cy="17.6" r="1.5" fill="#4a17a0"/><path d="M15.2 20l.8 1.3.8-1.3z" fill="#ff9a1f"/><g clip-path="url(#gmC)"><rect class="coin-shine" x="-14" y="-4" width="6" height="40" fill="#fff" opacity=".5" transform="rotate(25 16 16)"/></g></svg>',
   coin:'<svg class="coin-ic" viewBox="0 0 32 32" aria-hidden="true"><defs><radialGradient id="cgA" cx="38%" cy="30%" r="75%"><stop offset="0" stop-color="#fff6c2"/><stop offset=".35" stop-color="#ffd23f"/><stop offset=".75" stop-color="#f5a300"/><stop offset="1" stop-color="#c97800"/></radialGradient><linearGradient id="cgB" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe680"/><stop offset="1" stop-color="#d98a00"/></linearGradient><clipPath id="cgC"><circle cx="16" cy="16" r="14"/></clipPath></defs><circle cx="16" cy="17" r="14.5" fill="#a85f00"/><circle cx="16" cy="16" r="14.5" fill="url(#cgA)"/><circle cx="16" cy="16" r="11" fill="none" stroke="#c98200" stroke-width="1.6" opacity=".8"/><circle cx="16" cy="16" r="9.6" fill="url(#cgB)" opacity=".55"/><path d="M16 8.6l2.2 4.6 5 .7-3.6 3.5.9 5-4.5-2.4-4.5 2.4.9-5-3.6-3.5 5-.7z" fill="#fff3b8" stroke="#c98200" stroke-width="1" stroke-linejoin="round"/><g clip-path="url(#cgC)"><rect class="coin-shine" x="-14" y="-4" width="7" height="40" fill="#fff" opacity=".55" transform="rotate(25 16 16)"/></g></svg>',
   star:on=>`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.6l2.9 6 6.5.8-4.8 4.5 1.2 6.5L12 17.2l-5.8 3.2 1.2-6.5L2.6 9.4l6.5-.8z" fill="${on?"#f2a516":"#eadcc6"}" stroke="${on?"#b97a06":"#d6c4a8"}" stroke-width="1.3" stroke-linejoin="round"/></svg>`,
@@ -2203,7 +2302,7 @@ function sfx(type){
   try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state==="suspended")AC.resume();
     const vol=S.settings.volume*.22;
     const seq={ok:[[784,.08,"sine"],[1175,.16,"triangle"]],bad:[[247,.12,"triangle"],[196,.18,"triangle"]],miss:[[392,.1,"sine"]],rotate:[[523,.08,"sine"],[659,.08,"sine"],[523,.12,"sine"]],
-      win:[[523,.1,"triangle"],[659,.1,"triangle"],[784,.1,"triangle"],[1047,.32,"triangle"]],lose:[[330,.16,"sine"],[262,.3,"sine"]],click:[[660,.05,"sine"]],coin:[[1318,.05,"square"],[1976,.09,"sine"]]}[type];
+      win:[[523,.1,"triangle"],[659,.1,"triangle"],[784,.1,"triangle"],[1047,.32,"triangle"]],lose:[[330,.16,"sine"],[262,.3,"sine"]],click:[[660,.05,"sine"]],shot:[[1400,.04,"square"],[700,.05,"sine"]],coin:[[1318,.05,"square"],[1976,.09,"sine"]]}[type];
     let t=AC.currentTime;
     for(const [f,d,w] of seq){const o=AC.createOscillator(),g=AC.createGain();o.type=w;o.frequency.value=f;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+.012);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g).connect(AC.destination);o.start(t);o.stop(t+d+.03);t+=d*.85}
   }catch(e){}
@@ -2247,7 +2346,7 @@ function go(name,params={}){
   if(screen==="game"&&name!=="game")stopRound();
   screen=name;screenParams=params;
   document.body.classList.toggle("paper",false);
-  document.body.classList.toggle("game",name==="game");
+  document.body.classList.toggle("game",name==="game");document.body.classList.toggle("tir",name==="game"&&!!G&&G.mode==="tir");
   if(V)V.hideOwl=name==="shop";
   RENDER[name](params);
   if(name!=="game"&&streakReady)setTimeout(checkStreak,350);
@@ -2338,6 +2437,12 @@ function specialCards(){return `<section class="chapter special"><h3>Особл�
    <span class="tr">${I.left>0?`До ${I.left} ${IC.gem} · оновиться через ${resetIn(k)}`:`Усі кристали зібрано · новий через ${resetIn(k)}`}</span>
    <div class="row">${starsHtml(I.stars)}</div><div class="btn-row"><button class="btn btn-primary" style="min-height:42px;padding:6px 12px" data-act="special" data-k="${k}">Грати</button></div></div>`}).join("")}</div>
    <p class="small muted" style="margin:6px 2px 0">Щоденний: ${GEM_RW.d.slice(1).join(" / ")} ${IC.gem} за 1 / 2 / 3 зірки. Щотижневий: ${GEM_RW.w.slice(1).join(" / ")} ${IC.gem}. Ще кристали дають квести. Вони потрібні для ультралегендарних скінів.</p></section>`}
+const TRIG_LV=ARCADE.LEVELS.findIndex(l=>l.skill==="trig-values");
+function tirCard(){const t=S.tir||{stars:0};return `<section class="chapter tir"><h3>Тир із совою<span class="sum">тригонометрія</span></h3><div class="levels"><div class="lv sp tir-lv">
+  <span class="n">Новий режим · ${ARC.TIR_TIME} секунд</span><span class="t">Тригонометричний тир</span>
+  <span class="tr">Хмаринки пливуть рядами. Наводь приціл і натискай на ті, що підходять під правило. Треба знайти ${ARC.TIR_GOAL}.</span>
+  <div class="row">${starsHtml(t.stars||0)}</div><div class="btn-row"><button class="btn btn-primary" style="min-height:42px;padding:6px 12px" data-act="tir">Грати</button></div></div></div></section>`}
+function playTir(){startRound(TRIG_LV,{tir:true})}
 function playSpecial(k){const I=specialInfo(k);startRound(I.level,{special:k,math:I.math})}
 function setHint(){const set=S.settings;return set.control==="buttons"?"Спокійний режим: хмаринки зʼявляються по одній, ти натискаєш «Ловити» або «Пропустити».":`Від появи хмаринки до кошика: ${ARC.FALL[set.speed]} с. ${set.speed===2?"На цій швидкості пропущена правильна хмаринка забирає сердечко.":""}`}
 RENDER.map=function(){
@@ -2352,13 +2457,14 @@ RENDER.map=function(){
      <label id="timerRow"${set.control==="buttons"?"":" hidden"}>Таймер${seg("calmTimer",["Вимкнено","10 секунд"],set.calmTimer?1:0)}</label>
    </div><p class="small muted"><span id="setHint">${setHint()}</span> <button class="link" data-act="tut">Пройти навчання ще раз</button></p></details>
    ${specialCards()}
+   ${tirCard()}
    ${ARCADE.CHAPTERS.map(ch=>{const got=ch.levels.reduce((s,i)=>s+(st[i]||0),0);return `<section class="chapter"><h3>${ch.name}<span class="sum">${got} / ${ch.levels.length*3} зірок</span></h3><div class="levels">
      ${ch.levels.map(i=>{const locked=i+1>openN();return `<div class="lv${i===next&&!locked?" next-up":""}" aria-disabled="${locked}">
        <span class="n">Рівень ${i+1}${i===next&&!locked?' · <span class="go-tag">Далі</span>':""}</span><span class="t">${L[i].name}</span><span class="tr">Тренує: ${L[i].trains}</span>
        <div class="row">${locked?`<span class="small muted">Відкриється після рівня ${i}</span>`:starsHtml(st[i]||0)}</div>
        <div class="btn-row">${locked?"":`<button class="btn btn-primary" style="min-height:42px;padding:6px 12px" data-act="lvl" data-i="${i}" aria-label="Грати рівень ${i+1}">Грати</button>`}</div></div>`}).join("")}</div></section>`}).join("")}
   </div>`;
-  VACTS={...commonActs,...adminActs,back:()=>go("home"),tut:()=>startRound(0,{tutorial:true,from:"map"}),lb:()=>openLeaderboard(),special:b=>{const k=b.dataset.k;if(!S.arcade.tutDone&&!ADMIN)startRound(0,{tutorial:true,from:"map",afterSp:k});else playSpecial(k)},
+  VACTS={...commonActs,...adminActs,back:()=>go("home"),tut:()=>startRound(0,{tutorial:true,from:"map"}),lb:()=>openLeaderboard(),tir:()=>playTir(),special:b=>{const k=b.dataset.k;if(!S.arcade.tutDone&&!ADMIN)startRound(0,{tutorial:true,from:"map",afterSp:k});else playSpecial(k)},
     lvl:b=>{const i=+b.dataset.i;if(!S.arcade.tutDone&&!ADMIN)startRound(0,{tutorial:true,from:"map",after:i});else playLevel(i)},
     set:b=>{const k=b.dataset.k,v=+b.dataset.v;if(k==="control")S.settings.control=v?"buttons":"move";else if(k==="calmTimer")S.settings.calmTimer=!!v;else S.settings[k]=v;save();
       b.parentNode.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x===b?"true":"false"));
@@ -2389,18 +2495,19 @@ let G=null,V=null,paused=false,keys={l:false,r:false},roundOpts=null,endTimer=nu
 function startRound(level,opts={}){
   closeAllModals();clearTimeout(endTimer);
   roundOpts={level,...opts};
-  G=ARC.newRound({level,math:opts.math!=null?opts.math:S.settings.math,speed:S.settings.speed,mode:opts.tutorial?"move":S.settings.control,calmTimer:S.settings.calmTimer,tutorial:!!opts.tutorial});
-  G.rewarded=false;paused=false;keys.l=keys.r=false;V.owl.target=null;V.owl.nx=.5;
+  const tirGrid=()=>{const W=innerWidth,H=innerHeight;return{cols:Math.max(3,Math.min(8,Math.round(W/210)+1)),rows:H<430?1:H<600?2:3}};
+  G=ARC.newRound({level,...(opts.tir?{tir:true,...tirGrid()}:{}),math:opts.math!=null?opts.math:S.settings.math,speed:S.settings.speed,mode:opts.tutorial?"move":S.settings.control,calmTimer:S.settings.calmTimer,tutorial:!!opts.tutorial});
+  G.rewarded=false;paused=false;keys.l=keys.r=false;V.owl.target=null;V.owl.nx=.5;V.aim=null;V.laser=null;
   go("game");
 }
 function stopRound(){G=null;paused=false;clearTimeout(endTimer)}
 RENDER.game=function(){
   const calm=G.mode==="buttons";
   view().innerHTML=`<div id="hud">
-     <span class="pill hud-score" aria-live="polite"><span class="sr">Зловлено </span><span id="hScore">0 / ${G.goal}</span></span>
+     <span class="pill hud-score" aria-live="polite"><span class="sr">Зловлено </span><span id="hScore">${G.mode==="tir"?"Знайдено ":""}0 / ${G.goal}</span></span>
      <span class="hearts" id="hHearts" role="img" aria-label="Сердечок: ${G.lives}"></span>
      <div class="rule" id="hRule" aria-live="polite">${mt(ARC.ruleText(G))}</div>
-     <div class="hud-right"><button class="btn btn-primary" style="min-height:44px" data-act="pause">Пауза</button></div>
+     <div class="hud-right">${G.timeLimit?`<span class="pill hud-time" id="hTime" role="timer" aria-label="Залишилось часу">${IC.clock||"⏱"}<span>${fmtClock(G.timeLeft)}</span></span>`:""}<button class="btn btn-primary" style="min-height:44px" data-act="pause">Пауза</button></div>
      <div class="progress" aria-hidden="true"><i id="hProg" style="width:0"></i></div>
      <span class="streak" id="hStreak" hidden></span>
    </div>
@@ -2415,13 +2522,15 @@ RENDER.game=function(){
 };
 function updateHud(){
   if(!G||!$("#hScore"))return;
-  $("#hScore").textContent=`${G.correct} / ${G.goal}`;
+  $("#hScore").textContent=`${G.mode==="tir"?"Знайдено ":""}${G.correct} / ${G.goal}`;
   $("#hHearts").innerHTML=[0,1,2].map(i=>IC.heart(i>=G.lives)).join("");$("#hHearts").setAttribute("aria-label",`Сердечок: ${G.lives}`);
   $("#hProg").style.width=Math.min(100,G.correct/G.goal*100)+"%";
   const s=$("#hStreak");if(G.streak>=3){s.hidden=false;s.textContent=`Серія ×${G.streak}`}else s.hidden=true;
 }
+function fmtClock(t){t=Math.ceil(t);return Math.floor(t/60)+":"+String(t%60).padStart(2,"0")}
 function frameUi(){
   if(!G||screen!=="game")return;
+  const ht=$("#hTime");if(ht){const txt=fmtClock(G.timeLeft);const sp=ht.lastElementChild;if(sp.textContent!==txt){sp.textContent=txt;ht.classList.toggle("low",G.timeLeft<=10&&G.timeLimit>0)}}
   const sp=$("#splash");if(sp){const show=G.phase==="splash"&&!G.ended;sp.hidden=!show;if(show)$("#spTxt").textContent=G.splashText}
   if(G.tutorial&&$("#tutMsg")){const hd=$("#hud");if(hd){const tm=$("#tutMsg"),top=Math.round(hd.getBoundingClientRect().bottom+10);tm.style.top=top+"px";const hb=top+(tm.offsetHeight||(innerWidth<600?75:52))+8,ch=90,rim=V.rimY();G.tutStartP=Math.max(0,Math.min(.5,(hb+ch)/(rim+ch)))}$("#tutMsg").textContent=G.tut.msg;$("#tutMsg").hidden=G.phase!=="play"}
   if(G.mode==="buttons"){const t=$("#cTimer");if(t&&G.calmTimer&&G.calm){t.querySelector("i").style.width=Math.max(0,100-(Math.max(0,G.calm.t-1.2)/ARC.CALM_TIME)*100)+"%"}
@@ -2429,7 +2538,8 @@ function frameUi(){
 }
 function handleEvents(ev){
   for(const e of ev){
-    const x=V.owlX(),y=V.rimY();
+    let x=V.owlX(),y=V.rimY();if(G&&G.mode==="tir"&&e.it&&e.it.row!=null){const p=V.itemXY(e.it);x=p.x;y=p.y}
+    if(e.type==="timeout"){sfx("miss");V.float(V.W/2,V.H*.45,"Час вийшов!","#b3362b");$("#liveFb").textContent="Час вийшов";continue}
     if(e.type==="good"){sfx("ok");V.poof(x,y,"#ffd34d",12);V.float(x,y-24,"✓","#1d7a4f");V.owl.mood=1;V.owl.moodT=.55;V.owl.basketT=.3;$("#liveFb").textContent=`Так: ${e.it.why}`}
     else if(e.type==="bad"){sfx("bad");V.shake=.3;V.poof(x,y,"#d23a3a",8);V.float(x,y-24,e.soft?"✗ Не та":"✗ −1 сердечко","#b3362b");V.owl.mood=2;V.owl.moodT=.8;$("#liveFb").textContent=`Ні: ${e.it.why}`}
     else if(e.type==="miss"){sfx("miss");V.float(V.W/2,V.H*.62,G.missCosts?"Пропущено: −1 сердечко":"Пропущено правильну","#9a5b00");$("#liveFb").textContent=`Пропущено: ${e.it.why}`}
@@ -2444,6 +2554,15 @@ function onRoundEnd(){
   const r=G.result,lv=G.level;
   if(r.tutorial){S.arcade.tutDone=true;save();sfx("win");V.confetti();V.owl.jumpT=1;
     endTimer=setTimeout(()=>{const after=roundOpts.after,asp=roundOpts.afterSp;if(asp){go("map");toast("Навчання пройдено!");playSpecial(asp)}else if(after!=null)openIntroAfterTut(after);else{go(roundOpts.from==="home"?"home":"map");toast("Навчання пройдено! Тепер обери рівень.")}},900);return}
+  if(roundOpts.tir){if(!S.tir)S.tir={stars:0,best:0};const prev=S.tir.stars||0;r.parts=[];r.levelName="Тригонометричний тир";
+    if(r.won)r.parts.push([`За ${r.stars} ${r.stars===1?"зірку":"зірки"}`,r.coins]);else if(r.coins)r.parts.push(["За спробу",r.coins]);
+    if(r.won&&!prev){r.parts.push(["Перше проходження",40]);r.coins+=40}
+    if(r.won&&r.stars===3&&prev<3){r.parts.push(["Перші 3 зірки",30]);r.coins+=30}
+    if(r.won&&r.stars>prev)S.tir.stars=r.stars;S.tir.best=Math.max(S.tir.best||0,r.correct);
+    r.coinsFrom=S.coins;S.coins+=r.coins;S.arcade.results++;r.pts=r.correct+(r.won?r.stars*5:0);ST.addWeekPts(S,now(),r.pts);
+    if(r.correct)ST.fireQuest(S,"catch",r.correct,now());if(r.maxStreak>=8)ST.fireQuest(S,"streak8",1,now());if(r.won&&r.stars===3)ST.fireQuest(S,"stars3",1,now());if(r.won)ST.fireQuest(S,"arcadeWin",1,now());
+    save();if(r.won){sfx("win");V.confetti();V.owl.jumpT=1.2}else{sfx("lose");V.owl.mood=2;V.owl.moodT=1.2}
+    const res={...r};endTimer=setTimeout(()=>go("result",{res}),r.won?1100:800);return}
   const sp=roundOpts.special;
   if(sp){const I=specialInfo(sp);r.special=sp;r.parts=[];
     if(r.won)r.parts.push([`За ${r.stars} ${r.stars===1?"зірку":"зірки"}`,r.coins]);else if(r.coins)r.parts.push(["За спробу",r.coins]);
@@ -2473,17 +2592,17 @@ function pauseGame(){
     <div class="tally"><div><b>${G.correct} / ${G.goal}</b>зловлено</div><div><b>${G.lives}</b>сердечка</div><div><b>${G.wrongCaught+G.missed}</b>помилок</div></div>
     <button class="btn btn-primary btn-big" data-act="resume" autofocus>Продовжити</button>
     <div class="btn-row"><button class="btn btn-ghost" data-act="restart">Почати заново</button><button class="btn btn-ghost" data-act="exit">Вийти на карту</button></div>`,
-    acts:{resume:()=>closeModal(),restart:()=>{closeModal(true);startRound(G.level,{tutorial:G.tutorial,from:roundOpts.from})},exit:()=>{closeModal(true);go(G&&G.tutorial&&roundOpts.from==="home"?"home":"map")}},
+    acts:{resume:()=>closeModal(),restart:()=>{closeModal(true);if(roundOpts.tir)playTir();else if(roundOpts.special)playSpecial(roundOpts.special);else startRound(G.level,{tutorial:G.tutorial,from:roundOpts.from})},exit:()=>{closeModal(true);go(G&&G.tutorial&&roundOpts.from==="home"?"home":"map")}},
     onClose:()=>{paused=false;lastFrame=performance.now()}});
 }
 /* ---------- RESULT ---------- */
 RENDER.result=function({res}){
-  const r=res,lv=r.level,L=ARCADE.LEVELS;const hasNext=!r.special&&(r.won||ADMIN)&&lv+1<12;
+  const r=res,lv=r.level,L=ARCADE.LEVELS;const hasNext=!r.special&&!r.tir&&(r.won||ADMIN)&&lv+1<12;
   const bad=r.log.filter(x=>x.outcome==="caught-wrong"),miss=r.log.filter(x=>x.outcome==="missed-ok"),good=r.log.filter(x=>x.outcome==="caught-ok");
   view().innerHTML=`<div class="wrap narrow">${topbar(false)}<div class="sheet">
-    <div class="result-head"><p class="eyebrow">${r.special?(r.special==="d"?"Щоденний рівень":"Щотижневий рівень"):"Рівень "+(lv+1)} · ${esc(r.levelName)}</p><h1>${r.won?(r.stars===3?"Бездоганно!":"Рівень пройдено!"):"Цього разу не вийшло"}</h1>
-      ${r.won?starsHtml(r.stars,"stars big-stars"):`<p class="muted">Сердечка закінчились. Розбери помилки — і спробуй ще раз.</p>`}
-      ${!r.special&&r.won&&lv+2<=12&&S.arcade.open===lv+2&&lv<11?`<p class="tag good">Відкрито рівень ${lv+2}</p>`:""}</div>
+    <div class="result-head"><p class="eyebrow">${r.tir?"Тир":r.special?(r.special==="d"?"Щоденний рівень":"Щотижневий рівень"):"Рівень "+(lv+1)} · ${esc(r.levelName)}</p><h1>${r.won?(r.stars===3?"Бездоганно!":"Рівень пройдено!"):"Цього разу не вийшло"}</h1>
+      ${r.won?starsHtml(r.stars,"stars big-stars"):`<p class="muted">${r.timeout?"Час вийшов.":"Сердечка закінчились."} Розбери помилки — і спробуй ще раз.</p>`}
+      ${!r.special&&!r.tir&&r.won&&lv+2<=12&&S.arcade.open===lv+2&&lv<11?`<p class="tag good">Відкрито рівень ${lv+2}</p>`:""}</div>
     <div class="tally"><div><b><span aria-hidden="true">✓</span>${r.correct}</b>правильно впіймано</div><div><b><span aria-hidden="true">✗</span>${r.wrong}</b>неправильно впіймано</div><div><b><span aria-hidden="true">↓</span>${r.missed}</b>пропущено правильних</div></div>
     <div class="reward" id="rwBox"><div class="reward-total">${IC.coin}<b>+${r.coins}</b></div>${r.special?`<div class="reward-total gem-total">${IC.gem}<b>+${r.gems||0}</b></div>${r.won&&!r.gems?`<span class="rw-part">Кристали за цей результат уже отримано</span>`:""}`:""}${(r.parts||[]).map(([n,v])=>`<span class="rw-part">${esc(n)} <b>+${v}</b></span>`).join("")}${r.maxStreak>=5?`<span class="rw-part">Найдовша серія ×${r.maxStreak}</span>`:""}</div>
     <div class="btn-row"><button class="btn btn-primary btn-big" data-act="again">Ще одна спроба</button>${hasNext?`<button class="btn btn-forest btn-big" data-act="next">Наступний рівень</button>`:""}</div>
@@ -2493,7 +2612,7 @@ RENDER.result=function({res}){
      <div>${kind==="bad"?'<span class="tag bad">✗ Впіймано, але не підходить</span>':kind==="miss"?'<span class="tag warn">↓ Підходило, але пропущено</span>':'<span class="tag good">✓ Впіймано правильно</span>'}</div>
      <p class="small"><b>Правило:</b> ${mt(x.rule)}</p><p><b>Чому:</b> ${mt(x.why)}</p>
 </div>`;
-  VACTS={...commonActs,again:()=>r.special?playSpecial(r.special):startRound(lv),next:()=>playLevel(lv+1),map:()=>go("map"),
+  VACTS={...commonActs,again:()=>r.tir?playTir():r.special?playSpecial(r.special):startRound(lv),next:()=>playLevel(lv+1),map:()=>go("map"),
     review:b=>{const box=$("#rvBox");const open=box.hidden;box.hidden=!open;b.setAttribute("aria-expanded",open);
       if(open&&!box.innerHTML){box.innerHTML=`<div class="review-list">${bad.length+miss.length?"":`<p class="notice good">Помилок немає. Ось що ти впіймав(ла):</p>`}${bad.map(x=>item(x,"bad")).join("")}${miss.map(x=>item(x,"miss")).join("")}${good.slice(0,bad.length+miss.length?3:8).map(x=>item(x,"good")).join("")}</div>`;
         if(bad.length+miss.length){ST.fireQuest(S,"review",Math.min(3,bad.length+miss.length),now());save()}}}};
@@ -2773,8 +2892,11 @@ function resetInput(){keys.l=keys.r=false;if(V)V.owl.target=null;activePointer=n
 let activePointer=null;
 function initPointer(cv){
   const nxOf=e=>{const r=cv.getBoundingClientRect();return Math.max(0,Math.min(1,(e.clientX-r.left)/r.width))};
-  cv.addEventListener("pointerdown",e=>{if(screen!=="game"||!G||G.mode==="buttons"||paused)return;activePointer=e.pointerId;V.owl.target=nxOf(e);try{cv.setPointerCapture(e.pointerId)}catch(_){} if(G.phase==="splash")G.splashT=0});
-  cv.addEventListener("pointermove",e=>{if(screen!=="game"||!G||G.mode==="buttons"||paused)return;if(e.pointerType==="mouse"||activePointer===e.pointerId)V.owl.target=nxOf(e)});
+  const ptOf=e=>{const r=cv.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}};
+  cv.addEventListener("pointerdown",e=>{if(screen==="game"&&G&&G.mode==="tir"&&!paused){if(G.phase==="splash"){G.splashT=0;return}const p=ptOf(e);V.aim=p;const h=V.tirHit(G,p.x,p.y);V.laser={x:p.x,y:p.y,life:.3};sfx("shot");if(h)handleEvents(ARC.tirShoot(G,h.it.id));return}
+    if(screen!=="game"||!G||G.mode==="buttons"||paused)return;activePointer=e.pointerId;V.owl.target=nxOf(e);try{cv.setPointerCapture(e.pointerId)}catch(_){} if(G.phase==="splash")G.splashT=0});
+  cv.addEventListener("pointermove",e=>{if(screen==="game"&&G&&G.mode==="tir"){if(e.pointerType==="mouse")V.aim=ptOf(e);return}
+    if(screen!=="game"||!G||G.mode==="buttons"||paused)return;if(e.pointerType==="mouse"||activePointer===e.pointerId)V.owl.target=nxOf(e)});
   const end=e=>{if(activePointer===e.pointerId)activePointer=null};
   cv.addEventListener("pointerup",end);
   cv.addEventListener("pointercancel",e=>{end(e);resetInput()});
