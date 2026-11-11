@@ -524,6 +524,9 @@ body.tir #world{cursor:none}
 .ed-f{display:flex;flex-direction:column;gap:4px;font-size:14px;font-weight:700;color:var(--muted)}
 .ed-f input,.ed-f textarea{font:inherit;font-weight:400;color:var(--ink);border:2px solid var(--line);border-radius:12px;padding:8px 12px;background:#fff;min-height:44px}
 .ed-f textarea.io{font:13px/1.5 ui-monospace,Consolas,monospace}
+.adm-tbl th .linkbtn{background:none;border:0;padding:0;font:inherit;font-weight:700;color:inherit;cursor:pointer}
+.adm-click{cursor:pointer}.adm-click:hover td{background:#fff8ee}
+.adm-q{width:100%;max-width:360px;margin:0 0 10px;padding:10px 12px;border:2px solid var(--line);border-radius:12px;font:inherit;background:#fff}
 
 </style>
 <div id="app">
@@ -1530,7 +1533,8 @@ function questsFor(now){
 }
 
 function defaults(){return{
-  v:2,coins:0,gems:0,created:Date.now(),
+  v:2,coins:0,gems:0,created:Date.now(),nick:"",
+  stats:{rounds:0,wins:0,correct:0,wrong:0,missed:0,time:0,lv:{},days:[]},
   special:{d:{key:"",stars:0},w:{key:"",stars:0}},
   tir:{stars:0,best:0},
   streak:{last:"",n:0,best:0},lb:{week:"",pts:0},
@@ -1556,6 +1560,9 @@ function validateV2(o){
   if(isObj(o.streak))S.streak={last:str(o.streak.last,20,""),n:int(o.streak.n,0,1e5,0),best:int(o.streak.best,0,1e5,0)};
   if(isObj(o.lb))S.lb={week:str(o.lb.week,20,""),pts:int(o.lb.pts,0,1e7,0)};
   if(isObj(o.tir))S.tir={stars:int(o.tir.stars,0,3,0),best:int(o.tir.best,0,1e4,0)};if(isObj(o.special))for(const k of ["d","w"]){const v=o.special[k];if(isObj(v))S.special[k]={key:str(v.key,20,""),stars:int(v.stars,0,3,0)}}S.created=num(o.created,0,1e14,Date.now());
+  S.nick=typeof o.nick==="string"?o.nick.replace(/[^\p{L}\p{N} _.\-]/gu,"").trim().slice(0,16):"";
+  if(isObj(o.stats)){const t=o.stats,lv={};if(isObj(t.lv))for(const [k,v] of Object.entries(t.lv)){const i=+k;if(Number.isInteger(i)&&i>=0&&i<12&&isObj(v))lv[i]={n:int(v.n,0,1e6,0),w:int(v.w,0,1e6,0),c:int(v.c,0,1e7,0),e:int(v.e,0,1e7,0),best:int(v.best,0,1e4,0),time:int(v.time,0,1e8,0)}}
+    S.stats={rounds:int(t.rounds,0,1e7,0),wins:int(t.wins,0,1e7,0),correct:int(t.correct,0,1e8,0),wrong:int(t.wrong,0,1e8,0),missed:int(t.missed,0,1e8,0),time:int(t.time,0,1e9,0),lv,days:Array.isArray(t.days)?t.days.filter(x=>typeof x==="string"&&x.length<=12).slice(-120):[]}}
   if(isObj(o.settings)){const s=o.settings;S.settings={speed:int(s.speed,0,2,1),math:int(s.math,0,1,0),control:["move","buttons"].includes(s.control)?s.control:"move",calmTimer:!!s.calmTimer,volume:num(s.volume,0,1,0.7),muted:!!s.muted,music:s.music!==false,motion:["system","reduce","full"].includes(s.motion)?s.motion:"system"}}
   if(isObj(o.arcade)){const st={};if(isObj(o.arcade.stars))for(const [k,v] of Object.entries(o.arcade.stars)){const i=+k;if(Number.isInteger(i)&&i>=0&&i<12&&Number.isInteger(v)&&v>=0&&v<=3)st[i]=v}
     S.arcade={stars:st,open:int(o.arcade.open,1,12,1),tutDone:!!o.arcade.tutDone,results:int(o.arcade.results,0,1e7,0),seen:Array.isArray(o.arcade.seen)?[...new Set(o.arcade.seen.filter(x=>Number.isInteger(x)&&x>=0&&x<12))]:[]}}
@@ -2250,6 +2257,7 @@ C.adminLogin=async(e,pass)=>{const ok=!!(await rpc("owl_admin_ok",{p_email:norm(
 C.adminRestore=async()=>{if(!C.user)return false;let p=null;try{p=localStorage.getItem(PASS_KEY)}catch(x){}if(!p)return false;try{return await C.adminLogin(C.user.email,p)}catch(x){return false}};
 C.leaderboard=async week=>rpc("owl_leaderboard",{p_week:week,p_email:C.user?C.user.email:""});
 C.onWeb=onWeb;
+C.nickFree=async nick=>{try{const r=await rpc("owl_nick_free",{p_nick:nick,p_email:C.user?C.user.email:""});return r!==false}catch(x){return true}};
 C.configGet=async()=>rpc("owl_config_get",{});
 C.configSet=async data=>rpc("owl_config_set",{p_email:C.user.email,p_pass:C.adminPass,p_data:data});
 C.players=async()=>rpc("owl_admin_players",{p_email:C.user.email,p_pass:C.adminPass});
@@ -2589,6 +2597,7 @@ function onRoundEnd(){
   const r=G.result,lv=G.level;
   if(r.tutorial){S.arcade.tutDone=true;save();sfx("win");V.confetti();V.owl.jumpT=1;
     endTimer=setTimeout(()=>{const after=roundOpts.after,asp=roundOpts.afterSp;if(asp){go("map");toast("Навчання пройдено!");playSpecial(asp)}else if(after!=null)openIntroAfterTut(after);else{go(roundOpts.from==="home"?"home":"map");toast("Навчання пройдено! Тепер обери рівень.")}},900);return}
+  recordStats(r,lv);
   if(roundOpts.tir){if(!S.tir)S.tir={stars:0,best:0};const prev=S.tir.stars||0;r.parts=[];r.levelName="Тригонометричний тир";r.tirOnly=true;
     if(r.won)r.parts.push([`За ${r.stars} ${r.stars===1?"зірку":"зірки"}`,r.coins]);else if(r.coins)r.parts.push(["За спробу",r.coins]);
     if(r.won&&!prev){r.parts.push(["Перше проходження",40]);r.coins+=40}
@@ -2608,6 +2617,10 @@ function onRoundEnd(){
   const res={...r,levelName:ARCADE.LEVELS[lv].name};
   endTimer=setTimeout(()=>go("result",{res}),r.won?1100:800);
 }
+function recordStats(r,lv){const T=S.stats||(S.stats={rounds:0,wins:0,correct:0,wrong:0,missed:0,time:0,lv:{},days:[]});const sec=Math.round(G.t||0);
+  T.rounds++;if(r.won)T.wins++;T.correct+=r.correct;T.wrong+=r.wrong;T.missed+=r.missed;T.time+=sec;
+  const L=T.lv[lv]||(T.lv[lv]={n:0,w:0,c:0,e:0,best:0,time:0});L.n++;if(r.won)L.w++;L.c+=r.correct;L.e+=r.wrong+r.missed;L.best=Math.max(L.best,r.correct);L.time+=sec;
+  const d=ST.dayKey(now());if(T.days[T.days.length-1]!==d){T.days.push(d);if(T.days.length>120)T.days.shift()}}
 function openIntroAfterTut(i){go("map");toast("Навчання пройдено!");playLevel(i)}
 function pauseGame(){
   if(!G||G.ended||paused)return;paused=true;keys.l=keys.r=false;V.owl.target=null;
@@ -2704,10 +2717,10 @@ function applyCosmetics(){if(!V)return;V.owlId="owl-brown";V.basketId="basket-cl
 /* ---------- АКАУНТ (вхід за поштою, без листа) ---------- */
 function accountCard(){
   if(!CL||!CL.enabled)return `<div class="card"><h3>Акаунт</h3><p class="small muted">Вхід за поштою працює на сайті. Тут прогрес зберігається в цьому браузері.</p></div>`;
-  return `<div class="card"><h3>Акаунт</h3><p>Ти граєш як <b>${esc(CL.user?CL.user.email:"гість")}</b>.</p><p class="small muted">Зірки й рівні зберігаються за цією поштою. Введи її на будь-якому пристрої — і прогрес буде там.</p>
-    <div class="btn-row"><button class="btn btn-ghost" data-act="logout">Змінити пошту</button></div></div>`;
+  return `<div class="card"><h3>Акаунт</h3><p>Нікнейм: <b>${esc(S.nick||"—")}</b><br><span class="small muted">Пошта: ${esc(CL.user?CL.user.email:"гість")}</span></p><p class="small muted">Зірки й рівні зберігаються за цією поштою. Введи її на будь-якому пристрої — і прогрес буде там.</p>
+    <div class="btn-row"><button class="btn btn-ghost" data-act="nick">Змінити нікнейм</button><button class="btn btn-ghost" data-act="logout">Змінити пошту</button></div></div>`;
 }
-function accountActs(){return{logout:()=>{CL.logout();if(!ADMIN_BUILD)ADMIN=false;ST.Store.useKey(ST.KEY);S=ST.Store.load();applyCosmetics();closeAllModals();go("home");openLoginGate()}}}
+function accountActs(){return{nick:()=>{closeAllModals();openNickGate(true)},logout:()=>{CL.logout();if(!ADMIN_BUILD)ADMIN=false;ST.Store.useKey(ST.KEY);S=ST.Store.load();applyCosmetics();closeAllModals();go("home");openLoginGate()}}}
 function openAccount(){const m=openModal({label:"Акаунт",html:accountCard()+`<button class="btn btn-quiet" data-act="close">Закрити</button>`,acts:{}});m.acts={close:()=>closeModal(),...accountActs()}}
 function openLoginGate(){
   const m=openModal({label:"Вхід",closable:false,html:`<div class="gate"><p class="logo">Совиний <b>кошик</b></p><h2>Введи свою пошту</h2>
@@ -2729,27 +2742,74 @@ function openLoginGate(){
     if(!next)next=firstHere?S:ST.defaults();
     ST.Store.useKey(uKey);S=next;ST.Store.save(S);if(!data)CL.push(S,true);streakReady=true;setTimeout(checkStreak,600);
     if(CL.admin)ADMIN=true;
-    applyCosmetics();closeAllModals();go("home");toast(CL.admin?"Вхід адміна: режим тестування увімкнено":data?"З поверненням! Прогрес завантажено":"Готово! Прогрес зберігатиметься за цією поштою")}};
+    applyCosmetics();closeAllModals();go("home");toast(CL.admin?"Вхід адміна: режим тестування увімкнено":data?"З поверненням! Прогрес завантажено":"Готово! Прогрес зберігатиметься за цією поштою");needNick()}};
   setTimeout(()=>{const i=m.el.querySelector("#accEmail");if(i)i.focus()},50);
+}
+/* нікнейм: питаємо після входу, якщо ще немає */
+const NICK_RE=/^[\p{L}\p{N}][\p{L}\p{N} _.\-]{1,15}$/u;
+function needNick(){if(CL&&CL.enabled&&CL.user&&!S.nick&&!document.querySelector("[data-form=nick]"))openNickGate(false)}
+function openNickGate(canClose){
+  const m=openModal({label:"Нікнейм",closable:!!canClose,html:`<div class="gate"><p class="logo">Совиний <b>кошик</b></p><h2>${canClose?"Новий нікнейм":"Придумай нікнейм"}</h2>
+    <p class="muted">Його бачитимуть інші гравці в рейтингу тижня. Пошту ніхто не побачить.</p>
+    <form class="acc-form" data-form="nick"><input type="text" id="nickIn" required maxlength="16" autocomplete="nickname" placeholder="Наприклад, Сова_2007" aria-label="Нікнейм" value="${esc(S.nick||"")}"><button class="btn btn-primary btn-big" type="submit">Зберегти</button></form>
+    <p class="small muted">2–16 символів: літери, цифри, пробіл, _ . -</p><p class="err" id="nickMsg" hidden></p></div>`,acts:{}});
+  m.acts={"@submit":async f=>{const inp=f.querySelector("#nickIn"),msg=m.el.querySelector("#nickMsg"),btn=f.querySelector("button");const nick=(inp.value||"").replace(/\s+/g," ").trim();
+    const fail=t=>{btn.disabled=false;btn.textContent="Зберегти";msg.hidden=false;msg.textContent=t;inp.focus()};
+    if(!NICK_RE.test(nick))return fail("Нікнейм: від 2 до 16 символів — літери, цифри, пробіл, _ . -");
+    btn.disabled=true;btn.textContent="Перевіряю…";
+    if(nick.toLowerCase()!==(S.nick||"").toLowerCase()&&!(await CL.nickFree(nick)))return fail("Такий нікнейм уже зайнятий — спробуй інший.");
+    S.nick=nick;save();if(CL.user)CL.push(S,true);closeAllModals();toast("Привіт, "+nick+"!");if(screen!=="game")rerender()}};
+  setTimeout(()=>{const i=m.el.querySelector("#nickIn");if(i)i.focus()},50);
 }
 /* адмінка: гравці й статистика (як на matannmt) */
 async function openPlayers(){
   const m=openModal({label:"Гравці",wide:true,html:`<h2>Гравці</h2><p class="muted">Завантажую…</p>`,acts:{close:()=>closeModal()}});
   let rows=[];try{rows=await CL.players()||[]}catch(e){setModalHtml(m,`<h2>Гравці</h2><p class="err">Не вдалося завантажити: ${esc(e.message)}</p><button class="btn btn-primary" data-act="close">Закрити</button>`);return}
-  const L=ARCADE.LEVELS,now0=Date.now();
-  const P=rows.map(r=>{const d=r.data||{},st=(d.arcade&&d.arcade.stars)||{};const vals=Object.values(st).map(Number);
-    return{email:r.email,stars:vals.reduce((a,b)=>a+b,0),passed:vals.filter(v=>v>0).length,coins:+d.coins||0,skins:((d.cosm&&d.cosm.owned)||[]).length,st,at:new Date(r.updated_at).getTime()}});
-  P.sort((a,b)=>b.stars-a.stars||b.at-a.at);
-  const active=P.filter(p=>now0-p.at<7*864e5).length,avg=P.length?(P.reduce((a,p)=>a+p.passed,0)/P.length).toFixed(1):"0";
-  const lvl=L.map((l,i)=>{const pass=P.filter(p=>(p.st[i]||0)>0);const s3=P.filter(p=>p.st[i]===3).length;return{i,name:l.name,pass:pass.length,avg:pass.length?(pass.reduce((a,p)=>a+p.st[i],0)/pass.length).toFixed(1):"—",s3}});
-  const ago=t=>{const m0=Math.round((now0-t)/6e4);return m0<60?m0+" хв тому":m0<1440?Math.round(m0/60)+" год тому":Math.round(m0/1440)+" дн тому"};
-  setModalHtml(m,`<h2>Гравці</h2>
-   <div class="adm-kpi"><div><b>${P.length}</b><span>усього гравців</span></div><div><b>${active}</b><span>грали за 7 днів</span></div><div><b>${avg}</b><span>рівнів пройдено в середньому</span></div></div>
-   <h3>Рейтинг гравців</h3><div class="adm-tbl"><table><thead><tr><th>#</th><th>Пошта</th><th>Зірки</th><th>Рівні</th><th>Останній вхід</th></tr></thead><tbody>
-   ${P.map((p,k)=>`<tr><td>${k+1}</td><td>${esc(p.email)}</td><td>${p.stars} / 36</td><td>${p.passed} / 12</td><td>${ago(p.at)}</td></tr>`).join("")||`<tr><td colspan="5" class="muted">Поки немає гравців</td></tr>`}</tbody></table></div>
-   <h3>Рівні</h3><div class="adm-tbl"><table><thead><tr><th>Рівень</th><th>Пройшли</th><th>Середньо зірок</th><th>На 3 зірки</th></tr></thead><tbody>
-   ${lvl.map(l=>`<tr><td>${l.i+1}. ${esc(l.name)}</td><td>${l.pass} / ${P.length}</td><td>${l.avg}</td><td>${l.s3}</td></tr>`).join("")}</tbody></table></div>
+  const L=ARCADE.LEVELS,N=L.length,now0=Date.now(),DAYMS=864e5;
+  const P=rows.map(r=>{const d=r.data||{},st=(d.arcade&&d.arcade.stars)||{},T=d.stats||{};const vals=Object.values(st).map(Number);
+    const c=+T.correct||0,e=(+T.wrong||0)+(+T.missed||0);
+    return{email:r.email,nick:typeof d.nick==="string"?d.nick:"",stars:vals.reduce((a,b)=>a+b,0),passed:vals.filter(v=>v>0).length,st,lvs:T.lv||{},
+      rounds:+T.rounds||0,wins:+T.wins||0,c,e,acc:c+e?Math.round(100*c/(c+e)):null,time:+T.time||0,days:(T.days||[]).length,
+      week:d.lb&&d.lb.week===ST.weekKey(now0)?+d.lb.pts||0:0,tut:!!(d.arcade&&d.arcade.tutDone),
+      created:+d.created||0,at:new Date(r.updated_at).getTime()}});
+  const ago=t=>{if(!t)return"—";const m0=Math.round((now0-t)/6e4);return m0<1?"щойно":m0<60?m0+" хв тому":m0<1440?Math.round(m0/60)+" год тому":Math.round(m0/1440)+" дн тому"};
+  const dur=s=>{s=Math.round(s||0);return s<60?s+" с":s<3600?Math.round(s/60)+" хв":(s/3600).toFixed(1)+" год"};
+  const date=t=>t?new Date(t).toLocaleDateString("uk-UA",{day:"numeric",month:"short"}):"—";
+  const sum=(a,f)=>a.reduce((x,p)=>x+f(p),0);
+  const act1=P.filter(p=>now0-p.at<DAYMS).length,act7=P.filter(p=>now0-p.at<7*DAYMS).length,new7=P.filter(p=>p.created&&now0-p.created<7*DAYMS).length;
+  const R=sum(P,p=>p.rounds),W=sum(P,p=>p.wins),C=sum(P,p=>p.c),E=sum(P,p=>p.e),TT=sum(P,p=>p.time);
+  const noPlay=P.filter(p=>!p.rounds&&!p.passed).length,finished=P.filter(p=>p.passed>=N).length;
+  const lvl=L.map((l,i)=>{const pl=P.filter(p=>p.lvs[i]&&p.lvs[i].n>0),pass=P.filter(p=>(p.st[i]||0)>0);const n=sum(pl,p=>p.lvs[i].n),w=sum(pl,p=>p.lvs[i].w),c=sum(pl,p=>p.lvs[i].c),e=sum(pl,p=>p.lvs[i].e),t=sum(pl,p=>p.lvs[i].time||0);
+    return{i,name:l.name,players:pl.length,n,w,win:n?Math.round(100*w/n):null,acc:c+e?Math.round(100*c/(c+e)):null,tries:pass.length&&n?(n/Math.max(1,pl.length)).toFixed(1):"—",pass:pass.length,avg:pass.length?(sum(pass,p=>p.st[i])/pass.length).toFixed(1):"—",s3:P.filter(p=>p.st[i]===3).length,t:n?dur(t/n):"—"}});
+  const hard=lvl.filter(l=>l.n>=3&&l.win!=null).sort((a,b)=>a.win-b.win)[0];
+  const stuck=L.map((l,i)=>P.filter(p=>p.passed===i&&(p.st[i]||0)===0&&p.rounds>0&&!(i>0&&!(p.st[i-1]>0))).length);
+  let sortK="stars",q="";
+  const cols=[["#",null],["Нікнейм","nick"],["Пошта","email"],["Зірки","stars"],["Рівні","passed"],["Ігор","rounds"],["Перемог","wins"],["Точність","acc"],["Час у грі","time"],["Днів","days"],["Очки тижня","week"],["Перший вхід","created"],["Останній вхід","at"]];
+  const table=()=>{const f=q.toLowerCase();const list=P.filter(p=>!f||p.email.includes(f)||p.nick.toLowerCase().includes(f));
+    list.sort((a,b)=>sortK==="nick"||sortK==="email"?String(a[sortK]).localeCompare(String(b[sortK])):(b[sortK]??-1)-(a[sortK]??-1)||b.at-a.at);
+    return `<table><thead><tr>${cols.map(([t,k])=>k?`<th><button class="linkbtn" data-act="sort" data-k="${k}">${t}${sortK===k?" ▾":""}</button></th>`:`<th>${t}</th>`).join("")}</tr></thead><tbody>
+    ${list.map((p,k)=>`<tr class="adm-click" data-act="player" data-e="${esc(p.email)}"><td>${k+1}</td><td><b>${esc(p.nick||"—")}</b></td><td>${esc(p.email)}</td><td>${p.stars} / ${N*3}</td><td>${p.passed} / ${N}</td><td>${p.rounds}</td><td>${p.wins}</td><td>${p.acc==null?"—":p.acc+"%"}</td><td>${dur(p.time)}</td><td>${p.days}</td><td>${p.week}</td><td>${date(p.created)}</td><td>${ago(p.at)}</td></tr>`).join("")||`<tr><td colspan="${cols.length}" class="muted">Нікого не знайдено</td></tr>`}</tbody></table>`};
+  setModalHtml(m,`<h2>Гравці й статистика</h2>
+   <div class="adm-kpi">
+    <div><b>${P.length}</b><span>усього гравців</span></div><div><b>${act1}</b><span>грали за добу</span></div><div><b>${act7}</b><span>грали за 7 днів</span></div><div><b>${new7}</b><span>нових за 7 днів</span></div>
+    <div><b>${R}</b><span>зіграно рівнів</span></div><div><b>${R?Math.round(100*W/R)+"%":"—"}</b><span>перемог</span></div><div><b>${C+E?Math.round(100*C/(C+E))+"%":"—"}</b><span>точність відповідей</span></div><div><b>${dur(TT)}</b><span>загальний час у грі</span></div>
+    <div><b>${P.length?dur(TT/P.length):"—"}</b><span>час на гравця</span></div><div><b>${P.length?(sum(P,p=>p.passed)/P.length).toFixed(1):"0"}</b><span>рівнів пройдено в середньому</span></div><div><b>${finished}</b><span>пройшли всю гру</span></div><div><b>${noPlay}</b><span>зайшли, але не грали</span></div>
+   </div>
+   ${hard?`<p class="notice info">Найважчий рівень: <b>${hard.i+1}. ${esc(hard.name)}</b> — перемог лише ${hard.win}% зі спроб.</p>`:""}
+   <h3>Гравці</h3><input type="search" id="admQ" class="adm-q" placeholder="Пошук за нікнеймом або поштою" aria-label="Пошук">
+   <div class="adm-tbl" id="admPl">${table()}</div><p class="small muted">Натисни на гравця, щоб побачити його рівні. Статистика ігор рахується з цього оновлення.</p>
+   <h3>Рівні</h3><div class="adm-tbl"><table><thead><tr><th>Рівень</th><th>Грали</th><th>Спроб</th><th>Перемог</th><th>Точність</th><th>Пройшли</th><th>Сер. зірок</th><th>На 3 зірки</th><th>Застрягли тут</th><th>Сер. час</th></tr></thead><tbody>
+   ${lvl.map(l=>`<tr><td>${l.i+1}. ${esc(l.name)}</td><td>${l.players}</td><td>${l.n}</td><td>${l.win==null?"—":l.win+"%"}</td><td>${l.acc==null?"—":l.acc+"%"}</td><td>${l.pass} / ${P.length}</td><td>${l.avg}</td><td>${l.s3}</td><td>${stuck[l.i]}</td><td>${l.t}</td></tr>`).join("")}</tbody></table></div>
    <button class="btn btn-primary" data-act="close">Закрити</button>`);
+  const redraw=()=>{const el=m.el.querySelector("#admPl");if(el)el.innerHTML=table()};
+  const qi=m.el.querySelector("#admQ");if(qi)qi.addEventListener("input",()=>{q=qi.value.trim();redraw()});
+  m.acts={close:()=>closeModal(),sort:b=>{sortK=b.dataset.k;redraw()},player:b=>{const p=P.find(x=>x.email===b.dataset.e);if(!p)return;
+    const html=`<h2>${esc(p.nick||p.email)}</h2><p class="muted small">${esc(p.email)} · перший вхід ${date(p.created)} · останній ${ago(p.at)}${p.tut?"":" · навчання не пройдено"}</p>
+     <div class="adm-kpi"><div><b>${p.stars}</b><span>зірок із ${N*3}</span></div><div><b>${p.rounds}</b><span>ігор</span></div><div><b>${p.acc==null?"—":p.acc+"%"}</b><span>точність</span></div><div><b>${dur(p.time)}</b><span>у грі</span></div><div><b>${p.days}</b><span>днів грав</span></div><div><b>${p.week}</b><span>очок цього тижня</span></div></div>
+     <div class="adm-tbl"><table><thead><tr><th>Рівень</th><th>Зірки</th><th>Спроб</th><th>Перемог</th><th>Точність</th><th>Рекорд</th></tr></thead><tbody>
+     ${L.map((l,i)=>{const v=p.lvs[i]||{};const c=v.c||0,e=v.e||0;return `<tr><td>${i+1}. ${esc(l.name)}</td><td>${"★".repeat(p.st[i]||0)||"—"}</td><td>${v.n||0}</td><td>${v.w||0}</td><td>${c+e?Math.round(100*c/(c+e))+"%":"—"}</td><td>${v.best||"—"}</td></tr>`}).join("")}</tbody></table></div>
+     <button class="btn btn-primary" data-act="close">Закрити</button>`;
+    openModal({label:"Гравець",wide:true,html,acts:{close:()=>closeModal()}})}};
 }
 async function cloudBoot(){
   CL.init(ADMIN_BUILD);if(!CL.enabled)return;
@@ -2758,6 +2818,7 @@ async function cloudBoot(){
   CL.adminRestore().then(ok=>{if(ok){ADMIN=true;if(screen!=="game")rerender()}});
   try{const data=await CL.load();const v=data?ST.validateV2(data):null;if(v){S=v;ST.Store.save(S);applyCosmetics();if(screen!=="game")rerender()}else CL.push(S,true)}catch(e){console.warn("cloud load",e.message)}
   streakReady=true;if(screen!=="game")checkStreak();
+  if(screen!=="game")needNick();
 }
 
 /* ---------- СЕРІЯ ДНІВ ---------- */
