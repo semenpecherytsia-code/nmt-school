@@ -516,6 +516,15 @@ body.tir #world{cursor:none}
 .chapter.tir h3{color:#c96a00}
 @media (max-width:560px){.hud-time{padding:4px 9px;font-size:15px;min-height:36px}}
 
+/* редактор рівнів */
+.ed-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:10px 0;border-bottom:1px solid var(--line)}
+.ed-row:last-child{border-bottom:0}.ed-row.off .ed-info{opacity:.55}
+.ed-info{flex:1 1 220px;min-width:0;display:flex;flex-direction:column}
+.ed-sw{display:inline-flex;align-items:center;gap:8px;font-weight:700;cursor:pointer}.ed-sw input{width:20px;height:20px;accent-color:#ff8a00}
+.ed-f{display:flex;flex-direction:column;gap:4px;font-size:14px;font-weight:700;color:var(--muted)}
+.ed-f input,.ed-f textarea{font:inherit;font-weight:400;color:var(--ink);border:2px solid var(--line);border-radius:12px;padding:8px 12px;background:#fff;min-height:44px}
+.ed-f textarea.io{font:13px/1.5 ui-monospace,Consolas,monospace}
+
 </style>
 <div id="app">
   <canvas id="world" aria-hidden="true"></canvas>
@@ -1850,11 +1859,13 @@ const TIR_RULES=[
   {txt:"Лови вирази з додатним значенням",f:v=>v>E,yes:"додатне",no:"не додатне"}];
 function newTir(opts){
   const seed=opts.seed||OWL.newSeed(),R=OWL.makeRng(seed),math=opts.math||0;
-  const ri=opts.rule!=null?opts.rule:R.int(0,TIR_RULES.length-1),rule=TIR_RULES[ri];
-  const pool=OWL.ARCADE.trigAll(!!math);
+  const cu=OWL.ARCADE.tirCustom;
+  const ri=opts.rule!=null?opts.rule:R.int(0,TIR_RULES.length-1),rule=cu?{txt:cu.rule,custom:true}:TIR_RULES[ri];
+  const pool=cu?cu.items.map(x=>({t:x.t,w:x.why||(x.ok?"підходить під правило":"не підходить під правило"),ok:x.ok})):OWL.ARCADE.trigAll(!!math);
+  if(cu)rule.f=x=>x;
   const L={name:"Тригонометричний тир",rule:()=>rule.txt};
   const rows=opts.rows||3,cols=opts.cols||4;
-  const G={level:opts.level,L,R,seed,st:{},math,speed:1,mode:"tir",tir:{rule,ri,ok:pool.filter(x=>rule.f(x.v)),no:pool.filter(x=>!rule.f(x.v)),rows,cols,off:[],v:[],slots:[]},
+  const G={level:opts.level,L,R,seed,st:{},math,speed:1,mode:"tir",tir:{rule,ri,ok:pool.filter(x=>cu?x.ok:rule.f(x.v)),no:pool.filter(x=>cu?!x.ok:!rule.f(x.v)),rows,cols,off:[],v:[],slots:[]},
     tutorial:false,goal:TIR_GOAL,lives:LIVES,missCosts:false,items:[],log:[],correct:0,wrongCaught:0,missed:0,streak:0,maxStreak:0,coins:0,
     t:0,phase:"splash",splashT:SPLASH,splashText:rule.txt,ended:false,result:null,nextId:1,timeLimit:0,timeLeft:0};
   const base=(math?.05:.034);
@@ -1870,9 +1881,9 @@ function tirFill(G,sl){
   if(!G.seenAll)G.seenAll=new Set();
   const src=ok?T.ok:T.no;let x,tries=0;
   do{x=G.R.pick(src);tries++}while(tries<120&&(G.seenAll.has(x.t)||live.some(i=>i.t===x.t)));
-  if(G.seenAll.size>src.length*.8)G.seenAll.clear();
+  if(G.seenAll.size>(T.ok.length+T.no.length)*.8)G.seenAll.clear();
   G.seenAll.add(x.t);
-  const why=`${x.w} — ${ok?T.rule.yes:T.rule.no}`;
+  const why=T.rule.custom?x.w:`${x.w} — ${ok?T.rule.yes:T.rule.no}`;
   const it={id:G.nextId++,t:x.t,ok,why,rule:T.rule.txt,row:sl.row,col:sl.col,state:"live",age:0,w:0,h:0,fs:0,nx:.5,p:0};
   sl.item=it;G.items.push(it);return it;
 }
@@ -2238,6 +2249,9 @@ C.isAdminEmail=async e=>{try{return !!(await rpc("owl_is_admin",{p_email:norm(e)
 C.adminLogin=async(e,pass)=>{const ok=!!(await rpc("owl_admin_ok",{p_email:norm(e),p_pass:pass}));if(ok){C.admin=true;C.adminPass=pass;try{localStorage.setItem(PASS_KEY,pass)}catch(x){}}return ok};
 C.adminRestore=async()=>{if(!C.user)return false;let p=null;try{p=localStorage.getItem(PASS_KEY)}catch(x){}if(!p)return false;try{return await C.adminLogin(C.user.email,p)}catch(x){return false}};
 C.leaderboard=async week=>rpc("owl_leaderboard",{p_week:week,p_email:C.user?C.user.email:""});
+C.onWeb=onWeb;
+C.configGet=async()=>rpc("owl_config_get",{});
+C.configSet=async data=>rpc("owl_config_set",{p_email:C.user.email,p_pass:C.adminPass,p_data:data});
 C.players=async()=>rpc("owl_admin_players",{p_email:C.user.email,p_pass:C.adminPass});
 let timer=0,pending=null,busy=false;
 async function flush(){if(!pending||busy||!C.user)return;busy=true;const S=pending;pending=null;
@@ -2248,6 +2262,62 @@ C.push=function(S,now){if(!C.user)return;pending=JSON.parse(JSON.stringify(S));i
 window.addEventListener("pagehide",()=>{if(pending)flush()});
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden"&&pending)flush()});
 OWL.CLOUD=C;
+})();
+
+/* ---- config.js ---- */
+/* ============================================================
+   CONFIG — налаштування рівнів від адміна (Supabase owl_config):
+   сховати рівні, змінити назву/підказку, власне правило й вирази.
+   Зберігається одним JSON; гра застосовує його до ARCADE.LEVELS.
+   ============================================================ */
+(function(){
+const A=OWL.ARCADE,L=A.LEVELS;
+const ORIG=L.map(l=>({name:l.name,trains:l.trains,tip:l.tip,setup:l.setup,rule:l.rule,gen:l.gen}));
+const CACHE="owl-config-cache";
+const str=(v,n)=>typeof v==="string"?v.replace(/[\u0000-\u001f]/g," ").slice(0,n):"";
+function cleanItems(a){if(!Array.isArray(a))return[];const seen=new Set();return a.slice(0,400).map(x=>({t:str(x&&x.t,80).trim(),ok:!!(x&&x.ok),why:str(x&&x.why,240).trim()})).filter(x=>x.t&&!seen.has(x.t)&&seen.add(x.t))}
+function cleanCustom(c){if(!c||typeof c!=="object")return null;const items=cleanItems(c.items),rule=str(c.rule,140).trim();
+  if(!rule||items.filter(i=>i.ok).length<2||items.filter(i=>!i.ok).length<2)return null;return{rule,items}}
+function clean(o){
+  const C={v:1,hidden:{lv:[],tir:false,d:false,w:false},lv:{},tir:null};
+  if(!o||typeof o!=="object")return C;
+  const h=o.hidden&&typeof o.hidden==="object"?o.hidden:{};
+  C.hidden.lv=Array.isArray(h.lv)?[...new Set(h.lv.filter(i=>Number.isInteger(i)&&i>=0&&i<L.length))].sort((a,b)=>a-b):[];
+  C.hidden.tir=!!h.tir;C.hidden.d=!!h.d;C.hidden.w=!!h.w;
+  if(C.hidden.lv.length>=L.length)C.hidden.lv=[];          // хоча б один рівень завжди видно
+  if(o.lv&&typeof o.lv==="object")for(const k of Object.keys(o.lv)){const i=+k;if(!(Number.isInteger(i)&&i>=0&&i<L.length))continue;
+    const e=o.lv[k]&&typeof o.lv[k]==="object"?o.lv[k]:{};const r={};
+    for(const [f,n] of [["name",60],["trains",160],["tip",400]]){const v=str(e[f],n).trim();if(v)r[f]=v}
+    const c=cleanCustom(e.custom);if(c)r.custom=c;if(Object.keys(r).length)C.lv[i]=r}
+  const tc=o.tir&&typeof o.tir==="object"?cleanCustom(o.tir.custom):null;if(tc)C.tir={custom:tc};
+  return C;
+}
+let CUR=clean(null);
+function apply(o){
+  CUR=clean(o);
+  L.forEach((l,i)=>{Object.assign(l,ORIG[i]);const e=CUR.lv[i];if(!e)return;
+    if(e.name)l.name=e.name;if(e.trains)l.trains=e.trains;if(e.tip)l.tip=e.tip;
+    if(e.custom){const c=e.custom;l.setup=()=>({custom:true});l.rule=()=>c.rule;
+      l.gen=(R,s,ok)=>{const x=R.pick(c.items.filter(y=>y.ok===ok));return{t:x.t,ok,why:x.why||(ok?"підходить під правило":"не підходить під правило")}}}});
+  A.tirCustom=CUR.tir?CUR.tir.custom:null;
+  return CUR;
+}
+const isHidden=i=>CUR.hidden.lv.includes(i);
+const visible=()=>L.map((_,i)=>i).filter(i=>!isHidden(i));
+function cacheLoad(){try{const t=localStorage.getItem(CACHE);if(t)apply(JSON.parse(t))}catch(e){}}
+function cacheSave(o){try{localStorage.setItem(CACHE,JSON.stringify(o||{}))}catch(e){}}
+/* вирази у вигляді рядків «вираз ; так ; пояснення» для редактора */
+const toLines=items=>items.map(x=>`${x.t} ; ${x.ok?"так":"ні"}${x.why?" ; "+x.why:""}`).join("\n");
+function fromLines(txt){const out=[],bad=[];String(txt||"").split(/\r?\n/).forEach((ln,k)=>{const s=ln.trim();if(!s)return;const p=s.split(/\s*;\s*/);
+  const ok=/^(так|да|yes|\+|1|ok|✓)$/i.test(p[1]||"")?true:/^(ні|нет|no|-|−|0|✗)$/i.test(p[1]||"")?false:null;
+  if(!p[0]||ok==null){bad.push(k+1);return}out.push({t:p[0].slice(0,80),ok,why:(p.slice(2).join("; ")||"").slice(0,240)})});return{items:out,bad}}
+/* приклади від стандартного генератора — щоб адміну було з чого почати */
+function sample(i,n=24,math=0){const l=ORIG[i],R=OWL.makeRng(OWL.newSeed()),st=l.setup(R,math),rule=l.rule(st),seen=new Set(),items=[];
+  for(let k=0;k<n*6&&items.length<n;k++){const ok=items.length%2===0;const it=l.gen(R,st,ok);if(seen.has(it.t))continue;seen.add(it.t);items.push({t:it.t,ok:it.ok,why:it.why||""})}
+  return{rule,items}}
+function tirSample(n=24){const pool=A.trigAll(false),R=OWL.makeRng(OWL.newSeed()),rule=OWL.ARC.TIR_RULES[0],items=[];
+  for(const ok of [true,false])R.shuffle(pool.filter(x=>rule.f(x.v)===ok)).slice(0,n/2).forEach(x=>items.push({t:x.t,ok,why:`${x.w} — ${ok?rule.yes:rule.no}`}));return{rule:rule.txt,items}}
+OWL.CFG={apply,clean,get:()=>CUR,isHidden,visible,cacheLoad,cacheSave,toLines,fromLines,sample,tirSample,ORIG};
 })();
 
 /* ---- ui.js ---- */
@@ -2404,18 +2474,24 @@ const ADMIN_BUILD=false/*ADMIN_BUILD*/;
 let ADMIN=ADMIN_BUILD;
 function setAdmin(v){if(!ADMIN_BUILD&&!(CL&&CL.admin))return;ADMIN=v;toast(v?"Режим тестування увімкнено: усі рівні відкриті":"Режим тестування вимкнено");rerender()}
 const openN=()=>ADMIN?12:S.arcade.open;
-const adminBar=()=>{const cl=CL&&CL.admin;const pl=cl?` · <button class="link" data-act="adminPlayers">Гравці</button>`:"";
+const CF=OWL.CFG;
+const lvHidden=i=>CF.isHidden(i);
+/* рівень відкритий: адмін, або вже відкритий прогресом, або попередній видимий рівень пройдено (сховані не блокують) */
+function lvLocked(i){if(ADMIN||i===0||i+1<=S.arcade.open)return false;let j=i-1;while(j>=0&&lvHidden(j))j--;return j>=0&&!((S.arcade.stars[j]||0)>0)}
+function nextLevel(){const vis=CF.visible();const open=vis.filter(i=>!lvLocked(i));return open.find(i=>!(S.arcade.stars[i]>0))??open[open.length-1]??vis[0]??0}
+function nextAfter(lv){return CF.visible().find(i=>i>lv)}
+const adminBar=()=>{const cl=CL&&CL.admin;const pl=cl?` · <button class="link" data-act="adminPlayers">Гравці</button> · <button class="link" data-act="adminEditor">Редактор рівнів</button>`:"";
   if(ADMIN)return `<div class="notice warn" role="status"><div><b>Режим тестування.</b> Усі рівні відкриті, навчання не обовʼязкове. <button class="link" data-act="adminCoins">+500 монет</button> · <button class="link" data-act="adminOff">Вимкнути${cl?"":" до перезапуску"}</button>${pl}</div></div>`;
   return cl?`<div class="notice info" role="status"><div><b>Ти адмін.</b> <button class="link" data-act="adminOn">Увімкнути режим тестування</button>${pl}</div></div>`:""};
-const adminActs={adminOff:()=>setAdmin(false),adminOn:()=>setAdmin(true),adminPlayers:()=>openPlayers(),adminCoins:()=>{if(!ADMIN)return;S.coins+=500;save();toast("+500 монет")}};
+const adminActs={adminOff:()=>setAdmin(false),adminOn:()=>setAdmin(true),adminPlayers:()=>openPlayers(),adminEditor:()=>{if(CL&&CL.admin)go("editor")},adminCoins:()=>{if(!ADMIN)return;S.coins+=500;save();toast("+500 монет")}};
 /* ---------- HOME ---------- */
 RENDER.home=function(){
-  const st=S.arcade.stars,stars=Object.values(st).reduce((x,y)=>x+(+y||0),0),next=Math.min(S.arcade.open-1,11);
+  const st=S.arcade.stars,stars=Object.values(st).reduce((x,y)=>x+(+y||0),0),next=nextLevel();
   const first=!S.arcade.tutDone&&!ADMIN;
   view().innerHTML=`<div class="wrap">${topbar(false)}
    <div class="home-hero"><p class="logo">Совиний <b>кошик</b></p><p class="muted" style="background:rgba(255,250,241,.85);border-radius:10px;padding:2px 8px">Допоможи сові впіймати хмаринки з правильними виразами.</p></div>
    ${storageNotice()}${adminBar()}
-   <div class="next"><div class="txt"><div class="eyebrow">${first?"З чого почати":"Продовжити"}</div><h3>${first?"Коротке навчання: дві хмаринки":`Рівень ${next+1}: ${esc(ARCADE.LEVELS[next].name)}`}</h3><p class="muted small">${first?"Покаже, як ловити хмаринки кошиком.":`Зібрано зірок: ${stars} із 36`}</p></div>
+   <div class="next"><div class="txt"><div class="eyebrow">${first?"З чого почати":"Продовжити"}</div><h3>${first?"Коротке навчання: дві хмаринки":`Рівень ${next+1}: ${esc(ARCADE.LEVELS[next].name)}`}</h3><p class="muted small">${first?"Покаже, як ловити хмаринки кошиком.":`Зібрано зірок: ${stars} із ${CF.visible().length*3}`}</p></div>
     <div class="btn-row" style="flex:1 1 260px"><button class="btn btn-primary" data-act="${first?"tut":"play"}">${first?"Почати навчання":"Грати"}</button><button class="btn btn-ghost" data-act="arcade">Усі рівні</button></div></div>
    <div class="home-extra"><button class="btn btn-ghost lb-btn" data-act="lb">${IC.trophy} Рейтинг тижня</button>${S.streak.n?`<span class="pill streak-pill" title="Серія днів">${IC.fire} ${S.streak.n} ${plDays(S.streak.n)} поспіль</span>`:""}</div>
    <div class="home-spacer" aria-hidden="true"></div></div>`;
@@ -2428,25 +2504,25 @@ RENDER.home=function(){
 const GEM_RW={d:[0,2,3,4],w:[0,8,12,15]};
 const hashStr=t=>{let h=7;for(const ch of t)h=(h*31+ch.charCodeAt(0))>>>0;return h};
 function specialInfo(k){const t=now(),key=k==="d"?ST.dayKey(t):ST.weekKey(t);const h=hashStr(key+k);
-  const level=k==="d"?h%7:6+h%6;const rec=S.special&&S.special[k]&&S.special[k].key===key?S.special[k]:{key,stars:0};
+  let level=k==="d"?h%7:6+h%6;const vis=CF.visible();if(lvHidden(level))level=vis.find(i=>i>level)??vis[0]??level;const rec=S.special&&S.special[k]&&S.special[k].key===key?S.special[k]:{key,stars:0};
   return{k,key,level,stars:rec.stars,math:k==="d"?0:1,name:ARCADE.LEVELS[level].name,left:GEM_RW[k][3]-GEM_RW[k][rec.stars]}}
 function resetIn(k){const t=now(),d=new Date(t);let end;if(k==="d"){end=new Date(d.getFullYear(),d.getMonth(),d.getDate()+1)}else{const ws=new Date(ST.weekStart(t));end=new Date(ws.getFullYear(),ws.getMonth(),ws.getDate()+7)}
   const ms=end-t,h=Math.floor(ms/36e5);return h>=24?`${Math.floor(h/24)} дн ${h%24} год`:h>0?`${h} год ${Math.floor(ms/6e4)%60} хв`:`${Math.max(1,Math.floor(ms/6e4))} хв`}
-function specialCards(){return `<section class="chapter special"><h3>Особливі рівні<span class="sum">${IC.gem} кристали</span><button class="btn btn-ghost lb-btn sm" data-act="lb">${IC.trophy} Рейтинг тижня</button></h3><div class="levels">${["d","w"].map(k=>{const I=specialInfo(k);
+function specialCards(){if(!ADMIN&&CF.get().hidden.d&&CF.get().hidden.w)return "";return `<section class="chapter special"><h3>Особливі рівні<span class="sum">${IC.gem} кристали</span><button class="btn btn-ghost lb-btn sm" data-act="lb">${IC.trophy} Рейтинг тижня</button></h3><div class="levels">${["d","w"].filter(k=>ADMIN||!CF.get().hidden[k]).map(k=>{const I=specialInfo(k);
   return `<div class="lv sp sp-${k}"><span class="n">${k==="d"?"Щоденний рівень · легкий":"Щотижневий рівень · складніший"}</span><span class="t">${esc(I.name)}</span>
    <span class="tr">${I.left>0?`До ${I.left} ${IC.gem} · оновиться через ${resetIn(k)}`:`Усі кристали зібрано · новий через ${resetIn(k)}`}</span>
    <div class="row">${starsHtml(I.stars)}</div><div class="btn-row"><button class="btn btn-primary" style="min-height:42px;padding:6px 12px" data-act="special" data-k="${k}">Грати</button></div></div>`}).join("")}</div>
    <p class="small muted" style="margin:6px 2px 0">Щоденний: ${GEM_RW.d.slice(1).join(" / ")} ${IC.gem} за 1 / 2 / 3 зірки. Щотижневий: ${GEM_RW.w.slice(1).join(" / ")} ${IC.gem}. Ще кристали дають квести. Вони потрібні для ультралегендарних скінів.</p></section>`}
 const TRIG_LV=ARCADE.LEVELS.findIndex(l=>l.skill==="trig-values");
-function tirCard(){const t=S.tir||{stars:0};return `<section class="chapter tir"><h3>Тир із совою<span class="sum">тригонометрія</span></h3><div class="levels"><div class="lv sp tir-lv">
-  <span class="n">Новий режим · ${ARC.TIR_TIME} секунд</span><span class="t">Тригонометричний тир</span>
+function tirCard(){if(CF.get().hidden.tir&&!ADMIN)return "";const t=S.tir||{stars:0};const cu=ARCADE.tirCustom;return `<section class="chapter tir"><h3>Тир із совою<span class="sum">тригонометрія</span></h3><div class="levels"><div class="lv sp tir-lv">
+  <span class="n">Новий режим · ${ARC.TIR_TIME} секунд</span><span class="t">Тригонометричний тир${CF.get().hidden.tir?' <span class="tag warn">Сховано</span>':""}</span>
   <span class="tr">Хмаринки пливуть рядами. Наводь приціл і натискай на ті, що підходять під правило. Треба знайти ${ARC.TIR_GOAL}.</span>
   <div class="row">${starsHtml(t.stars||0)}</div><div class="btn-row"><button class="btn btn-primary" style="min-height:42px;padding:6px 12px" data-act="tir">Грати</button></div></div></div></section>`}
 function playTir(){startRound(TRIG_LV,{tir:true})}
 function playSpecial(k){const I=specialInfo(k);startRound(I.level,{special:k,math:I.math})}
 function setHint(){const set=S.settings;return set.control==="buttons"?"Спокійний режим: хмаринки зʼявляються по одній, ти натискаєш «Ловити» або «Пропустити».":`Від появи хмаринки до кошика: ${ARC.FALL[set.speed]} с. ${set.speed===2?"На цій швидкості пропущена правильна хмаринка забирає сердечко.":""}`}
 RENDER.map=function(){
-  const L=ARCADE.LEVELS,st=S.arcade.stars,next=Math.min(S.arcade.open-1,11);
+  const L=ARCADE.LEVELS,st=S.arcade.stars,next=nextLevel();
   const set=S.settings;
   const seg=(name,vals,cur)=>`<div class="seg" role="group" aria-label="${name}">${vals.map((v,i)=>`<button data-act="set" data-k="${name}" data-v="${i}" aria-pressed="${cur===i}">${v}</button>`).join("")}</div>`;
   view().innerHTML=`<div class="wrap">${topbar(true,"Аркада")}${adminBar()}
@@ -2458,10 +2534,10 @@ RENDER.map=function(){
    </div><p class="small muted"><span id="setHint">${setHint()}</span> <button class="link" data-act="tut">Пройти навчання ще раз</button></p></details>
    ${specialCards()}
    ${tirCard()}
-   ${ARCADE.CHAPTERS.map(ch=>{const got=ch.levels.reduce((s,i)=>s+(st[i]||0),0);return `<section class="chapter"><h3>${ch.name}<span class="sum">${got} / ${ch.levels.length*3} зірок</span></h3><div class="levels">
-     ${ch.levels.map(i=>{const locked=i+1>openN();return `<div class="lv${i===next&&!locked?" next-up":""}" aria-disabled="${locked}">
-       <span class="n">Рівень ${i+1}${i===next&&!locked?' · <span class="go-tag">Далі</span>':""}</span><span class="t">${L[i].name}</span><span class="tr">Тренує: ${L[i].trains}</span>
-       <div class="row">${locked?`<span class="small muted">Відкриється після рівня ${i}</span>`:starsHtml(st[i]||0)}</div>
+   ${ARCADE.CHAPTERS.map(ch=>{const lvs=ch.levels.filter(i=>ADMIN||!lvHidden(i));if(!lvs.length)return "";const got=lvs.reduce((s,i)=>s+(st[i]||0),0);return `<section class="chapter"><h3>${ch.name}<span class="sum">${got} / ${lvs.length*3} зірок</span></h3><div class="levels">
+     ${lvs.map(i=>{const locked=lvLocked(i);return `<div class="lv${i===next&&!locked?" next-up":""}" aria-disabled="${locked}">
+       <span class="n">Рівень ${i+1}${i===next&&!locked?' · <span class="go-tag">Далі</span>':""}</span><span class="t">${esc(L[i].name)}${lvHidden(i)?' <span class="tag warn">Сховано</span>':""}</span><span class="tr">Тренує: ${esc(L[i].trains)}</span>
+       <div class="row">${locked?`<span class="small muted">Відкриється після попереднього рівня</span>`:starsHtml(st[i]||0)}</div>
        <div class="btn-row">${locked?"":`<button class="btn btn-primary" style="min-height:42px;padding:6px 12px" data-act="lvl" data-i="${i}" aria-label="Грати рівень ${i+1}">Грати</button>`}</div></div>`}).join("")}</div></section>`}).join("")}
   </div>`;
   VACTS={...commonActs,...adminActs,back:()=>go("home"),tut:()=>startRound(0,{tutorial:true,from:"map"}),lb:()=>openLeaderboard(),tir:()=>playTir(),special:b=>{const k=b.dataset.k;if(!S.arcade.tutDone&&!ADMIN)startRound(0,{tutorial:true,from:"map",afterSp:k});else playSpecial(k)},
@@ -2595,14 +2671,72 @@ function pauseGame(){
     acts:{resume:()=>closeModal(),restart:()=>{closeModal(true);if(roundOpts.tir)playTir();else if(roundOpts.special)playSpecial(roundOpts.special);else startRound(G.level,{tutorial:G.tutorial,from:roundOpts.from})},exit:()=>{closeModal(true);go(G&&G.tutorial&&roundOpts.from==="home"?"home":"map")}},
     onClose:()=>{paused=false;lastFrame=performance.now()}});
 }
+/* ---------- РЕДАКТОР РІВНІВ (адмін, хмара) ---------- */
+let EDIT=null;   // чернетка налаштувань
+const edClone=()=>JSON.parse(JSON.stringify(CF.get()));
+RENDER.editor=function(){
+  if(!(CL&&CL.admin)){go("home");return}
+  if(!EDIT)EDIT=edClone();
+  const L=ARCADE.LEVELS,O=CF.ORIG,H=EDIT.hidden;
+  const row=(key,num,name,sub,hidden,custom)=>`<div class="ed-row${hidden?" off":""}"><div class="ed-info"><b>${num}${esc(name)}</b><span class="small muted">${esc(sub)}${custom?' · <span class="tag good">власні вирази</span>':""}</span></div>
+    <label class="ed-sw"><input type="checkbox" data-act="edShow" data-k="${key}" ${hidden?"":"checked"}> Показувати</label>
+    ${key==="d"||key==="w"?"":`<button class="btn btn-ghost" style="min-height:40px" data-act="edOpen" data-k="${key}">Змінити</button>`}</div>`;
+  view().innerHTML=`<div class="wrap">${topbar(true,"Редактор рівнів")}
+   <div class="notice info"><div>Тут можна сховати рівні, змінити назву, підказку, правило і всі вирази. Після «Опублікувати» зміни побачать усі гравці на сайті.</div></div>
+   <div class="card">${O.map((o,i)=>{const e=EDIT.lv[i]||{};return row(i,`${i+1}. `,e.name||o.name,e.trains?"Тренує: "+e.trains:"Тренує: "+o.trains,H.lv.includes(i),!!e.custom)}).join("")}
+   ${row("tir","",`Тригонометричний тир`,"Окремий режим",H.tir,!!(EDIT.tir&&EDIT.tir.custom))}
+   ${row("d","","Щоденний рівень","Особливий рівень за кристали",H.d,false)}
+   ${row("w","","Щотижневий рівень","Особливий рівень за кристали",H.w,false)}</div>
+   <div class="btn-row"><button class="btn btn-primary btn-big" data-act="edPublish">Опублікувати для всіх</button><button class="btn btn-ghost" data-act="edReset">Скасувати зміни</button></div>
+   <p class="small muted" id="edState">${JSON.stringify(EDIT)===JSON.stringify(CF.get())?"Змін немає.":"Є неопубліковані зміни."}</p></div>`;
+  VACTS={...commonActs,back:()=>{EDIT=null;go("map")},
+    edShow:b=>{const k=b.dataset.k,on=b.checked;if(/^\d+$/.test(k)){const i=+k;H.lv=H.lv.filter(x=>x!==i);if(!on)H.lv.push(i);H.lv.sort((a,c)=>a-c);if(H.lv.length>=L.length){H.lv.pop();b.checked=true;toast("Хоча б один рівень має лишитися видимим")}}else H[k]=!on;rerender()},
+    edOpen:b=>openLevelEditor(b.dataset.k),
+    edReset:()=>{EDIT=edClone();rerender();toast("Зміни скасовано")},
+    edPublish:async b=>{b.disabled=true;const data=CF.clean(EDIT);try{await CL.configSet(data);CF.cacheSave(data);CF.apply(data);EDIT=edClone();toast("Опубліковано! Гравці побачать зміни після оновлення сторінки");rerender()}catch(e){b.disabled=false;toast("Не вдалося зберегти: "+e.message.slice(0,80))}}};
+};
+function openLevelEditor(k){
+  const tir=k==="tir",i=tir?-1:+k,O=CF.ORIG[i]||{};
+  const e=tir?(EDIT.tir||{}):(EDIT.lv[i]||{});const cu=e.custom;
+  const start=cu||(tir?CF.tirSample():CF.sample(i));
+  const m=openModal({label:"Редагування рівня",wide:true,html:`<h2>${tir?"Тригонометричний тир":`Рівень ${i+1}`}</h2>
+   ${tir?"":`<label class="ed-f">Назва<input id="edName" maxlength="60" value="${esc(e.name||"")}" placeholder="${esc(O.name)}"></label>
+   <label class="ed-f">Що тренує<input id="edTrains" maxlength="160" value="${esc(e.trains||"")}" placeholder="${esc(O.trains)}"></label>
+   <label class="ed-f">Підказка<textarea id="edTip" maxlength="400" rows="2" placeholder="${esc(O.tip||"")}">${esc(e.tip||"")}</textarea></label>`}
+   <label class="ed-sw"><input type="checkbox" id="edCustom" ${cu?"checked":""}> Власне правило і вирази (замість автоматичних)</label>
+   <div id="edCu"${cu?"":" hidden"}>
+    <label class="ed-f">Правило<input id="edRule" maxlength="140" value="${esc(start.rule)}"></label>
+    <label class="ed-f">Вирази: кожен з нового рядка у форматі <b>вираз ; так/ні ; пояснення</b><textarea id="edItems" rows="12" class="io" spellcheck="false">${esc(CF.toLines(start.items))}</textarea></label>
+    <p class="small muted" id="edCount"></p>
+    <button class="btn btn-ghost" data-act="edGen" style="min-height:40px">Заповнити прикладами з генератора</button>
+   </div>
+   <p class="err" id="edErr" hidden></p>
+   <div class="btn-row"><button class="btn btn-ghost" data-act="edDefault">Повернути стандартний</button><button class="btn btn-ghost" data-act="cancel">Скасувати</button><button class="btn btn-primary" data-act="save">Готово</button></div>`,
+   acts:{cancel:()=>closeModal(),
+    edGen:()=>{const sm=tir?CF.tirSample():CF.sample(i);$("#edRule").value=sm.rule;$("#edItems").value=CF.toLines(sm.items);count()},
+    edDefault:()=>{if(tir)EDIT.tir=null;else delete EDIT.lv[i];closeModal();rerender()},
+    save:()=>{const err=$("#edErr");err.hidden=true;const r={};
+      if(!tir){for(const [id,f] of [["edName","name"],["edTrains","trains"],["edTip","tip"]]){const v=$("#"+id).value.trim();if(v)r[f]=v}}
+      if($("#edCustom").checked){const rule=$("#edRule").value.trim(),p=CF.fromLines($("#edItems").value);
+        const nOk=p.items.filter(x=>x.ok).length,nNo=p.items.length-nOk;
+        if(!rule){err.textContent="Напиши правило.";err.hidden=false;return}
+        if(p.bad.length){err.textContent="Не зрозумів рядки: "+p.bad.slice(0,8).join(", ")+". Формат: вираз ; так ; пояснення";err.hidden=false;return}
+        if(nOk<2||nNo<2){err.textContent="Потрібно хоча б 2 вирази «так» і 2 «ні».";err.hidden=false;return}
+        r.custom={rule,items:p.items}}
+      if(tir)EDIT.tir=r.custom?{custom:r.custom}:null;else{if(Object.keys(r).length)EDIT.lv[i]=r;else delete EDIT.lv[i]}
+      closeModal();rerender();toast("Збережено в чернетку. Натисни «Опублікувати для всіх».")}}});
+  const count=()=>{const p=CF.fromLines($("#edItems").value),n=p.items.filter(x=>x.ok).length;$("#edCount").textContent=`Виразів: ${p.items.length} (так: ${n}, ні: ${p.items.length-n})${p.items.length<12?" — краще 12 і більше, щоб не повторювались":""}`};
+  m.el.querySelector("#edCustom").addEventListener("change",ev=>{m.el.querySelector("#edCu").hidden=!ev.target.checked});
+  m.el.querySelector("#edItems").addEventListener("input",count);count();
+}
 /* ---------- RESULT ---------- */
 RENDER.result=function({res}){
-  const r=res,lv=r.level,L=ARCADE.LEVELS;const hasNext=!r.special&&!r.tir&&(r.won||ADMIN)&&lv+1<12;
+  const r=res,lv=r.level,L=ARCADE.LEVELS;const nx=nextAfter(lv);const hasNext=!r.special&&!r.tir&&(r.won||ADMIN)&&nx!=null;
   const bad=r.log.filter(x=>x.outcome==="caught-wrong"),miss=r.log.filter(x=>x.outcome==="missed-ok"),good=r.log.filter(x=>x.outcome==="caught-ok");
   view().innerHTML=`<div class="wrap narrow">${topbar(false)}<div class="sheet">
     <div class="result-head"><p class="eyebrow">${r.tir?"Тир":r.special?(r.special==="d"?"Щоденний рівень":"Щотижневий рівень"):"Рівень "+(lv+1)} · ${esc(r.levelName)}</p><h1>${r.won?(r.stars===3?"Бездоганно!":"Рівень пройдено!"):"Цього разу не вийшло"}</h1>
       ${r.won?starsHtml(r.stars,"stars big-stars"):`<p class="muted">${r.timeout?"Час вийшов.":"Сердечка закінчились."} Розбери помилки — і спробуй ще раз.</p>`}
-      ${!r.special&&!r.tir&&r.won&&lv+2<=12&&S.arcade.open===lv+2&&lv<11?`<p class="tag good">Відкрито рівень ${lv+2}</p>`:""}</div>
+      ${!r.special&&!r.tir&&r.won&&nx!=null&&S.arcade.open===lv+2&&!(S.arcade.stars[nx]>0)?`<p class="tag good">Відкрито рівень ${nx+1}</p>`:""}</div>
     <div class="tally"><div><b><span aria-hidden="true">✓</span>${r.correct}</b>правильно впіймано</div><div><b><span aria-hidden="true">✗</span>${r.wrong}</b>неправильно впіймано</div><div><b><span aria-hidden="true">↓</span>${r.missed}</b>пропущено правильних</div></div>
     <div class="reward" id="rwBox"><div class="reward-total">${IC.coin}<b>+${r.coins}</b></div>${r.special?`<div class="reward-total gem-total">${IC.gem}<b>+${r.gems||0}</b></div>${r.won&&!r.gems?`<span class="rw-part">Кристали за цей результат уже отримано</span>`:""}`:""}${(r.parts||[]).map(([n,v])=>`<span class="rw-part">${esc(n)} <b>+${v}</b></span>`).join("")}${r.maxStreak>=5?`<span class="rw-part">Найдовша серія ×${r.maxStreak}</span>`:""}</div>
     <div class="btn-row"><button class="btn btn-primary btn-big" data-act="again">Ще одна спроба</button>${hasNext?`<button class="btn btn-forest btn-big" data-act="next">Наступний рівень</button>`:""}</div>
@@ -2612,7 +2746,7 @@ RENDER.result=function({res}){
      <div>${kind==="bad"?'<span class="tag bad">✗ Впіймано, але не підходить</span>':kind==="miss"?'<span class="tag warn">↓ Підходило, але пропущено</span>':'<span class="tag good">✓ Впіймано правильно</span>'}</div>
      <p class="small"><b>Правило:</b> ${mt(x.rule)}</p><p><b>Чому:</b> ${mt(x.why)}</p>
 </div>`;
-  VACTS={...commonActs,again:()=>r.tir?playTir():r.special?playSpecial(r.special):startRound(lv),next:()=>playLevel(lv+1),map:()=>go("map"),
+  VACTS={...commonActs,again:()=>r.tir?playTir():r.special?playSpecial(r.special):startRound(lv),next:()=>playLevel(nx),map:()=>go("map"),
     review:b=>{const box=$("#rvBox");const open=box.hidden;box.hidden=!open;b.setAttribute("aria-expanded",open);
       if(open&&!box.innerHTML){box.innerHTML=`<div class="review-list">${bad.length+miss.length?"":`<p class="notice good">Помилок немає. Ось що ти впіймав(ла):</p>`}${bad.map(x=>item(x,"bad")).join("")}${miss.map(x=>item(x,"miss")).join("")}${good.slice(0,bad.length+miss.length?3:8).map(x=>item(x,"good")).join("")}</div>`;
         if(bad.length+miss.length){ST.fireQuest(S,"review",Math.min(3,bad.length+miss.length),now());save()}}}};
@@ -2924,7 +3058,9 @@ function loop(t){
 let fatalShown=false;
 function showFatal(err){if(fatalShown)return;fatalShown=true;openModal({label:"Помилка",html:`<h2>Щось пішло не так</h2><p>Раунд зупинено, але прогрес збережено.</p><p class="small muted">${esc(err&&err.message||err)}</p><button class="btn btn-primary" data-act="ok">На головну</button>`,acts:{ok:()=>{closeAllModals();fatalShown=false;go("home")}}})}
 
+function loadConfig(){CF.cacheLoad();if(!CL||!CL.onWeb)return;CL.configGet().then(d=>{CF.cacheSave(d);CF.apply(d);if(screen!=="game"&&screen!=="editor")rerender()}).catch(e=>console.warn("config",e.message))}
 function boot(){
+  loadConfig();
   V=ARC.Renderer($("#world"));applyCosmetics();V.resize();applyMotion();initPointer($("#world"));
   go("home");
   requestAnimationFrame(t=>{lastFrame=t;loop(t)});
