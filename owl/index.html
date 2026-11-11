@@ -1859,7 +1859,7 @@ function Renderer(cv){
   V.itemXY=function(it){
     if(!it.w)V.measure(it);
     const half=it.w/2;const x=clamp(it.nx*V.W,half+8,V.W-half-8);
-    const yRim=V.rimY()-it.h*.25;const y=-it.h+it.p*(yRim+it.h);
+    const yRim=V.rimY()-it.h*.25;const y0=Math.min((V.topPad||0)-it.h*.55,yRim*.4);const y=y0+it.p*(yRim-y0);
     return{x,y};
   };
   /* ловимо і кошиком, і тілом сови: хмаринка зараховується, коли торкається сови збоку чи зверху */
@@ -2689,6 +2689,7 @@ if(mq.addEventListener)mq.addEventListener("change",applyMotion);
 function loop(t){
   const dt=Math.min(.05,Math.max(0,(t-lastFrame)/1000))*(OWL.timeScale||1);lastFrame=t;
   try{
+    if(V){const hd=screen==="game"?document.getElementById("hud"):null;V.topPad=hd?Math.max(0,hd.getBoundingClientRect().bottom):0}
     if(G&&screen==="game"&&!paused){const ev=ARC.step(G,dt,V.catchTest);if(ev.length||G.ended)handleEvents(ev)}
     if(document.body.classList.contains("paper")){/* полотно приховане */}
     else{const still=screen==="shop";if(!still||!V._still){V.update(dt,screen==="game"?G:null,paused?{l:0,r:0}:keys);V.draw(screen==="game"?G:null)}V._still=still}
