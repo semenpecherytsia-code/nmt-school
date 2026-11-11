@@ -2433,37 +2433,15 @@ view_click:{
   document.addEventListener("change",e=>{if(view()&&view().contains(e.target)&&VACTS["@change"])VACTS["@change"](e.target,e)});
 }
 const topbar=(back,title)=>`<div class="topbar">${back?`<button class="icon-btn" data-act="back" aria-label="Назад">${IC.back}</button>`:""}${title?`<h2>${title}</h2>`:""}<div class="sp"></div>
-  <span class="pill" aria-label="Монети: ${S.coins}">${IC.coin}<span id="coinN">${S.coins}</span></span>
-  <span class="pill gem-pill" aria-label="Кристали: ${S.gems||0}" title="Кристали — за особливі рівні та квести">${IC.gem}<span id="gemN">${S.gems||0}</span></span>
-  <button class="icon-btn" data-act="quests" aria-label="Квести">${IC.quest}<span class="badge" id="qBadge" hidden></span></button>
-  <button class="icon-btn" data-act="shop" aria-label="Оформлення">${IC.shop}</button>
   ${CL&&CL.enabled?`<button class="icon-btn acc-btn${CL.user?" on":""}" data-act="account" aria-label="Акаунт: ${CL.user?esc(CL.user.email):"гість"}" title="${CL.user?esc(CL.user.email):"Акаунт"}">${IC.user}</button>`:""}
   <button class="icon-btn" data-act="settings" aria-label="Налаштування">${IC.gear}</button></div>`;
-const commonActs={account:()=>openAccount(),quests:()=>openQuests(),shop:()=>go("shop",{from:screen}),settings:()=>openSettings()};
+const commonActs={account:()=>openAccount(),settings:()=>openSettings()};
 let coinShown=null,coinAnim=0;
-function refreshBadges(){const b=$("#qBadge");if(b){const n=ST.claimableCount(S,now());b.hidden=!n;b.textContent=n}const c=$("#coinN");if(c)c.textContent=coinAnim&&coinShown!=null?coinShown:S.coins;const gm=$("#gemN");if(gm)gm.textContent=S.gems||0}
-/* монети летять до лічильника, він плавно росте */
-function flyCoins(fromEl,amount,startVal,baseDelay=0){
-  const pill=$("#coinN")&&$("#coinN").closest(".pill");if(!pill||!amount)return;
-  coinAnim++;coinShown=startVal;$("#coinN").textContent=coinShown;
-  const fr=fromEl&&fromEl.getBoundingClientRect?fromEl.getBoundingClientRect():{left:innerWidth/2,top:innerHeight/2,width:0,height:0};
-  const tr=pill.querySelector("svg").getBoundingClientRect();
-  const fx=fr.left+fr.width/2,fy=fr.top+fr.height/2,tx=tr.left+tr.width/2,ty=tr.top+tr.height/2;
-  const n=reduced()?1:Math.min(14,Math.max(5,Math.round(amount/3)));const end=startVal+amount;let got=0;
-  for(let i=0;i<n;i++){
-    const d=document.createElement("div");d.className="flycoin";d.innerHTML=IC.coin;document.body.appendChild(d);
-    const ang=Math.random()*Math.PI*2,rad=30+Math.random()*50,mx=fx+Math.cos(ang)*rad,my=fy+Math.sin(ang)*rad-20;
-    const dur=reduced()?10:700+Math.random()*250,delay=baseDelay+(reduced()?0:i*55);
-    const an=d.animate([{transform:`translate(${fx-13}px,${fy-13}px) scale(.4)`,opacity:0},{transform:`translate(${mx-13}px,${my-13}px) scale(1.15) rotate(${(Math.random()-.5)*60}deg)`,opacity:1,offset:.35},{transform:`translate(${tx-13}px,${ty-13}px) scale(.7) rotate(0deg)`,opacity:1}],{duration:dur,delay,easing:"cubic-bezier(.45,.05,.4,1)",fill:"both"});
-    an.onfinish=()=>{d.remove();got++;coinShown=got>=n?end:Math.round(startVal+amount*got/n);const c=$("#coinN");if(c)c.textContent=coinShown;
-      pill.classList.remove("bump");void pill.offsetWidth;pill.classList.add("bump");if(got%3===1||got===n)sfx("coin");
-      if(got>=n){coinAnim--;if(!coinAnim){coinShown=null;refreshBadges()}}};
-  }
-}
+function refreshBadges(){}
 function storageNotice(){
   if(ST.Store.corruptRaw)return`<div class="notice bad" role="alert"><div><b>Збереження пошкоджене.</b> Гра працює, але новий прогрес не перезапише старі дані, доки ти не вирішиш, що з ними робити. <button class="link" data-act="settings">Відкрити налаштування</button></div></div>`;
   if(ST.Store.mode==="memory")return`<div class="notice warn" role="status"><div><b>Браузер не дає зберігати прогрес.</b> Він діятиме лише до закриття сторінки. Щоб не втратити його, зроби експорт у налаштуваннях.</div></div>`;
-  if(ST.Store.migrated)return`<div class="notice good" role="status"><div>Перенесли твій прогрес із попередньої версії: рівні, зірки, монети й налаштування.</div></div>`;
+  if(ST.Store.migrated)return`<div class="notice good" role="status"><div>Перенесли твій прогрес із попередньої версії: рівні, зірки й налаштування.</div></div>`;
   return"";
 }
 
@@ -2481,9 +2459,9 @@ function lvLocked(i){if(ADMIN||i===0||i+1<=S.arcade.open)return false;let j=i-1;
 function nextLevel(){const vis=CF.visible();const open=vis.filter(i=>!lvLocked(i));return open.find(i=>!(S.arcade.stars[i]>0))??open[open.length-1]??vis[0]??0}
 function nextAfter(lv){return CF.visible().find(i=>i>lv)}
 const adminBar=()=>{const cl=CL&&CL.admin;const pl=cl?` · <button class="link" data-act="adminPlayers">Гравці</button> · <button class="link" data-act="adminEditor">Редактор рівнів</button>`:"";
-  if(ADMIN)return `<div class="notice warn" role="status"><div><b>Режим тестування.</b> Усі рівні відкриті, навчання не обовʼязкове. <button class="link" data-act="adminCoins">+500 монет</button> · <button class="link" data-act="adminOff">Вимкнути${cl?"":" до перезапуску"}</button>${pl}</div></div>`;
+  if(ADMIN)return `<div class="notice warn" role="status"><div><b>Режим тестування.</b> Усі рівні відкриті, навчання не обовʼязкове. <button class="link" data-act="adminOff">Вимкнути${cl?"":" до перезапуску"}</button>${pl}</div></div>`;
   return cl?`<div class="notice info" role="status"><div><b>Ти адмін.</b> <button class="link" data-act="adminOn">Увімкнути режим тестування</button>${pl}</div></div>`:""};
-const adminActs={adminOff:()=>setAdmin(false),adminOn:()=>setAdmin(true),adminPlayers:()=>openPlayers(),adminEditor:()=>{if(CL&&CL.admin)go("editor")},adminCoins:()=>{if(!ADMIN)return;S.coins+=500;save();toast("+500 монет")}};
+const adminActs={adminOff:()=>setAdmin(false),adminOn:()=>setAdmin(true),adminPlayers:()=>openPlayers(),adminEditor:()=>{if(CL&&CL.admin)go("editor")}};
 /* ---------- HOME ---------- */
 RENDER.home=function(){
   const st=S.arcade.stars,stars=Object.values(st).reduce((x,y)=>x+(+y||0),0),next=nextLevel();
@@ -2493,33 +2471,16 @@ RENDER.home=function(){
    ${storageNotice()}${adminBar()}
    <div class="next"><div class="txt"><div class="eyebrow">${first?"З чого почати":"Продовжити"}</div><h3>${first?"Коротке навчання: дві хмаринки":`Рівень ${next+1}: ${esc(ARCADE.LEVELS[next].name)}`}</h3><p class="muted small">${first?"Покаже, як ловити хмаринки кошиком.":`Зібрано зірок: ${stars} із ${CF.visible().length*3}`}</p></div>
     <div class="btn-row" style="flex:1 1 260px"><button class="btn btn-primary" data-act="${first?"tut":"play"}">${first?"Почати навчання":"Грати"}</button><button class="btn btn-ghost" data-act="arcade">Усі рівні</button></div></div>
-   <div class="home-extra"><button class="btn btn-ghost lb-btn" data-act="lb">${IC.trophy} Рейтинг тижня</button>${S.streak.n?`<span class="pill streak-pill" title="Серія днів">${IC.fire} ${S.streak.n} ${plDays(S.streak.n)} поспіль</span>`:""}</div>
+   <div class="home-extra"><button class="btn btn-ghost lb-btn" data-act="lb">${IC.trophy} Рейтинг тижня</button></div>
    <div class="home-spacer" aria-hidden="true"></div></div>`;
   VACTS={...commonActs,...adminActs,lb:()=>openLeaderboard(),arcade:()=>go("map"),tut:()=>startRound(0,{tutorial:true,from:"home"}),play:()=>{go("map");playLevel(next)}};
   refreshBadges();
 };
 
 /* ---------- ARCADE MAP ---------- */
-/* ---------- щоденний і щотижневий рівні (кристали) ---------- */
-const GEM_RW={d:[0,2,3,4],w:[0,8,12,15]};
-const hashStr=t=>{let h=7;for(const ch of t)h=(h*31+ch.charCodeAt(0))>>>0;return h};
-function specialInfo(k){const t=now(),key=k==="d"?ST.dayKey(t):ST.weekKey(t);const h=hashStr(key+k);
-  let level=k==="d"?h%7:6+h%6;const vis=CF.visible();if(lvHidden(level))level=vis.find(i=>i>level)??vis[0]??level;const rec=S.special&&S.special[k]&&S.special[k].key===key?S.special[k]:{key,stars:0};
-  return{k,key,level,stars:rec.stars,math:k==="d"?0:1,name:ARCADE.LEVELS[level].name,left:GEM_RW[k][3]-GEM_RW[k][rec.stars]}}
-function resetIn(k){const t=now(),d=new Date(t);let end;if(k==="d"){end=new Date(d.getFullYear(),d.getMonth(),d.getDate()+1)}else{const ws=new Date(ST.weekStart(t));end=new Date(ws.getFullYear(),ws.getMonth(),ws.getDate()+7)}
-  const ms=end-t,h=Math.floor(ms/36e5);return h>=24?`${Math.floor(h/24)} дн ${h%24} год`:h>0?`${h} год ${Math.floor(ms/6e4)%60} хв`:`${Math.max(1,Math.floor(ms/6e4))} хв`}
-function specialCards(){if(!ADMIN&&CF.get().hidden.d&&CF.get().hidden.w)return "";return `<section class="chapter special"><h3>Особливі рівні<span class="sum">${IC.gem} кристали</span><button class="btn btn-ghost lb-btn sm" data-act="lb">${IC.trophy} Рейтинг тижня</button></h3><div class="levels">${["d","w"].filter(k=>ADMIN||!CF.get().hidden[k]).map(k=>{const I=specialInfo(k);
-  return `<div class="lv sp sp-${k}"><span class="n">${k==="d"?"Щоденний рівень · легкий":"Щотижневий рівень · складніший"}</span><span class="t">${esc(I.name)}</span>
-   <span class="tr">${I.left>0?`До ${I.left} ${IC.gem} · оновиться через ${resetIn(k)}`:`Усі кристали зібрано · новий через ${resetIn(k)}`}</span>
-   <div class="row">${starsHtml(I.stars)}</div><div class="btn-row"><button class="btn btn-primary" style="min-height:42px;padding:6px 12px" data-act="special" data-k="${k}">Грати</button></div></div>`}).join("")}</div>
-   <p class="small muted" style="margin:6px 2px 0">Щоденний: ${GEM_RW.d.slice(1).join(" / ")} ${IC.gem} за 1 / 2 / 3 зірки. Щотижневий: ${GEM_RW.w.slice(1).join(" / ")} ${IC.gem}. Ще кристали дають квести. Вони потрібні для ультралегендарних скінів.</p></section>`}
 const TRIG_LV=ARCADE.LEVELS.findIndex(l=>l.skill==="trig-values");
-function tirCard(){if(CF.get().hidden.tir&&!ADMIN)return "";const t=S.tir||{stars:0};const cu=ARCADE.tirCustom;return `<section class="chapter tir"><h3>Тир із совою<span class="sum">тригонометрія</span></h3><div class="levels"><div class="lv sp tir-lv">
-  <span class="n">Новий режим · ${ARC.TIR_TIME} секунд</span><span class="t">Тригонометричний тир${CF.get().hidden.tir?' <span class="tag warn">Сховано</span>':""}</span>
-  <span class="tr">Хмаринки пливуть рядами. Наводь приціл і натискай на ті, що підходять під правило. Треба знайти ${ARC.TIR_GOAL}.</span>
-  <div class="row">${starsHtml(t.stars||0)}</div><div class="btn-row"><button class="btn btn-primary" style="min-height:42px;padding:6px 12px" data-act="tir">Грати</button></div></div></div></section>`}
 function playTir(){startRound(TRIG_LV,{tir:true})}
-function playSpecial(k){const I=specialInfo(k);startRound(I.level,{special:k,math:I.math})}
+function playSpecial(){go("map")}
 function setHint(){const set=S.settings;return set.control==="buttons"?"Спокійний режим: хмаринки зʼявляються по одній, ти натискаєш «Ловити» або «Пропустити».":`Від появи хмаринки до кошика: ${ARC.FALL[set.speed]} с. ${set.speed===2?"На цій швидкості пропущена правильна хмаринка забирає сердечко.":""}`}
 RENDER.map=function(){
   const L=ARCADE.LEVELS,st=S.arcade.stars,next=nextLevel();
@@ -2532,14 +2493,13 @@ RENDER.map=function(){
      <label>Керування${seg("control",["Рухати сову","Кнопки"],set.control==="move"?0:1)}</label>
      <label id="timerRow"${set.control==="buttons"?"":" hidden"}>Таймер${seg("calmTimer",["Вимкнено","10 секунд"],set.calmTimer?1:0)}</label>
    </div><p class="small muted"><span id="setHint">${setHint()}</span> <button class="link" data-act="tut">Пройти навчання ще раз</button></p></details>
-   ${specialCards()}
    ${ARCADE.CHAPTERS.map(ch=>{const lvs=ch.levels.filter(i=>ADMIN||!lvHidden(i));if(!lvs.length)return "";const got=lvs.reduce((s,i)=>s+(st[i]||0),0);return `<section class="chapter"><h3>${ch.name}<span class="sum">${got} / ${lvs.length*3} зірок</span></h3><div class="levels">
      ${lvs.map(i=>{const locked=lvLocked(i);return `<div class="lv${i===next&&!locked?" next-up":""}" aria-disabled="${locked}">
        <span class="n">Рівень ${i+1}${i===next&&!locked?' · <span class="go-tag">Далі</span>':""}</span><span class="t">${esc(L[i].name)}${lvHidden(i)?' <span class="tag warn">Сховано</span>':""}</span><span class="tr">Тренує: ${esc(L[i].trains)}</span>
        <div class="row">${locked?`<span class="small muted">Відкриється після попереднього рівня</span>`:starsHtml(st[i]||0)}</div>
        <div class="btn-row">${locked?"":`<button class="btn btn-primary" style="min-height:42px;padding:6px 12px" data-act="lvl" data-i="${i}" aria-label="Грати рівень ${i+1}">Грати</button>`}</div></div>`}).join("")}</div></section>`}).join("")}
   </div>`;
-  VACTS={...commonActs,...adminActs,back:()=>go("home"),tut:()=>startRound(0,{tutorial:true,from:"map"}),lb:()=>openLeaderboard(),tir:()=>playTir(),special:b=>{const k=b.dataset.k;if(!S.arcade.tutDone&&!ADMIN)startRound(0,{tutorial:true,from:"map",afterSp:k});else playSpecial(k)},
+  VACTS={...commonActs,...adminActs,back:()=>go("home"),tut:()=>startRound(0,{tutorial:true,from:"map"}),lb:()=>openLeaderboard(),tir:()=>playTir(),
     lvl:b=>{const i=+b.dataset.i;if(!S.arcade.tutDone&&!ADMIN)startRound(0,{tutorial:true,from:"map",after:i});else playLevel(i)},
     set:b=>{const k=b.dataset.k,v=+b.dataset.v;if(k==="control")S.settings.control=v?"buttons":"move";else if(k==="calmTimer")S.settings.calmTimer=!!v;else S.settings[k]=v;save();
       b.parentNode.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x===b?"true":"false"));
@@ -2635,26 +2595,14 @@ function onRoundEnd(){
     if(r.won&&r.stars===3&&prev<3){r.parts.push(["Перші 3 зірки",30]);r.coins+=30}
     if(r.won&&r.stars>prev)S.tir.stars=r.stars;S.tir.best=Math.max(S.tir.best||0,r.correct);
     r.coinsFrom=S.coins;S.coins+=r.coins;S.arcade.results++;r.pts=r.correct+(r.won?r.stars*5:0);ST.addWeekPts(S,now(),r.pts);
-    if(r.correct)ST.fireQuest(S,"catch",r.correct,now());if(r.maxStreak>=8)ST.fireQuest(S,"streak8",1,now());if(r.won&&r.stars===3)ST.fireQuest(S,"stars3",1,now());if(r.won)ST.fireQuest(S,"arcadeWin",1,now());
-    save();if(r.won){sfx("win");V.confetti();V.owl.jumpT=1.2}else{sfx("lose");V.owl.mood=2;V.owl.moodT=1.2}
+        save();if(r.won){sfx("win");V.confetti();V.owl.jumpT=1.2}else{sfx("lose");V.owl.mood=2;V.owl.moodT=1.2}
     const res={...r};endTimer=setTimeout(()=>go("result",{res}),r.won?1100:800);return}
-  const sp=roundOpts.special;
-  if(sp){const I=specialInfo(sp);r.special=sp;r.parts=[];
-    if(r.won)r.parts.push([`За ${r.stars} ${r.stars===1?"зірку":"зірки"}`,r.coins]);else if(r.coins)r.parts.push(["За спробу",r.coins]);
-    r.gems=r.won?Math.max(0,GEM_RW[sp][r.stars]-GEM_RW[sp][I.stars]):0;r.gemsFrom=S.gems||0;S.gems=(S.gems||0)+r.gems;
-    if(r.won&&r.stars>I.stars)S.special[sp]={key:I.key,stars:r.stars};
-    r.coinsFrom=S.coins;S.coins+=r.coins;S.arcade.results++;r.pts=r.correct+(r.won?r.stars*5:0);ST.addWeekPts(S,now(),r.pts);
-    if(r.correct)ST.fireQuest(S,"catch",r.correct,now());if(r.maxStreak>=8)ST.fireQuest(S,"streak8",1,now());if(r.won&&r.stars===3)ST.fireQuest(S,"stars3",1,now());if(r.won){ST.fireQuest(S,"arcadeWin",1,now());ST.fireQuest(S,"specialWin",1,now())}
-    save();if(r.won){sfx("win");V.confetti();V.owl.jumpT=1.2}else{sfx("lose");V.owl.mood=2;V.owl.moodT=1.2}
-    const res={...r,levelName:ARCADE.LEVELS[lv].name};endTimer=setTimeout(()=>go("result",{res}),r.won?1100:800);return}
   const prevStars=S.arcade.stars[lv]||0;r.parts=[];
   if(r.won)r.parts.push([`За ${r.stars} ${r.stars===1?"зірку":"зірки"}`,r.coins]);else if(r.coins)r.parts.push(["За спробу",r.coins]);
   if(r.won&&!prevStars){r.parts.push(["Перше проходження",40]);r.coins+=40}
   if(r.won&&r.stars===3&&prevStars<3){r.parts.push(["Перші 3 зірки",30]);r.coins+=30}
   r.coinsFrom=S.coins;S.coins+=r.coins;S.arcade.results++;r.pts=r.correct+(r.won?r.stars*5:0);ST.addWeekPts(S,now(),r.pts);
-  if(r.correct)ST.fireQuest(S,"catch",r.correct,now());if(r.maxStreak>=8)ST.fireQuest(S,"streak8",1,now());if(r.won&&r.stars===3)ST.fireQuest(S,"stars3",1,now());
-  if(r.won){const prev=S.arcade.stars[lv]||0;if(r.stars>prev)S.arcade.stars[lv]=r.stars;if(lv+2>S.arcade.open)S.arcade.open=Math.min(12,lv+2);
-    ST.fireQuest(S,"arcadeWin",1,now());if(ARCADE.LEVELS[lv].mix)ST.fireQuest(S,"mix",1,now())}
+    if(r.won){const prev=S.arcade.stars[lv]||0;if(r.stars>prev)S.arcade.stars[lv]=r.stars;if(lv+2>S.arcade.open)S.arcade.open=Math.min(12,lv+2);}
   save();
   if(r.won){sfx("win");V.confetti();V.owl.jumpT=1.2}else{sfx("lose");V.owl.mood=2;V.owl.moodT=1.2}
   const res={...r,levelName:ARCADE.LEVELS[lv].name};
@@ -2667,7 +2615,7 @@ function pauseGame(){
     <div class="tally"><div><b>${G.correct} / ${G.goal}</b>зловлено</div><div><b>${G.lives}</b>сердечка</div><div><b>${G.wrongCaught+G.missed}</b>помилок</div></div>
     <button class="btn btn-primary btn-big" data-act="resume" autofocus>Продовжити</button>
     <div class="btn-row"><button class="btn btn-ghost" data-act="restart">Почати заново</button><button class="btn btn-ghost" data-act="exit">Вийти на карту</button></div>`,
-    acts:{resume:()=>closeModal(),restart:()=>{closeModal(true);if(roundOpts.tir)playTir();else if(roundOpts.special)playSpecial(roundOpts.special);else startRound(G.level,{tutorial:G.tutorial,from:roundOpts.from})},exit:()=>{closeModal(true);go(G&&G.tutorial&&roundOpts.from==="home"?"home":"map")}},
+    acts:{resume:()=>closeModal(),restart:()=>{closeModal(true);if(roundOpts.tir)playTir();else startRound(G.level,{tutorial:G.tutorial,from:roundOpts.from})},exit:()=>{closeModal(true);go(G&&G.tutorial&&roundOpts.from==="home"?"home":"map")}},
     onClose:()=>{paused=false;lastFrame=performance.now()}});
 }
 /* ---------- РЕДАКТОР РІВНІВ (адмін, хмара) ---------- */
@@ -2682,9 +2630,7 @@ RENDER.editor=function(){
     ${key==="d"||key==="w"?"":`<button class="btn btn-ghost" style="min-height:40px" data-act="edOpen" data-k="${key}">Змінити</button>`}</div>`;
   view().innerHTML=`<div class="wrap">${topbar(true,"Редактор рівнів")}
    <div class="notice info"><div>Тут можна сховати рівні, змінити назву, підказку, правило і всі вирази. Після «Опублікувати» зміни побачать усі гравці на сайті.</div></div>
-   <div class="card">${O.map((o,i)=>{const e=EDIT.lv[i]||{};return row(i,`${i+1}. `,e.name||o.name,e.trains?"Тренує: "+e.trains:"Тренує: "+o.trains,H.lv.includes(i),!!e.custom)}).join("")}
-   ${row("d","","Щоденний рівень","Особливий рівень за кристали",H.d,false)}
-   ${row("w","","Щотижневий рівень","Особливий рівень за кристали",H.w,false)}</div>
+   <div class="card">${O.map((o,i)=>{const e=EDIT.lv[i]||{};return row(i,`${i+1}. `,e.name||o.name,e.trains?"Тренує: "+e.trains:"Тренує: "+o.trains,H.lv.includes(i),!!e.custom)}).join("")}</div>
    <div class="btn-row"><button class="btn btn-primary btn-big" data-act="edPublish">Опублікувати для всіх</button><button class="btn btn-ghost" data-act="edReset">Скасувати зміни</button></div>
    <p class="small muted" id="edState">${JSON.stringify(EDIT)===JSON.stringify(CF.get())?"Змін немає.":"Є неопубліковані зміни."}</p></div>`;
   VACTS={...commonActs,back:()=>{EDIT=null;go("map")},
@@ -2736,7 +2682,7 @@ RENDER.result=function({res}){
       ${r.won?starsHtml(r.stars,"stars big-stars"):`<p class="muted">${r.timeout?"Час вийшов.":"Сердечка закінчились."} Розбери помилки — і спробуй ще раз.</p>`}
       ${!r.special&&!r.tirOnly&&r.won&&nx!=null&&S.arcade.open===lv+2&&!(S.arcade.stars[nx]>0)?`<p class="tag good">Відкрито рівень ${nx+1}</p>`:""}</div>
     <div class="tally"><div><b><span aria-hidden="true">✓</span>${r.correct}</b>правильно впіймано</div><div><b><span aria-hidden="true">✗</span>${r.wrong}</b>неправильно впіймано</div><div><b><span aria-hidden="true">↓</span>${r.missed}</b>пропущено правильних</div></div>
-    <div class="reward" id="rwBox"><div class="reward-total">${IC.coin}<b>+${r.coins}</b></div>${r.special?`<div class="reward-total gem-total">${IC.gem}<b>+${r.gems||0}</b></div>${r.won&&!r.gems?`<span class="rw-part">Кристали за цей результат уже отримано</span>`:""}`:""}${(r.parts||[]).map(([n,v])=>`<span class="rw-part">${esc(n)} <b>+${v}</b></span>`).join("")}${r.maxStreak>=5?`<span class="rw-part">Найдовша серія ×${r.maxStreak}</span>`:""}</div>
+    ${r.maxStreak>=5?`<p class="small muted" style="text-align:center">Найдовша серія ×${r.maxStreak}</p>`:""}
     <div class="btn-row"><button class="btn btn-primary btn-big" data-act="again">Ще одна спроба</button>${hasNext?`<button class="btn btn-forest btn-big" data-act="next">Наступний рівень</button>`:""}</div>
     <div class="btn-row"><button class="btn btn-ghost" data-act="review" aria-expanded="false" id="rvBtn">Розібрати${bad.length+miss.length?` (${bad.length+miss.length})`:""}</button><button class="btn btn-ghost" data-act="map">До карти</button></div>
     <div id="rvBox" hidden></div></div></div>`;
@@ -2747,114 +2693,25 @@ RENDER.result=function({res}){
   VACTS={...commonActs,again:()=>r.tirOnly?playTir():r.special?playSpecial(r.special):startRound(lv),next:()=>playLevel(nx),map:()=>go("map"),
     review:b=>{const box=$("#rvBox");const open=box.hidden;box.hidden=!open;b.setAttribute("aria-expanded",open);
       if(open&&!box.innerHTML){box.innerHTML=`<div class="review-list">${bad.length+miss.length?"":`<p class="notice good">Помилок немає. Ось що ти впіймав(ла):</p>`}${bad.map(x=>item(x,"bad")).join("")}${miss.map(x=>item(x,"miss")).join("")}${good.slice(0,bad.length+miss.length?3:8).map(x=>item(x,"good")).join("")}</div>`;
-        if(bad.length+miss.length){ST.fireQuest(S,"review",Math.min(3,bad.length+miss.length),now());save()}}}};
+        }}};
   refreshBadges();
-  if(r.coins>0&&!r.coinFlown){r.coinFlown=true;flyCoins($("#rwBox .reward-total"),r.coins,r.coinsFrom,450)}
 };
 
-/* ---------- SHOP ---------- */
-function shopSlot(c){const own=S.cosm.owned.includes(c.id),eq=S.cosm.eq[c.kind]===c.id;
-  return eq?'<span class="tag good">Використовується</span>':own?`<button class="btn btn-ghost" data-act="eq" data-id="${c.id}">Обрати</button>`:(c.cur==="gem"?`<button class="btn btn-primary btn-gem" data-act="buy" data-id="${c.id}" ${(S.gems||0)<c.price?"disabled":""}>${IC.gem.replace("<svg",'<svg width="18" height="18"')} ${c.price}</button>`:`<button class="btn btn-primary" data-act="buy" data-id="${c.id}" ${S.coins<c.price?"disabled":""}>${IC.coin.replace("<svg",'<svg width="18" height="18"')} ${c.price}</button>`);}
-/* оновлюємо лише кнопки й позначки, без перемальовування всієї сітки */
-function refreshShop(){
-  view().querySelectorAll(".item[data-try]").forEach(el=>{const c=ST.COSMETICS.find(x=>x.id===el.dataset.try);const eq=S.cosm.eq[c.kind]===c.id;
-    el.classList.toggle("eq",eq);const sl=el.querySelector(".slot");const h=shopSlot(c);if(sl.innerHTML!==h)sl.innerHTML=h});
-  for(const R of PREVS){const k=R.cv.dataset.kind,id=R.cv.dataset.prev;if(k==="persona"&&id==="persona-none")R.owlId=S.cosm.eq.owl;else if(k!=="owl"&&k!=="persona")R.owlId=effOwl(S.cosm.eq);if(k!=="basket")R.basketId=S.cosm.eq.basket;
-    const bg=k==="bg"?id:S.cosm.eq.bg;if(R.bgId!==bg){R.bgId=bg;R.buildBg()}R.dirty=true}
-  refreshBadges();stageShow(stageTry);
-}
-RENDER.shop=function(p){
-  const sw={"basket-classic":"linear-gradient(#d08d4b,#9a5f28)","basket-vyshyvka":"repeating-linear-gradient(90deg,#c0262d 0 10px,#1d1d1d 10px 20px,#f6efe0 20px 30px)","basket-kalyna":"radial-gradient(circle at 30% 40%,#d7262c 0 12px,transparent 13px),radial-gradient(circle at 60% 55%,#d7262c 0 10px,transparent 11px),linear-gradient(#d08d4b,#9a5f28)",
-    "owl-brown":"linear-gradient(#8a5426,#f6dfba)","owl-snow":"linear-gradient(#e9edf2,#ffffff)","owl-ginger":"linear-gradient(#c8641e,#fde4c4)","bg-summer":"linear-gradient(#7fc3ea,#79b85e)","bg-autumn":"linear-gradient(#8fc0e0,#c8642a)","bg-evening":"linear-gradient(#3c4f86,#c27aa0,#3d6b4f)"};
-  const kinds={owl:"Сова",persona:"Особистості",basket:"Кошики",bg:"Фон аркади"};
-  view().innerHTML=`<div class="wrap shop-wrap">${topbar(true,"Оформлення")}<p class="muted" style="background:rgba(255,250,244,.9);border-radius:10px;padding:4px 10px;margin:0">Монети — за рівні й квести, кристали — за особливі рівні та квести. ${matchMedia("(hover:none)").matches?"Натисни":"Наведи"} на скін, щоб приміряти.</p>
-   <div class="shop-layout"><div class="shop-list">
-   ${Object.entries(kinds).map(([k,n])=>`<section class="chapter"><h3>${n}</h3><div class="shop">${ST.COSMETICS.filter(c=>c.kind===k).map(c=>{const own=S.cosm.owned.includes(c.id),eq=S.cosm.eq[k]===c.id;
-     return `<div class="item${eq?" eq":""}" data-try="${c.id}" data-rar="${c.rar||"common"}" tabindex="-1"><canvas class="prev" data-prev="${c.id}" data-kind="${k}" role="img" aria-label="Як виглядає: ${c.name}"></canvas><span class="rar rar-${c.rar||"common"}">${RAR[c.rar||"common"]}</span><b>${c.name}</b><div class="slot" data-slot="${c.id}">${shopSlot(c)}</div></div>`}).join("")}</div></section>`).join("")}
-   </div><aside class="stage" aria-label="Примірка"><canvas id="stageCv" aria-hidden="true"></canvas><div class="stage-cap"><span class="eyebrow" id="stKind">Твоя сова</span><b id="stName"></b><span class="small muted" id="stInfo"></span></div></aside></div></div>`;
-  VACTS={...commonActs,back:()=>go(p.from&&RENDER[p.from]&&p.from!=="game"&&p.from!=="session"?p.from:"home"),
-    buy:b=>{const c=ST.COSMETICS.find(x=>x.id===b.dataset.id);const gem=c.cur==="gem";if(S.cosm.owned.includes(c.id)||(gem?(S.gems||0):S.coins)<c.price)return;if(gem)S.gems-=c.price;else S.coins-=c.price;S.cosm.owned.push(c.id);S.cosm.eq[c.kind]=c.id;if(c.kind==="owl")S.cosm.eq.persona="persona-none";save();applyCosmetics();toast(`Нове: ${c.name}`);refreshShop();if(STAGE)STAGE.owl.jumpT=.6},
-    eq:b=>{const c=ST.COSMETICS.find(x=>x.id===b.dataset.id);S.cosm.eq[c.kind]=c.id;if(c.kind==="owl")S.cosm.eq.persona="persona-none";save();applyCosmetics();refreshShop();if(STAGE)STAGE.owl.jumpT=.6}};
-  refreshBadges();
-  initPreviews();initStage();
-};
-/* живі прев'ю скінів у магазині: сова ходить вліво-вправо */
-let PREVS=[];
-function initPreviews(){
-  PREVS=[];
-  view().querySelectorAll("canvas.prev").forEach((cv,i)=>{
-    const R=ARC.Renderer(cv),id=cv.dataset.prev,k=cv.dataset.kind;R.dprMax=1.25;
-    R.owlId=k==="owl"?id:k==="persona"?(id==="persona-none"?S.cosm.eq.owl:id):effOwl(S.cosm.eq);R.basketId=k==="basket"?id:S.cosm.eq.basket;R.bgId=k==="bg"?id:S.cosm.eq.bg;
-    R.reduce=reduced();R.resize();R.deco=[{x:.15,y:.1,s:.28,v:.012},{x:.62,y:.2,s:.22,v:.009}];R.owl.nx=.25+((i*.37)%.5);R.owl.target=i%2?.15:.85;R.dirty=true;PREVS.push(R)});
-}
-let STAGE=null,stageTry=null;
-const KIND_NAME={basket:"Кошик",owl:"Сова",bg:"Фон",persona:"Особистість"};
-const effOwl=eq=>eq.persona&&eq.persona!=="persona-none"?eq.persona:eq.owl;
-const RAR={common:"Звичайний",rare:"Рідкісний",epic:"Епічний",legend:"Легендарний",ultra:"Ультралегендарний"};
-function stageShow(id){
-  if(!STAGE)return;const eq=S.cosm.eq;const c=id&&ST.COSMETICS.find(x=>x.id===id);
-  STAGE.owlId=c&&c.kind==="owl"?c.id:c&&c.kind==="persona"?(c.id==="persona-none"?eq.owl:c.id):effOwl(eq);STAGE.basketId=c&&c.kind==="basket"?c.id:eq.basket;
-  const bg=c&&c.kind==="bg"?c.id:eq.bg;if(STAGE.bgId!==bg){STAGE.bgId=bg;STAGE.buildBg()}
-  const own=c&&S.cosm.owned.includes(c.id);
-  const cc=c||ST.COSMETICS.find(x=>x.id===effOwl(eq)),rr=cc.rar||"common";
-  const kEl=$("#stKind");kEl.textContent=(c?KIND_NAME[c.kind]+(own?"":" · примірка"):"Твоя сова")+" · "+RAR[rr];kEl.className="eyebrow rar-txt-"+rr;
-  $("#stName").textContent=cc.name;$(".stage").dataset.rar=rr;
-  $("#stInfo").textContent=(cc.desc?cc.desc+". ":"")+(c?(S.cosm.eq[c.kind]===c.id?"Використовується":own?"Уже твоє — можна обрати":`Ціна: ${c.price} ${c.cur==="gem"?"кристалів":"монет"}`):(matchMedia("(hover:none)").matches?"Натисни":"Наведи")+" на скін, щоб приміряти");
-  if(c&&STAGE.owl)STAGE.owl.jumpT=.35;
-}
-function initStage(){
-  const cv=$("#stageCv");if(!cv){STAGE=null;return}
-  STAGE=ARC.Renderer(cv);STAGE.dprMax=1.5;STAGE.reduce=reduced();STAGE.bgId=S.cosm.eq.bg;STAGE.resize();
-  STAGE.SC=Math.max(.9,Math.min(STAGE.H/300,STAGE.W/230));STAGE.buildBg();STAGE.deco=[{x:.2,y:.12,s:.6,v:.01},{x:.7,y:.24,s:.5,v:.008}];
-  STAGE.owl.nx=.5;stageShow(null);
-  const list=view().querySelector(".shop-list");
-  const hov=e=>{const it=e.target.closest&&e.target.closest("[data-try]");const id=it?it.dataset.try:null;if(id!==stageTry){stageTry=id;stageShow(id)}};
-  let touchT=0;const tap=e=>{touchT=Date.now();const it=e.target.closest&&e.target.closest("[data-try]");if(!it)return;const id=it.dataset.try;stageTry=id;stageShow(id)};
-  list.addEventListener("mouseover",e=>{if(Date.now()-touchT>800)hov(e)});list.addEventListener("focusin",e=>{if(Date.now()-touchT>800)hov(e)});
-  list.addEventListener("mouseleave",()=>{if(Date.now()-touchT<800)return;stageTry=null;stageShow(null)});
-  list.addEventListener("touchstart",tap,{passive:true});list.addEventListener("pointerup",e=>{if(e.pointerType!=="mouse")tap(e)});
-}
-function tickPreviews(dt){
-  if(STAGE&&STAGE.cv.isConnected){const o=STAGE.owl;o.target=.5;o.nx=.5;STAGE.update(dt,null,{l:false,r:false});o.vx=0;o.dir=0;STAGE.draw(null)}
-  for(const R of PREVS){if(!R.cv.isConnected)continue;const o=R.owl;
-    const live=stageTry===R.cv.dataset.prev;              // анімуємо лише картку під курсором
-    if(!live&&!R.dirty)continue;
-    if(live){if(o.target==null||Math.abs(o.target-o.nx)<.02)o.target=o.nx<.5?.85:.15;R.update(dt,null,{l:false,r:false})}
-    else{o.nx=.5;o.vx=0;o.dir=0;o.target=.5}
-    R.draw(null);R.dirty=live}
-}
-function applyCosmetics(){if(!V)return;const bg=S.cosm.eq.bg;V.owlId=effOwl(S.cosm.eq);V.basketId=S.cosm.eq.basket;if(V.bgId!==bg){V.bgId=bg;V.buildBg()}V._still=false}
-
-/* ---------- QUESTS ---------- */
-function openQuests(tab="d"){
-  const m=openModal({label:"Квести",html:"",acts:{}});
-  const render=()=>{
-    const v=ST.questView(S,now());const list=v[tab];
-    const end=tab==="d"?ST.endOfDay(now()):ST.weekStart(now())+7*ST.DAY;const left=end-now();
-    const h=Math.floor(left/3600000),mi=Math.floor(left%3600000/60000);
-    setModalHtml(m,`<h2>Квести</h2><div class="seg" role="tablist" style="width:100%"><button role="tab" data-act="t" data-v="d" aria-pressed="${tab==="d"}" aria-selected="${tab==="d"}">Щоденні</button><button role="tab" data-act="t" data-v="w" aria-pressed="${tab==="w"}" aria-selected="${tab==="w"}">Тижневі</button></div>
-     ${list.map(q=>`<div class="qrow"><div class="top"><span>${q.text}</span><span style="flex:none" class="small">${IC.coin.replace("<svg",'<svg width="16" height="16" style="vertical-align:-3px"')} ${q.rw}${q.gem?` <span class="q-gem">${IC.gem.replace("<svg",'<svg width="16" height="16" style="vertical-align:-3px"')} ${q.gem}</span>`:""}</span></div><div class="qbar" role="progressbar" aria-valuemin="0" aria-valuemax="${q.goal}" aria-valuenow="${q.p}"><i style="width:${q.p/q.goal*100}%"></i></div>
-       <div class="top small"><span class="muted">${q.p} / ${q.goal}</span>${q.claimed?'<span class="tag good">Отримано</span>':`<button class="btn btn-forest" style="min-height:40px" data-act="claim" data-key="${q.key}" ${q.p>=q.goal?"":"disabled"}>Забрати</button>`}</div></div>`).join("")}
-     <p class="small muted">Нові ${tab==="d"?"щоденні":"тижневі"} квести через ${h>=24?`${Math.floor(h/24)} д ${h%24} год`:`${h} год ${mi} хв`}.</p><button class="btn btn-ghost" data-act="close">Закрити</button>`);
-  };
-  m.acts={t:b=>{tab=b.dataset.v;render()},close:()=>closeModal(),
-    claim:b=>{if(b.disabled)return;b.disabled=true;const r=ST.claimQuest(S,b.dataset.key,now());
-      if(r.ok){const st=S.coins-r.coins;save();flyCoins(b,r.coins,st);toast(`+${r.coins} монет${r.gems?` і +${r.gems} ${r.gems===1?"кристал":r.gems<5?"кристали":"кристалів"}`:""}`);refreshBadges()}else if(r.reason==="stale")toast("Квести оновились — ось новий набір.");
-      render()}};
-  render();
-}
+/* скіни прибрано: завжди стандартна сова, кошик і фон */
+function tickPreviews(){}
+function applyCosmetics(){if(!V)return;V.owlId="owl-brown";V.basketId="basket-classic";if(V.bgId!=="bg-summer"){V.bgId="bg-summer";V.buildBg()}V._still=false}
 
 /* ---------- АКАУНТ (вхід за поштою, без листа) ---------- */
 function accountCard(){
   if(!CL||!CL.enabled)return `<div class="card"><h3>Акаунт</h3><p class="small muted">Вхід за поштою працює на сайті. Тут прогрес зберігається в цьому браузері.</p></div>`;
-  return `<div class="card"><h3>Акаунт</h3><p>Ти граєш як <b>${esc(CL.user?CL.user.email:"гість")}</b>.</p><p class="small muted">Монети, зірки, скіни й завдання зберігаються за цією поштою. Введи її на будь-якому пристрої — і прогрес буде там.</p>
+  return `<div class="card"><h3>Акаунт</h3><p>Ти граєш як <b>${esc(CL.user?CL.user.email:"гість")}</b>.</p><p class="small muted">Зірки й рівні зберігаються за цією поштою. Введи її на будь-якому пристрої — і прогрес буде там.</p>
     <div class="btn-row"><button class="btn btn-ghost" data-act="logout">Змінити пошту</button></div></div>`;
 }
 function accountActs(){return{logout:()=>{CL.logout();if(!ADMIN_BUILD)ADMIN=false;ST.Store.useKey(ST.KEY);S=ST.Store.load();applyCosmetics();closeAllModals();go("home");openLoginGate()}}}
 function openAccount(){const m=openModal({label:"Акаунт",html:accountCard()+`<button class="btn btn-quiet" data-act="close">Закрити</button>`,acts:{}});m.acts={close:()=>closeModal(),...accountActs()}}
 function openLoginGate(){
   const m=openModal({label:"Вхід",closable:false,html:`<div class="gate"><p class="logo">Совиний <b>кошик</b></p><h2>Введи свою пошту</h2>
-    <p class="muted">Прогрес — монети, зірки й скіни — збережеться за цією поштою. Наступного разу просто введи її знову, на будь-якому пристрої.</p>
+    <p class="muted">Прогрес — зірки й рівні — збережеться за цією поштою. Наступного разу просто введи її знову, на будь-якому пристрої.</p>
     <form class="acc-form" data-form="login"><input type="email" id="accEmail" required autocomplete="email" inputmode="email" placeholder="твоя@пошта.com" aria-label="Пошта"><input type="password" id="accPass" autocomplete="current-password" placeholder="Пароль адміна" aria-label="Пароль адміна" hidden><button class="btn btn-primary btn-big" type="submit">Грати</button></form>
     <p class="err" id="accMsg" hidden></p></div>`,acts:{}});
   m.acts={"@submit":async f=>{const inp=f.querySelector("#accEmail"),msg=m.el.querySelector("#accMsg"),btn=f.querySelector("button");const email=(inp.value||"").trim().toLowerCase();
@@ -2888,8 +2745,8 @@ async function openPlayers(){
   const ago=t=>{const m0=Math.round((now0-t)/6e4);return m0<60?m0+" хв тому":m0<1440?Math.round(m0/60)+" год тому":Math.round(m0/1440)+" дн тому"};
   setModalHtml(m,`<h2>Гравці</h2>
    <div class="adm-kpi"><div><b>${P.length}</b><span>усього гравців</span></div><div><b>${active}</b><span>грали за 7 днів</span></div><div><b>${avg}</b><span>рівнів пройдено в середньому</span></div></div>
-   <h3>Рейтинг гравців</h3><div class="adm-tbl"><table><thead><tr><th>#</th><th>Пошта</th><th>Зірки</th><th>Рівні</th><th>Монети</th><th>Скіни</th><th>Останній вхід</th></tr></thead><tbody>
-   ${P.map((p,k)=>`<tr><td>${k+1}</td><td>${esc(p.email)}</td><td>${p.stars} / 36</td><td>${p.passed} / 12</td><td>${p.coins}</td><td>${p.skins}</td><td>${ago(p.at)}</td></tr>`).join("")||`<tr><td colspan="7" class="muted">Поки немає гравців</td></tr>`}</tbody></table></div>
+   <h3>Рейтинг гравців</h3><div class="adm-tbl"><table><thead><tr><th>#</th><th>Пошта</th><th>Зірки</th><th>Рівні</th><th>Останній вхід</th></tr></thead><tbody>
+   ${P.map((p,k)=>`<tr><td>${k+1}</td><td>${esc(p.email)}</td><td>${p.stars} / 36</td><td>${p.passed} / 12</td><td>${ago(p.at)}</td></tr>`).join("")||`<tr><td colspan="5" class="muted">Поки немає гравців</td></tr>`}</tbody></table></div>
    <h3>Рівні</h3><div class="adm-tbl"><table><thead><tr><th>Рівень</th><th>Пройшли</th><th>Середньо зірок</th><th>На 3 зірки</th></tr></thead><tbody>
    ${lvl.map(l=>`<tr><td>${l.i+1}. ${esc(l.name)}</td><td>${l.pass} / ${P.length}</td><td>${l.avg}</td><td>${l.s3}</td></tr>`).join("")}</tbody></table></div>
    <button class="btn btn-primary" data-act="close">Закрити</button>`);
@@ -2906,19 +2763,7 @@ async function cloudBoot(){
 /* ---------- СЕРІЯ ДНІВ ---------- */
 let streakReady=false;
 const plDays=n=>{const a=n%10,b=n%100;return a===1&&b!==11?"день":a>=2&&a<=4&&(b<12||b>14)?"дні":"днів"};
-function checkStreak(){
-  if(!streakReady||screen==="game"||window.OWL_TEST_NOSTREAK||document.querySelector(".gate"))return;
-  const r=ST.streakCheck(S,now());if(!r)return;save();refreshBadges();if(screen==="home")rerender();openStreak(r);
-}
-function openStreak(r){
-  const cur=(r.n-1)%7;
-  const cells=ST.STREAK_RW.map(([c,g],i)=>`<div class="sk-day${i<cur?" done":""}${i===cur?" now":""}"><span class="sk-n">День ${i+1}</span><span class="sk-r">${IC.coin.replace("<svg",'<svg width="16" height="16"')} ${c}</span>${g?`<span class="sk-r gem">${IC.gem.replace("<svg",'<svg width="16" height="16"')} ${g}</span>`:""}</div>`).join("");
-  const m=openModal({label:"Серія днів",html:`<h2>${IC.fire.replace("<svg",'<svg width="30" height="30" style="vertical-align:-6px"')} Серія: ${r.n} ${plDays(r.n)} поспіль</h2>
-    <p class="muted">${r.n===1?"Заходь щодня — нагорода росте! Пропустиш день, і серія почнеться спочатку.":"Так тримати! Завтра нагорода буде ще більшою."}</p>
-    <div class="sk-grid">${cells}</div>
-    <div class="reward"><div class="reward-total">${IC.coin}<b>+${r.coins}</b></div>${r.gems?`<div class="reward-total gem-total">${IC.gem}<b>+${r.gems}</b></div>`:""}</div>
-    <button class="btn btn-primary" data-act="close">Забрати</button>`,acts:{close:()=>{sfx("coin");closeModal()}}});
-}
+function checkStreak(){}
 /* ---------- РЕЙТИНГ ТИЖНЯ ---------- */
 async function openLeaderboard(){
   const wk=ST.weekKey(now()),mine=S.lb.week===wk?S.lb.pts:0;
@@ -2976,7 +2821,7 @@ ${accountCard()}
     music:()=>{S.settings.music=!S.settings.music;save();MUS.sync();render()},
     motion:b=>{S.settings.motion=b.dataset.v;save();applyMotion();render()},
     ...accountActs(),
-    reset:()=>openModal({label:"Скинути прогрес",html:`<h2>Скинути весь прогрес?</h2><p>Зірки, монети й оформлення буде видалено. Спершу можна зробити експорт.</p><div class="btn-row"><button class="btn btn-ghost" data-act="no" autofocus>Скасувати</button><button class="btn btn-primary" data-act="yes">Так, скинути</button></div>`,acts:{no:()=>closeModal(),yes:()=>{closeAllModals();S=ST.defaults();ST.Store.discardCorrupt();save();applyCosmetics();go("home");toast("Прогрес скинуто")}}}),
+    reset:()=>openModal({label:"Скинути прогрес",html:`<h2>Скинути весь прогрес?</h2><p>Зірки й пройдені рівні буде видалено. Спершу можна зробити експорт.</p><div class="btn-row"><button class="btn btn-ghost" data-act="no" autofocus>Скасувати</button><button class="btn btn-primary" data-act="yes">Так, скинути</button></div>`,acts:{no:()=>closeModal(),yes:()=>{closeAllModals();S=ST.defaults();ST.Store.discardCorrupt();save();applyCosmetics();go("home");toast("Прогрес скинуто")}}}),
     copyCorrupt:()=>copyText(ST.Store.corruptRaw),
     discardCorrupt:()=>{ST.Store.discardCorrupt();save();render();toast("Починаємо з чистого аркуша. Поточний прогрес тепер зберігається.")}};
   render();
@@ -2997,7 +2842,7 @@ function openImport(){
   m.acts={close:()=>closeModal(),
     "@change":el=>{if(el.id==="impFile"&&el.files[0]){const r=new FileReader();r.onload=()=>{$("#impTxt").value=r.result};r.readAsText(el.files[0])}},
     go:()=>{const res=ST.parseImport($("#impTxt").value);const er=$("#impErr");if(!res.ok){er.hidden=false;er.textContent=res.err;return}
-      openModal({label:"Підтвердження",html:`<h2>Замінити поточний прогрес?</h2><p>Файл версії ${res.from}: монет ${res.data.coins}, зірок ${Object.values(res.data.arcade.stars).reduce((a,b)=>a+b,0)}, записів у зошиті ${res.data.notebook.length}. Поточний прогрес буде замінено.</p><div class="btn-row"><button class="btn btn-ghost" data-act="no" autofocus>Скасувати</button><button class="btn btn-primary" data-act="yes">Замінити</button></div>`,
+      openModal({label:"Підтвердження",html:`<h2>Замінити поточний прогрес?</h2><p>Файл версії ${res.from}: зірок ${Object.values(res.data.arcade.stars).reduce((a,b)=>a+b,0)}, записів у зошиті ${res.data.notebook.length}. Поточний прогрес буде замінено.</p><div class="btn-row"><button class="btn btn-ghost" data-act="no" autofocus>Скасувати</button><button class="btn btn-primary" data-act="yes">Замінити</button></div>`,
         acts:{no:()=>closeModal(),yes:()=>{closeAllModals();S=res.data;ST.Store.discardCorrupt();save();applyCosmetics();applyMotion();go("home");toast("Прогрес імпортовано")}}})}};
 }
 function openHelp(){openModal({label:"Як грати",html:`<h2>Як грати в аркаду</h2><ul><li>Рухай сову стрілками ← →, клавішами A / D, мишкою або пальцем.</li><li>Лови кошиком хмаринки, що відповідають правилу вгорі.</li><li>Неправильна хмаринка забирає сердечко. Три зірки — без помилок і пропусків.</li><li>Пауза — кнопка «Пауза», Esc або P.</li></ul><button class="btn btn-primary" data-act="close" autofocus>Зрозуміло</button>`,acts:{close:()=>closeModal()}})}
@@ -3083,7 +2928,7 @@ function boot(){
   document.addEventListener("visibilitychange",()=>MUS.sync());
 }
 /* тестові гачки */
-OWL.UI={MUS,openLeaderboard,checkStreak,go,startRound,openQuests,openSettings,pauseGame,get G(){return G},get screen(){return screen},get V(){return V},setState:s=>{S=s},save,closeAllModals,handleEvents};
+OWL.UI={MUS,openLeaderboard,checkStreak,go,startRound,openSettings,pauseGame,get G(){return G},get screen(){return screen},get V(){return V},setState:s=>{S=s},save,closeAllModals,handleEvents};
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot);else boot();
 })();
 
