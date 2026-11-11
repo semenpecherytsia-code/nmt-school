@@ -449,6 +449,12 @@ h1[tabindex="-1"]:focus,h2[tabindex="-1"]:focus{outline:none}
 .chapter.special h3{color:#7a3fe0}
 @media (prefers-reduced-motion:reduce){.rar-ultra{animation:none}}
 .q-gem{color:#7a3fe0;font-weight:800;margin-left:4px;white-space:nowrap}
+/* аудит: сплеш по центру під час анімації, рядок підсумків на вузьких екранах */
+@keyframes popInC{from{opacity:0;transform:translate(-50%,calc(-50% + 10px)) scale(.98)}to{opacity:1;transform:translate(-50%,-50%)}}
+.splash{animation:popInC .4s var(--ease) both}
+.tally{grid-template-columns:repeat(3,minmax(0,1fr))}
+.tally div{overflow-wrap:anywhere;hyphens:auto}
+@media (max-width:400px){.tally{gap:6px}.tally div{font-size:12px;padding:8px 4px}}
 
 </style>
 <div id="app">
@@ -2407,7 +2413,7 @@ RENDER.shop=function(p){
   const sw={"basket-classic":"linear-gradient(#d08d4b,#9a5f28)","basket-vyshyvka":"repeating-linear-gradient(90deg,#c0262d 0 10px,#1d1d1d 10px 20px,#f6efe0 20px 30px)","basket-kalyna":"radial-gradient(circle at 30% 40%,#d7262c 0 12px,transparent 13px),radial-gradient(circle at 60% 55%,#d7262c 0 10px,transparent 11px),linear-gradient(#d08d4b,#9a5f28)",
     "owl-brown":"linear-gradient(#8a5426,#f6dfba)","owl-snow":"linear-gradient(#e9edf2,#ffffff)","owl-ginger":"linear-gradient(#c8641e,#fde4c4)","bg-summer":"linear-gradient(#7fc3ea,#79b85e)","bg-autumn":"linear-gradient(#8fc0e0,#c8642a)","bg-evening":"linear-gradient(#3c4f86,#c27aa0,#3d6b4f)"};
   const kinds={owl:"Сова",persona:"Особистості",basket:"Кошики",bg:"Фон аркади"};
-  view().innerHTML=`<div class="wrap shop-wrap">${topbar(true,"Оформлення")}<p class="muted" style="background:rgba(255,250,244,.9);border-radius:10px;padding:4px 10px;margin:0">Монети — за рівні й квести, кристали — за щоденний і щотижневий рівні. Наведи на скін, щоб приміряти.</p>
+  view().innerHTML=`<div class="wrap shop-wrap">${topbar(true,"Оформлення")}<p class="muted" style="background:rgba(255,250,244,.9);border-radius:10px;padding:4px 10px;margin:0">Монети — за рівні й квести, кристали — за особливі рівні та квести. Наведи на скін, щоб приміряти.</p>
    <div class="shop-layout"><div class="shop-list">
    ${Object.entries(kinds).map(([k,n])=>`<section class="chapter"><h3>${n}</h3><div class="shop">${ST.COSMETICS.filter(c=>c.kind===k).map(c=>{const own=S.cosm.owned.includes(c.id),eq=S.cosm.eq[k]===c.id;
      return `<div class="item${eq?" eq":""}" data-try="${c.id}" data-rar="${c.rar||"common"}" tabindex="-1"><canvas class="prev" data-prev="${c.id}" data-kind="${k}" role="img" aria-label="Як виглядає: ${c.name}"></canvas><span class="rar rar-${c.rar||"common"}">${RAR[c.rar||"common"]}</span><b>${c.name}</b><div class="slot" data-slot="${c.id}">${shopSlot(c)}</div></div>`}).join("")}</div></section>`).join("")}
