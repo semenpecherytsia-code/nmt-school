@@ -1231,20 +1231,37 @@ const CHAPTERS=[
   {id:"c5",name:"Фінал",levels:[11]},
 ];
 function exprFor(R,v){
-  const f=[()=>{const a=R.int(1,v-1);return [`${a} + ${v-a}`,`${a} + ${v-a}`]},()=>{const b=R.int(2,9);return [`${v+b} − ${b}`]},()=>{const k=R.int(2,5);return [`${v*k} : ${k}`]}];
+  const f=[()=>{const a=R.int(1,v-1);return [`${a} + ${v-a}`]},()=>{const b=R.int(2,15);return [`${v+b} − ${b}`]},()=>{const k=R.int(2,6);return [`${v*k} : ${k}`]}];
+  if(v>=7)f.push(()=>{const x=R.int(2,Math.min(5,Math.floor((v-1)/2)));const y=R.int(2,Math.floor((v-1)/x));return [`${x} · ${y} + ${v-x*y}`]});
+  f.push(()=>{const x=R.int(2,5),y=R.int(Math.ceil((v+1)/x),Math.ceil((v+1)/x)+4);return [`${x} · ${y} − ${x*y-v}`]});
   const d=[];for(let i=2;i*i<=v;i++)if(v%i===0)d.push(i);
   if(d.length)f.push(()=>{const x=R.pick(d);return [R.chance(.5)?`${x} · ${v/x}`:`${v/x} · ${x}`]});
   return R.pick(f)()[0];
 }
 const POW=[];for(let a=2;a<=12;a++)for(let n=2;n<=7;n++){const v=a**n;if(v<=150)POW.push({v,t:`${a}${sup(n)}`})}
-function exprPow(R,v){
-  const p=POW.filter(o=>o.v===v).map(o=>o.t);
-  if(p.length&&R.chance(.7))return R.pick(p);
-  const o=[];if(Number.isInteger(Math.sqrt(v))&&v<=100)o.push(`√${v*v}`);
-  for(let i=2;i*i<v;i++)if(v%i===0)o.push(`${i} · ${v/i}`);
-  if(!o.length)o.push(...(p.length?p:[String(v)]));
-  return R.pick(o);
+const POWX={};
+const pw=(a,n)=>n===1?String(a):`${a}${sup(n)}`;
+function powForms(v){
+  if(POWX[v])return POWX[v];const main=[],extra=[];
+  for(let a=2;a<=12;a++)for(let n=2;n<=8;n++)if(a**n===v){
+    main.push(pw(a,n));
+    for(let p=1;p<n;p++)extra.push(`${pw(a,p)} · ${pw(a,n-p)}`);
+    for(let q=1;q<=3;q++)extra.push(`${pw(a,n+q)} : ${pw(a,q)}`);
+    for(let k=2;k<=5;k++)if((a*k)**n<=3000)extra.push(`${pw(a*k,n)} : ${pw(k,n)}`);
+    if(n>=3)for(let p=1;p<n-1;p++)for(let q=1;p+q<n;q++)extra.push(`${pw(a,p)} · ${pw(a,q)} · ${pw(a,n-p-q)}`);
+    for(let p=2;p<n;p++)if(n%p===0&&n/p>=2)extra.push(`(${pw(a,p)})${sup(n/p)}`);
+    for(let b=2;b<=12;b++)if(b!==a&&v%(b**n)===0){const c=Math.round(Math.pow(v/(b**n),1/n));if(c>=2&&c**n*b**n===v&&b<c)extra.push(`${pw(b,n)} · ${pw(c,n)}`)}
+  }
+  if(v<=50)extra.push(`√${v*v}`);
+  const near=[];for(let a=2;a<=14;a++)for(let n=2;n<=8;n++){const pv=a**n;if(pv<=200&&pv!==v&&Math.abs(pv-v)<=(v>=100?25:20))near.push([pw(a,n),pv])}
+  for(const [t,pv] of near)extra.push(pv<v?`${t} + ${v-pv}`:`${t} − ${pv-v}`);
+  for(let i=2;i*i<=v;i++)if(v%i===0)extra.push(`${i} · ${v/i}`);
+  for(let a=2;a<=12;a++)for(let n=2;n<=8;n+=2)if(a**n===v)extra.push(`(−${a})${sup(n)}`);
+  for(const [d,dt] of [[4,"2²"],[8,"2³"],[9,"3²"],[16,"2⁴"],[25,"5²"],[27,"3³"]]){if(v*d<=1000)extra.push(`${v*d} : ${dt}`);if(v%d===0&&v>d)extra.push(`${dt} · ${v/d}`)}
+  for(let i=2;i*i<=v;i++)if(v%i===0){const j=v/i;if(POW.some(o=>o.v===i)||POW.some(o=>o.v===j)){const ti=POW.find(o=>o.v===i),tj=POW.find(o=>o.v===j);extra.push(`${ti?ti.t:i} · ${tj?tj.t:j}`)}}
+  return POWX[v]={main:main.length?main:[String(v)],extra:[...new Set(extra)]};
 }
+function exprPow(R,v){const F=powForms(v);return R.chance(.35)?R.pick(F.main):R.pick(F.extra.length?F.extra:F.main)}
 function quadTxt(p,q,factored){
   if(factored){
     if(p===0&&q===0)return "x² = 0";
@@ -1287,14 +1304,25 @@ const TV_HARD=[
  ["tg(−45°)","−1","tg — непарна: tg(−45°) = −tg 45° = −1"],["cos(−π)","−1","cos(−π) = cos π = −1"],
  ["cos 120°","−1/2","cos 120° = cos(180° − 60°) = −cos 60° = −1/2"],["sin 210°","−1/2","sin 210° = sin(180° + 30°) = −sin 30° = −1/2"],["sin(−30°)","−1/2","sin(−30°) = −sin 30° = −1/2"],
  ["cos 240°","−1/2","cos 240° = cos(180° + 60°) = −cos 60° = −1/2"],["cos 2π/3","−1/2","2π/3 = 120°, cos 120° = −1/2"]];
-function trigItem(R,ok,hard,T){const pool=hard?TV_EASY.concat(TV_HARD,TV_HARD):TV_EASY;const c=pool.filter(x=>(x[1]===T)===ok);const [t,v,w]=R.pick(c);return{t,ok,why:ok?w:`${w}, а не ${T}`}}
+const frOf=t=>{const m=/^(−?)(\d+)(?:\/(\d+))?$/.exec(t);return m?new Fr((m[1]?-1:1)*+m[2],m[3]?+m[3]:1):null};
+let TV_COMBO=null;
+function trigCombos(){if(TV_COMBO)return TV_COMBO;const at=TV_EASY.filter(x=>frOf(x[1])&&!/π/.test(x[0])).map(x=>[x[0],frOf(x[1])]);const out=[];
+  for(const [a,va] of at)for(const [b,vb] of at){if(a===b)continue;
+    for(const [op,fn] of [["+",(x,y)=>x.add(y)],["−",(x,y)=>x.sub(y)],["·",(x,y)=>x.mul(y)]]){if(op!=="−"&&a>b)continue;const v=fn(va,vb);if(Math.abs(v.v)>2)continue;
+      out.push([`${a} ${op} ${b}`,OWL.qText(v),`${a} = ${OWL.qText(va)}, ${b} = ${OWL.qText(vb)}, тому вираз = ${OWL.qText(v)}`])}}
+  for(const [a,va] of at){const v=va.mul(2);out.push([`2 · ${a}`,OWL.qText(v),`${a} = ${OWL.qText(va)}, тому 2 · ${OWL.qText(va)} = ${OWL.qText(v)}`])}
+  return TV_COMBO=out}
+function trigItem(R,ok,hard,T){const single=hard?TV_EASY.concat(TV_HARD,TV_HARD):TV_EASY;const pool=R.chance(.5)?single:trigCombos();let c=pool.filter(x=>(x[1]===T)===ok);if(!c.length)c=single.filter(x=>(x[1]===T)===ok);const [t,v,w]=R.pick(c);return{t,ok,why:ok?w:`${w}, а не ${T}`}}
 /* прості логарифми: log_b(b^k) = k і кілька легких комбінацій */
 const easyP=(b,e)=>e<=2||(e===3&&(b<=5||b===10))||(e===4&&b<=3);
 const lg=(b,x)=>b===10?`lg ${x}`:`log${sub(b)} ${x}`;
 function logItem(R,ok,T){
   for(let g=0;g<100;g++){
     let v=T;if(!ok){v=R.pick([1,2,3,4].filter(x=>x!==T))}
-    const b=R.pick([2,3,4,5,6,7,8,9,10]),f=R.int(0,3);let t,why;
+    const b=R.pick([2,3,4,5,6,7,8,9,10]),f=R.int(0,5);let t,why;
+    if(f===4){if(v<2)continue;const v1=R.int(1,v-1),v2=v-v1,b2=R.pick([2,3,4,5,10].filter(x=>x!==b));if(!easyP(b,v1)||!easyP(b2,v2))continue;
+      t=`${lg(b,b**v1)} + ${lg(b2,b2**v2)}`;why=`${lg(b,b**v1)} = ${v1}, ${lg(b2,b2**v2)} = ${v2}, разом ${v}`;return{t,ok,why:why+(ok?"":` (а треба ${T})`)}}
+    if(f===5){if(v%2||!easyP(b,v/2))continue;t=`2 · ${lg(b,b**(v/2))}`;why=`${lg(b,b**(v/2))} = ${v/2}, а 2 · ${v/2} = ${v}`;return{t,ok,why:why+(ok?"":` (а треба ${T})`)}}
     if(f===0||f===3){if(!easyP(b,v))continue;t=lg(b,b**v);why=`${t} = ${v}, бо ${b}${sup(v)} = ${b**v}`}
     else if(f===1){if(v<2||!easyP(b,v-1))continue;t=`${lg(b,b**(v-1))} + 1`;why=`${lg(b,b**(v-1))} = ${v-1}, а ${v-1} + 1 = ${v}`}
     else{if(!easyP(b,v+1))continue;t=`${lg(b,b**(v+1))} − 1`;why=`${lg(b,b**(v+1))} = ${v+1}, а ${v+1} − 1 = ${v}`}
@@ -1310,7 +1338,8 @@ const LEVELS=[
   gen:(R,s,ok)=>{const v=ok?s.T:s.T+R.pick([-3,-2,-1,1,2,3]);const t=exprFor(R,v);return{t,ok,why:`${t} = ${v}${ok?"":`, а треба ${s.T}`}`}}},
  {name:"Відсотки",trains:"відсоток від числа",skill:"pct-change",
   setup:(R,md)=>({T:R.pick(md?[15,35,45,60,75]:[10,20,30,40,50])}),rule:s=>`Лови вирази, що дорівнюють ${s.T}`,
-  gen:(R,s,ok)=>{const v=ok?s.T:s.T+R.pick([-5,-2,2,5,10]);const ps=[5,10,20,25,40,50,75,100].filter(p=>(v*100)%p===0&&v*100/p<=1000);const p=R.pick(ps);const t=R.chance(.12)?`${v}% від 100`:`${p}% від ${v*100/p}`;return{t,ok,why:`${t} = ${v}${ok?"":`, а треба ${s.T}`}`}}},
+  gen:(R,s,ok)=>{const v=ok?s.T:s.T+R.pick([-5,-2,2,5,10]);const ps=[1,2,3,4,5,6,8,10,12,15,20,25,30,35,40,45,50,60,70,75,80,90,100,120,125,150,175,200,250,300,400,500].filter(p=>(v*100)%p===0&&v*100/p<=2000&&v*100/p>=2);const p=R.pick(ps),base=v*100/p;
+    const dec=p%10===0||p===5||p===25||p===75||p===15;const t=R.chance(.08)?`${v}% від 100`:(dec&&R.chance(.35)?`${base} · ${fmtNum(p/100)}`:`${p}% від ${base}`);return{t,ok,why:`${t} = ${v}${ok?"":`, а треба ${s.T}`}`}}},
  {name:"Відʼємні числа",trains:"дії з відʼємними числами",skill:"decimals",
   setup:()=>({}),rule:()=>"Лови вирази з відʼємним значенням",
   gen:(R,s,ok)=>{for(;;){const a=R.int(1,9),b=R.int(1,9),f=R.int(0,5);let t,v;
@@ -1319,7 +1348,7 @@ const LEVELS=[
     if(v!==0&&(v<0)===ok)return{t,ok,why:`${t} = ${fmtNum(v)}${v<0?" — відʼємне":" — додатне"}`}}}},
  {name:"Дроби",trains:"основна властивість дробу",skill:"frac-ops",
   setup:(R,md)=>{const f=R.pick(md?[[2,3],[3,5],[4,7],[5,6]]:[[1,2],[1,3],[3,4],[2,5]]);return{n:f[0],d:f[1]}},rule:s=>`Лови дроби, що дорівнюють ${s.n}/${s.d}`,
-  gen:(R,s,ok)=>{const k=R.int(2,7);let a=s.n*k,b=s.d*k;if(!ok){if(R.chance(.5))a+=R.pick([-1,1]);else b+=R.pick([-1,1]);if(a*s.d===b*s.n)b+=1}
+  gen:(R,s,ok)=>{const k=R.int(2,s.d>=6?26:30);let a=s.n*k,b=s.d*k;if(!ok){if(R.chance(.5))a+=R.pick([-1,1]);else b+=R.pick([-1,1]);if(a*s.d===b*s.n)b+=1}
     return{t:`${a}/${b}`,ok,why:ok?`${a}/${b} = ${s.n}/${s.d} (скорочуємо на ${k})`:`${a}/${b} ≠ ${s.n}/${s.d}, бо ${a} · ${s.d} ≠ ${b} · ${s.n}`}}},
  {name:"Порівняння з 1",trains:"порівняння дробів",skill:"frac-ops",
   setup:()=>({}),rule:()=>"Лови вирази, значення яких більші за 1",
@@ -1330,29 +1359,29 @@ const LEVELS=[
     else{const a=R.int(1,4),b=R.int(2,5);if(a===b)continue;v=new Fr(a*a,b*b);t=`(${a}/${b})²`}
     if(v.cmp(1)!==0&&(v.cmp(1)>0)===ok)return{t,ok,why:`${t} = ${v.isDecimal()?fmtNum(v.v):OWL.qText(v)} ${v.cmp(1)>0?">":"<"} 1`}}}},
  {name:"Степені",trains:"значення степеня",skill:"powers",
-  setup:(R,md)=>({T:R.pick(md?[64,81,100,125,128]:[16,25,27,36,49,64])}),rule:s=>`Лови вирази, що дорівнюють ${s.T}`,
+  setup:(R,md)=>({T:R.pick(md?[64,81,100,144,128]:[16,25,27,36,49,64])}),rule:s=>`Лови вирази, що дорівнюють ${s.T}`,
   gen:(R,s,ok)=>{let v=s.T;if(!ok){const c=[...new Set(POW.map(o=>o.v))].filter(x=>x!==s.T&&x>=s.T/2.5&&x<=s.T*2.5);v=R.pick(c)}const t=exprPow(R,v);return{t,ok,why:`${t} = ${v}${ok?"":`, а треба ${s.T}`}`}}},
  {name:"Корені",trains:"квадратний і кубічний корінь",skill:"roots",
   setup:()=>({}),rule:()=>"Лови вирази, значення яких — ціле число",
   gen:(R,s,ok)=>{
     if(ok){const f=R.int(0,2);
-      if(f===0){const k=R.int(2,13);return{t:`√${k*k}`,ok,why:`√${k*k} = ${k}, бо ${k}² = ${k*k}`}}
-      if(f===1){const k=R.int(2,5);return{t:`∛${k**3}`,ok,why:`∛${k**3} = ${k}, бо ${k}³ = ${k**3}`}}
-      const [a,b]=R.pick([[2,8],[3,12],[2,18],[5,20],[3,27],[2,32],[2,50],[6,24],[3,48],[7,28],[5,45],[10,40]]);return{t:`√${a} · √${b}`,ok,why:`√${a} · √${b} = √${a*b} = ${Math.sqrt(a*b)}`}}
+      if(f===0){const k=R.int(2,20);return{t:`√${k*k}`,ok,why:`√${k*k} = ${k}, бо ${k}² = ${k*k}`}}
+      if(f===1){const k=R.int(2,6);return{t:`∛${k**3}`,ok,why:`∛${k**3} = ${k}, бо ${k}³ = ${k**3}`}}
+      const [a,b]=R.pick([[2,8],[3,12],[2,18],[5,20],[3,27],[2,32],[2,50],[6,24],[3,48],[7,28],[5,45],[10,40],[2,72],[3,75],[6,54],[8,18],[2,98],[5,80],[7,63],[3,108]]);return{t:`√${a} · √${b}`,ok,why:`√${a} · √${b} = √${a*b} = ${Math.sqrt(a*b)}`}}
     const f=R.int(0,2);
     if(f===0){let n;do{n=R.int(2,90)}while(Number.isInteger(Math.sqrt(n)));const k=Math.floor(Math.sqrt(n));return{t:`√${n}`,ok,why:`${k}² = ${k*k} < ${n} < ${(k+1)**2} = ${k+1}², тому √${n} не ціле`}}
     if(f===1){const n=R.pick([4,9,10,16,25,30,50,100]);return{t:`∛${n}`,ok,why:`${n} не є кубом цілого числа, тому ∛${n} не ціле`}}
     const [a,b]=R.pick([[2,3],[3,5],[2,5],[6,2],[3,7],[5,6]]);return{t:`√${a} · √${b}`,ok,why:`√${a} · √${b} = √${a*b} — не ціле`}}},
  {name:"Лінійні рівняння",trains:"корінь лінійного рівняння",skill:"linear-eq",slow:1.35,tip:"Підстав число замість x і перевір, чи виходить рівність. Напр., x + 3 = 7 → x = 4.",
   setup:(R,md)=>({X:md?R.int(2,9):R.int(1,5)}),rule:s=>`Лови рівняння з коренем x = ${s.X}`,
-  gen:(R,s,ok)=>{let v=s.X;if(!ok){do{v=s.X+R.pick([-2,-1,1,2])}while(v<1)}const b=R.int(1,6);
-    const f=[()=>`x + ${b} = ${v+b}`,()=>`${b} + x = ${v+b}`,()=>`2x = ${2*v}`,()=>`3x = ${3*v}`,()=>`x + x = ${2*v}`];
+  gen:(R,s,ok)=>{let v=s.X;if(!ok){do{v=s.X+R.pick([-2,-1,1,2])}while(v<1)}const b=R.int(1,12),k=R.int(2,6);
+    const f=[()=>`x + ${b} = ${v+b}`,()=>`${b} + x = ${v+b}`,()=>`${k}x = ${k*v}`,()=>`x + x = ${2*v}`,()=>`2x + ${b} = ${2*v+b}`,()=>`${v+b} − x = ${b}`];
     if(v%2===0)f.push(()=>`x : 2 = ${v/2}`);
     if(v>b)f.push(()=>`x − ${b} = ${v-b}`);else f.push(()=>`x − 1 = ${v-1}`);
     const t=R.pick(f)();return{t,ok,why:`${t}: x = ${v}${ok?"":`, а треба x = ${s.X}`}`}}},
  {name:"Квадратні рівняння",trains:"корені квадратного рівняння",skill:"quad-eq",slow:1.35,tip:"Підстав число замість x: якщо вийшло 0 = 0, це корінь.",
   setup:(R,md)=>({r:R.pick(md?[-2,-1,2,3,4]:[1,2,3])}),rule:s=>`Лови рівняння, що мають корінь x = ${fmtNum(s.r)}`,
-  gen:(R,s,ok)=>{const fac=R.chance(.3);let p,q;if(ok){p=s.r;q=R.int(-5,5)}else do{p=R.int(-5,5);q=R.int(-5,5)}while(p===s.r||q===s.r);
+  gen:(R,s,ok)=>{const fac=R.chance(.3);let p,q;if(ok){p=s.r;q=R.int(-7,7);if(R.chance(.5))[p,q]=[q,p]}else do{p=R.int(-6,6);q=R.int(-6,6)}while(p===s.r||q===s.r);
     const t=quadTxt(p,q,fac);return{t,ok,why:`${t}: ${rootsWord(p,q)}`}}},
  {name:"Тригонометричні вирази (Ч1)",trains:"таблиця значень, радіани, період, формули зведення",skill:"trig-values",slow:1.35,tip:"π = 180°, тому π/6 = 30°, π/2 = 90°. За таблицею: sin 30° = cos 60° = 1/2, sin 90° = cos 0° = 1, sin 0° = cos 90° = 0.",
   setup:(R,md)=>({hard:!!md,T:R.pick(md?["1","0","1/2","−1","−1/2"]:["1","0","1/2"])}),rule:s=>`Лови вирази, що дорівнюють ${s.T}`,gen:(R,s,ok)=>trigItem(R,ok,s.hard,s.T)},
@@ -1636,13 +1665,12 @@ function makeItem(G,ok,forced){
   let it;
   if(forced)it=forced;
   else{
-    /* вирази в раунді не повторюються: спершу шукаємо ще не бачений */
-    if(!G.seen)G.seen={};const key=String(ok)+"|"+(G.st&&G.st.i!=null?G.st.i:"");
-    const seen=G.seen[key]||(G.seen[key]=new Set());
+    /* вирази в раунді не повторюються: шукаємо ще не бачений (спільно для всіх правил раунду) */
+    if(!G.seenAll)G.seenAll=new Set(),G.recent=[];const seen=G.seenAll;
     const onScreen=t=>G.items.some(o=>o.t===t);
-    let tries=0;do{it=G.L.gen(G.R,G.st,ok);tries++}while(tries<80&&(seen.has(it.t)||onScreen(it.t)));
-    if(seen.has(it.t)||onScreen(it.t)){seen.clear();tries=0;do{it=G.L.gen(G.R,G.st,ok);tries++}while(tries<40&&(onScreen(it.t)||it.t===G.lastT))}
-    seen.add(it.t);G.lastT=it.t;
+    let tries=0;do{it=G.L.gen(G.R,G.st,ok);tries++}while(tries<200&&(seen.has(it.t)||onScreen(it.t)));
+    if(seen.has(it.t)||onScreen(it.t)){tries=0;do{it=G.L.gen(G.R,G.st,ok);tries++}while(tries<80&&(onScreen(it.t)||G.recent.includes(it.t)))}
+    seen.add(it.t);G.recent.push(it.t);if(G.recent.length>14)G.recent.shift();G.lastT=it.t;
   }
   return{id:G.nextId++,t:it.t,ok:it.ok,why:it.why,rule:ruleText(G),nx:.5,p:0,state:"fall",w:0,h:0,fs:0,age:0};
 }
