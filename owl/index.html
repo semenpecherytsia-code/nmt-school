@@ -448,6 +448,7 @@ h1[tabindex="-1"]:focus,h2[tabindex="-1"]:focus{outline:none}
 .chapter.special .n{color:#7a3fe0}.chapter.special .tr svg,.chapter.special .sum svg,.chapter.special p svg{width:16px;height:16px;vertical-align:-3px}
 .chapter.special h3{color:#7a3fe0}
 @media (prefers-reduced-motion:reduce){.rar-ultra{animation:none}}
+.q-gem{color:#7a3fe0;font-weight:800;margin-left:4px;white-space:nowrap}
 
 </style>
 <div id="app">
@@ -1398,17 +1399,17 @@ const COSMETICS=[
 ];
 const QUESTS={
   d:[
-    {id:"arcade1",text:"Пройди рівень аркади",goal:1,ev:"arcadeWin",rw:30},
-    {id:"catch20",text:"Впіймай 20 правильних хмаринок",goal:20,ev:"catch",rw:40},
-    {id:"review3",text:"Розбери 3 помилки після раунду",goal:3,ev:"review",rw:30},
-    {id:"stars3d",text:"Пройди будь-який рівень на 3 зірки",goal:1,ev:"stars3",rw:50},
-    {id:"streak8",text:"Зроби серію з 8 правильних поспіль",goal:1,ev:"streak8",rw:40},
+    {id:"arcade1",text:"Пройди рівень аркади",goal:1,ev:"arcadeWin",rw:30,gem:1},
+    {id:"catch20",text:"Впіймай 20 правильних хмаринок",goal:20,ev:"catch",rw:40,gem:1},
+    {id:"review3",text:"Розбери 3 помилки після раунду",goal:3,ev:"review",rw:30,gem:1},
+    {id:"stars3d",text:"Пройди будь-який рівень на 3 зірки",goal:1,ev:"stars3",rw:50,gem:1},
+    {id:"streak8",text:"Зроби серію з 8 правильних поспіль",goal:1,ev:"streak8",rw:40,gem:1},
   ],
   w:[
-    {id:"arcade5",text:"Пройди 5 рівнів аркади",goal:5,ev:"arcadeWin",rw:60},
-    {id:"catch150",text:"Впіймай 150 правильних хмаринок",goal:150,ev:"catch",rw:80},
-    {id:"stars3w",text:"Збери 3 зірки на трьох рівнях",goal:3,ev:"stars3",rw:80},
-    {id:"mix2",text:"Пройди 2 рівні-мікси",goal:2,ev:"mix",rw:70},
+    {id:"arcade5",text:"Пройди 5 рівнів аркади",goal:5,ev:"arcadeWin",rw:60,gem:3},
+    {id:"catch150",text:"Впіймай 150 правильних хмаринок",goal:150,ev:"catch",rw:80,gem:3},
+    {id:"stars3w",text:"Збери 3 зірки на трьох рівнях",goal:3,ev:"stars3",rw:80,gem:4},
+    {id:"mix2",text:"Пройди 2 рівні-мікси",goal:2,ev:"mix",rw:70,gem:2},
   ],
 };
 function seededPick(arr,n,seed){let h=0;for(const c of seed)h=(h*31+c.charCodeAt(0))>>>0;const a=arr.slice(),out=[];while(out.length<n&&a.length){h=(h*1103515245+12345)>>>0;out.push(a.splice(h%a.length,1)[0])}return out}
@@ -1559,8 +1560,8 @@ function claimQuest(S,key,now){
   if(!q)return{ok:false,reason:"stale"};
   if(S.quests.claimed[key])return{ok:false,reason:"claimed"};
   if(q.p<q.goal)return{ok:false,reason:"notdone"};
-  S.quests.claimed[key]=true;S.coins+=q.rw;
-  return{ok:true,coins:q.rw};
+  S.quests.claimed[key]=true;S.coins+=q.rw;const gem=q.gem||0;S.gems=(S.gems||0)+gem;
+  return{ok:true,coins:q.rw,gems:gem};
 }
 const claimableCount=(S,now)=>{const v=questView(S,now);return[...v.d,...v.w].filter(q=>!q.claimed&&q.p>=q.goal).length};
 
@@ -2159,7 +2160,7 @@ view_click:{
 }
 const topbar=(back,title)=>`<div class="topbar">${back?`<button class="icon-btn" data-act="back" aria-label="Назад">${IC.back}</button>`:""}${title?`<h2>${title}</h2>`:""}<div class="sp"></div>
   <span class="pill" aria-label="Монети: ${S.coins}">${IC.coin}<span id="coinN">${S.coins}</span></span>
-  <span class="pill gem-pill" aria-label="Кристали: ${S.gems||0}" title="Кристали — за щоденний і щотижневий рівні">${IC.gem}<span id="gemN">${S.gems||0}</span></span>
+  <span class="pill gem-pill" aria-label="Кристали: ${S.gems||0}" title="Кристали — за особливі рівні та квести">${IC.gem}<span id="gemN">${S.gems||0}</span></span>
   <button class="icon-btn" data-act="quests" aria-label="Квести">${IC.quest}<span class="badge" id="qBadge" hidden></span></button>
   <button class="icon-btn" data-act="shop" aria-label="Оформлення">${IC.shop}</button>
   ${CL&&CL.enabled?`<button class="icon-btn acc-btn${CL.user?" on":""}" data-act="account" aria-label="Акаунт: ${CL.user?esc(CL.user.email):"гість"}" title="${CL.user?esc(CL.user.email):"Акаунт"}">${IC.user}</button>`:""}
@@ -2230,7 +2231,7 @@ function specialCards(){return `<section class="chapter special"><h3>Особл�
   return `<div class="lv sp sp-${k}"><span class="n">${k==="d"?"Щоденний рівень · легкий":"Щотижневий рівень · складніший"}</span><span class="t">${esc(I.name)}</span>
    <span class="tr">${I.left>0?`До ${I.left} ${IC.gem} · оновиться через ${resetIn(k)}`:`Усі кристали зібрано · новий через ${resetIn(k)}`}</span>
    <div class="row">${starsHtml(I.stars)}</div><div class="btn-row"><button class="btn btn-primary" style="min-height:42px;padding:6px 12px" data-act="special" data-k="${k}">Грати</button></div></div>`}).join("")}</div>
-   <p class="small muted" style="margin:6px 2px 0">Щоденний: ${GEM_RW.d.slice(1).join(" / ")} ${IC.gem} за 1 / 2 / 3 зірки. Щотижневий: ${GEM_RW.w.slice(1).join(" / ")} ${IC.gem}. Кристали — для ультралегендарних скінів.</p></section>`}
+   <p class="small muted" style="margin:6px 2px 0">Щоденний: ${GEM_RW.d.slice(1).join(" / ")} ${IC.gem} за 1 / 2 / 3 зірки. Щотижневий: ${GEM_RW.w.slice(1).join(" / ")} ${IC.gem}. Ще кристали дають квести. Вони потрібні для ультралегендарних скінів.</p></section>`}
 function playSpecial(k){const I=specialInfo(k);startRound(I.level,{special:k,math:I.math})}
 function setHint(){const set=S.settings;return set.control==="buttons"?"Спокійний режим: хмаринки зʼявляються по одній, ти натискаєш «Ловити» або «Пропустити».":`Від появи хмаринки до кошика: ${ARC.FALL[set.speed]} с. ${set.speed===2?"На цій швидкості пропущена правильна хмаринка забирає сердечко.":""}`}
 RENDER.map=function(){
@@ -2471,13 +2472,13 @@ function openQuests(tab="d"){
     const end=tab==="d"?ST.endOfDay(now()):ST.weekStart(now())+7*ST.DAY;const left=end-now();
     const h=Math.floor(left/3600000),mi=Math.floor(left%3600000/60000);
     setModalHtml(m,`<h2>Квести</h2><div class="seg" role="tablist" style="width:100%"><button role="tab" data-act="t" data-v="d" aria-pressed="${tab==="d"}" aria-selected="${tab==="d"}">Щоденні</button><button role="tab" data-act="t" data-v="w" aria-pressed="${tab==="w"}" aria-selected="${tab==="w"}">Тижневі</button></div>
-     ${list.map(q=>`<div class="qrow"><div class="top"><span>${q.text}</span><span style="flex:none" class="small">${IC.coin.replace("<svg",'<svg width="16" height="16" style="vertical-align:-3px"')} ${q.rw}</span></div><div class="qbar" role="progressbar" aria-valuemin="0" aria-valuemax="${q.goal}" aria-valuenow="${q.p}"><i style="width:${q.p/q.goal*100}%"></i></div>
+     ${list.map(q=>`<div class="qrow"><div class="top"><span>${q.text}</span><span style="flex:none" class="small">${IC.coin.replace("<svg",'<svg width="16" height="16" style="vertical-align:-3px"')} ${q.rw}${q.gem?` <span class="q-gem">${IC.gem.replace("<svg",'<svg width="16" height="16" style="vertical-align:-3px"')} ${q.gem}</span>`:""}</span></div><div class="qbar" role="progressbar" aria-valuemin="0" aria-valuemax="${q.goal}" aria-valuenow="${q.p}"><i style="width:${q.p/q.goal*100}%"></i></div>
        <div class="top small"><span class="muted">${q.p} / ${q.goal}</span>${q.claimed?'<span class="tag good">Отримано</span>':`<button class="btn btn-forest" style="min-height:40px" data-act="claim" data-key="${q.key}" ${q.p>=q.goal?"":"disabled"}>Забрати</button>`}</div></div>`).join("")}
      <p class="small muted">Нові ${tab==="d"?"щоденні":"тижневі"} квести через ${h>=24?`${Math.floor(h/24)} д ${h%24} год`:`${h} год ${mi} хв`}.</p><button class="btn btn-ghost" data-act="close">Закрити</button>`);
   };
   m.acts={t:b=>{tab=b.dataset.v;render()},close:()=>closeModal(),
     claim:b=>{if(b.disabled)return;b.disabled=true;const r=ST.claimQuest(S,b.dataset.key,now());
-      if(r.ok){const st=S.coins-r.coins;save();flyCoins(b,r.coins,st);toast(`+${r.coins} монет`)}else if(r.reason==="stale")toast("Квести оновились — ось новий набір.");
+      if(r.ok){const st=S.coins-r.coins;save();flyCoins(b,r.coins,st);toast(`+${r.coins} монет${r.gems?` і +${r.gems} ${r.gems===1?"кристал":r.gems<5?"кристали":"кристалів"}`:""}`);refreshBadges()}else if(r.reason==="stale")toast("Квести оновились — ось новий набір.");
       render()}};
   render();
 }
