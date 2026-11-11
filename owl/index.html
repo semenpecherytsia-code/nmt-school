@@ -431,6 +431,23 @@ h1[tabindex="-1"]:focus,h2[tabindex="-1"]:focus{outline:none}
 .adm-tbl{overflow-x:auto;margin-bottom:14px;border:2px solid var(--line);border-radius:14px;background:#fff}.adm-tbl table{border-collapse:collapse;width:100%;font-size:14px}.adm-tbl th,.adm-tbl td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}.adm-tbl th{background:#fff4e6;font-weight:700}
 .gate input[type=password]{flex:1 1 220px;min-height:46px;border:2px solid var(--line);border-radius:12px;padding:8px 12px;font:inherit;background:#fff}
 .adm-tbl,.adm-kpi{flex:none}
+/* кристали й ультралегендарні */
+.gem-ic{width:22px;height:22px;filter:drop-shadow(0 1px 1px rgba(80,20,160,.4))}
+.pill.gem-pill{color:#5a1fb8}
+.reward-total.gem-total b{color:#7a3fe0}.reward-total.gem-total svg{width:34px;height:34px}
+.btn-gem{background:linear-gradient(180deg,#b57cff,#7a3fe0);box-shadow:0 4px 0 #5221a8}
+.btn-gem:hover{background:linear-gradient(180deg,#c491ff,#8a4ff0)}
+@keyframes holo{0%{background-position:0% 50%}100%{background-position:200% 50%}}
+.rar-ultra{background:linear-gradient(90deg,#7a3fe0,#38c8ff,#ff6ad5,#7a3fe0);background-size:200% 100%;animation:holo 3s linear infinite;color:#fff;box-shadow:0 0 0 2px #e2ccff;font-size:9.5px;letter-spacing:.02em;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:inline-block}
+.item[data-rar="ultra"]{border-color:#c9a8ff;background:linear-gradient(180deg,#fff,#f5edff)}
+.item[data-rar="ultra"] canvas.prev{box-shadow:0 0 0 2px #c9a8ff,0 0 20px rgba(150,80,255,.5)}
+.stage[data-rar="ultra"]{border-color:#b48cff;box-shadow:0 6px 0 #dcc8ff,0 18px 44px rgba(140,70,255,.4)}
+.rar-txt-ultra{color:#7a3fe0}
+.chapter.special .lv{border-color:#c9a8ff;background:linear-gradient(180deg,#fff,#f6efff)}
+.chapter.special .lv.sp-w{border-color:#a77bff;background:linear-gradient(180deg,#fbf7ff,#ece0ff)}
+.chapter.special .n{color:#7a3fe0}.chapter.special .tr svg,.chapter.special .sum svg,.chapter.special p svg{width:16px;height:16px;vertical-align:-3px}
+.chapter.special h3{color:#7a3fe0}
+@media (prefers-reduced-motion:reduce){.rar-ultra{animation:none}}
 
 </style>
 <div id="app">
@@ -1365,11 +1382,19 @@ const COSMETICS=[
   {id:"bg-night",kind:"bg",name:"Зоряна ніч",price:460,rar:"epic",desc:"Місяць і тисячі зірок"},
   {id:"bg-aurora",kind:"bg",name:"Північне сяйво",price:750,rar:"legend",desc:"Зелено-фіолетові хвилі в нічному небі"},
   {id:"bg-candy",kind:"bg",name:"Цукерковий світ",price:850,rar:"legend",desc:"Дерева-льодяники й рожеві пагорби"},
+  {id:"basket-chrome",kind:"basket",name:"Хромований кошик",price:30,cur:"gem",rar:"ultra",desc:"Дзеркальний метал, по якому біжить відблиск"},
+  {id:"basket-crystal",kind:"basket",name:"Кришталевий кошик",price:45,cur:"gem",rar:"ultra",desc:"Аметистові кристали, що іскряться"},
+  {id:"owl-chrome",kind:"owl",name:"Хромована сова",price:35,cur:"gem",rar:"ultra",desc:"Сріблясте дзеркальне пірʼя з відблиском"},
+  {id:"owl-galaxy",kind:"owl",name:"Космічна сова",price:50,cur:"gem",rar:"ultra",desc:"Галактика на грудях і мерехтливі зорі"},
+  {id:"bg-crystal",kind:"bg",name:"Кришталеві гори",price:30,cur:"gem",rar:"ultra",desc:"Фіолетові гори й світні кристали"},
+  {id:"bg-galaxy",kind:"bg",name:"Галактика",price:45,cur:"gem",rar:"ultra",desc:"Туманності, планета з кільцем і тисячі зір"},
   {id:"persona-none",kind:"persona",name:"Без особистості",price:0,rar:"common",desc:"Звичайна сова у вибраному скіні"},
   {id:"persona-frank",kind:"persona",name:"Сова-Франкенштейн",price:500,rar:"epic",desc:"Зелена, зі шрамом, болтами й рівним чубчиком"},
   {id:"persona-zombie",kind:"persona",name:"Зомбі-сова",price:550,rar:"epic",desc:"Сонне око, пластир і латки на пірʼї"},
   {id:"persona-ghost",kind:"persona",name:"Сова-привид",price:850,rar:"legend",desc:"Напівпрозора, ширяє над землею, очі світяться"},
   {id:"persona-vampire",kind:"persona",name:"Сова-вампір",price:1000,rar:"legend",desc:"Плащ із високим комірцем і маленькі ікла"},
+  {id:"persona-robot",kind:"persona",name:"Кібер-сова",price:55,cur:"gem",rar:"ultra",desc:"Металевий корпус, антена й неонові очі"},
+  {id:"persona-phoenix",kind:"persona",name:"Сова-фенікс",price:70,cur:"gem",rar:"ultra",desc:"Вогняне пірʼя, полумʼяний чубчик і крила"},
 ];
 const QUESTS={
   d:[
@@ -1393,7 +1418,8 @@ function questsFor(now){
 }
 
 function defaults(){return{
-  v:2,coins:0,created:Date.now(),
+  v:2,coins:0,gems:0,created:Date.now(),
+  special:{d:{key:"",stars:0},w:{key:"",stars:0}},
   settings:{speed:1,math:0,control:"move",calmTimer:false,volume:0.7,muted:false,motion:"system"},
   arcade:{stars:{},open:1,tutDone:false,results:0,seen:[]},
   cosm:{owned:["basket-classic","owl-brown","bg-summer","persona-none"],eq:{basket:"basket-classic",owl:"owl-brown",bg:"bg-summer",persona:"persona-none"}},
@@ -1412,7 +1438,8 @@ const str=(v,max,def)=>typeof v==="string"&&v.length<=max?v:def;
 function validateV2(o){
   if(!isObj(o)||o.v!==2)return null;
   const D=defaults(),S=D;
-  S.coins=int(o.coins,0,1e7,0);S.created=num(o.created,0,1e14,Date.now());
+  S.coins=int(o.coins,0,1e7,0);S.gems=int(o.gems,0,1e6,0);
+  if(isObj(o.special))for(const k of ["d","w"]){const v=o.special[k];if(isObj(v))S.special[k]={key:str(v.key,20,""),stars:int(v.stars,0,3,0)}}S.created=num(o.created,0,1e14,Date.now());
   if(isObj(o.settings)){const s=o.settings;S.settings={speed:int(s.speed,0,2,1),math:int(s.math,0,1,0),control:["move","buttons"].includes(s.control)?s.control:"move",calmTimer:!!s.calmTimer,volume:num(s.volume,0,1,0.7),muted:!!s.muted,motion:["system","reduce","full"].includes(s.motion)?s.motion:"system"}}
   if(isObj(o.arcade)){const st={};if(isObj(o.arcade.stars))for(const [k,v] of Object.entries(o.arcade.stars)){const i=+k;if(Number.isInteger(i)&&i>=0&&i<12&&Number.isInteger(v)&&v>=0&&v<=3)st[i]=v}
     S.arcade={stars:st,open:int(o.arcade.open,1,12,1),tutDone:!!o.arcade.tutDone,results:int(o.arcade.results,0,1e7,0),seen:Array.isArray(o.arcade.seen)?[...new Set(o.arcade.seen.filter(x=>Number.isInteger(x)&&x>=0&&x<12))]:[]}}
@@ -1703,6 +1730,10 @@ const PAL={
   "persona-zombie":{body:"#8fa38a",dark:"#5e6e5a",belly:"#d3d9bd",disc:"#c3cca9",feather:"#a7b59f",iris:"#9ccc1e",persona:"zombie"},
   "persona-ghost":{body:"#eef3ff",dark:"#cdd8f2",belly:"#ffffff",disc:"#ffffff",feather:"#dfe7fa",iris:"#7fd8ff",eyeWhite:"#26304f",persona:"ghost"},
   "persona-vampire":{body:"#4a2b5e",dark:"#2e1840",belly:"#e8dcef",disc:"#ddd0e8",feather:"#7b5a90",iris:"#d61f2c",persona:"vampire"},
+  "owl-chrome":{body:"#c9d1da",dark:"#7d8896",belly:"#f4f7fa",disc:"#e8edf2",feather:"#a9b3bf",grad:["#f4f7fb","#8a96a5"],iris:"#2a6bd6",chrome:true,sparkle:true},
+  "owl-galaxy":{body:"#3a1d6e",dark:"#22104a",belly:"#c9b6f2",disc:"#e2d6ff",feather:"#8f6fd6",grad:["#6a3fc8","#1d0f45"],iris:"#ff5fd2",pattern:"stars",nebula:true,sparkle:true},
+  "persona-robot":{body:"#9aa6b4",dark:"#5d6977",belly:"#d7dde4",disc:"#2b3440",feather:"#7f8b99",grad:["#c3ccd6","#6e7a88"],iris:"#38f2ff",eyeWhite:"#0c1520",persona:"robot",chrome:true},
+  "persona-phoenix":{body:"#e8541c",dark:"#a8320d",belly:"#ffd36b",disc:"#ffe7a3",feather:"#ff9a3c",grad:["#ffcf3a","#d8361a"],iris:"#7a1a00",persona:"phoenix"},
   "owl-gold":{body:"#f2b630",dark:"#c98a10",belly:"#fff3c4",disc:"#ffe9a8",feather:"#f7d57a",grad:["#ffe07a","#e09a12"],iris:"#8a4f00",sparkle:true,acc:["bowtie"],accCol:"#c0262d"},
 };
 const BG={
@@ -1715,6 +1746,8 @@ const BG={
   "bg-night":{sky:["#0f1640","#273a7a","#4a5a9a"],sun:null,moon:"#fff4c8",far:"#2c3e5c",trees:["#14263a","#1b3148","#0f1e2e"],hill:"#22394f",near:"#2a4560",flower:["#fff6c8","#9fd8ff"],stars:true},
   "bg-aurora":{sky:["#06122b","#143a5a","#2c6a78"],sun:null,moon:"#e8fbff",far:"#173a44",trees:["#0c2a2e","#123a3a","#082024"],hill:"#1c4a48",near:"#235a52",flower:["#b8ffe9","#e0b8ff"],stars:true,aurora:true},
   "bg-candy":{sky:["#ffc3e1","#ffe3f1","#fff6fb"],sun:"#fff0a0",far:"#ffd0e8",trees:["#ff8fc6","#8fe3d1","#c8a8ff"],hill:"#ffb3da",near:"#ffc8e5",flower:["#ffffff","#fff07a"],round:true,lolli:true},
+  "bg-galaxy":{sky:["#0a0420","#2a0f5c","#5a2a8a"],sun:null,far:"#2a1a4a",trees:["#1a0d33","#26124a","#120826"],hill:"#2d1a52",near:"#3a2266",flower:["#ffd6ff","#9fe7ff"],stars:true,nebula:true,planet:true},
+  "bg-crystal":{sky:["#1b2a6b","#5a4bb0","#b89cf0"],sun:null,moon:"#f2e8ff",far:"#4a3a8a",trees:["#6a4fc8","#3fc8e0","#b06ae8"],hill:"#5a46a8",near:"#6c56bc",flower:["#e6fbff","#ffc8f5"],stars:true,mountains:true,mcol:["#8f7ad8","#7a64c8","#a08ce0"],crystals:true,round:true},
   "bg-evening":{sky:["#3c4f86","#c27aa0","#f6c08a"],sun:"#ffe0a0",far:"#5f7d82",trees:["#24453f","#2d544a","#1b3632"],hill:"#3d6b4f",near:"#4c7c55",flower:["#fff6d8","#ffd166"]},
 };
 const BASK={
@@ -1726,6 +1759,8 @@ const BASK={
   "basket-sunflower":{fill:"#c48a48",line:"#a06a30",rim:"#dba264",inner:"#7a4719",deco:"sunflower"},
   "basket-flowers":{fill:"#d9a76a",line:"#b5844a",rim:"#e8c08c",inner:"#8a5a2a",deco:"flowers"},
   "basket-pumpkin":{fill:"#f28c28",line:"#c96a12",rim:"#f7a447",inner:"#8a4a10",deco:"pumpkin",ribs:true},
+  "basket-chrome":{fill:"#b9c3ce",line:"#7d8896",rim:"#eef2f6",inner:"#56606c",grad:["#f4f7fb","#7f8b99"],deco:"chrome"},
+  "basket-crystal":{fill:"#7a4fd8",line:"#4e2aa8",rim:"#c8b0ff",inner:"#2c1468",grad:["#b48cff","#4a22b8"],deco:"crystal"},
   "basket-gold":{fill:"#f2b630",line:"#c98a10",rim:"#ffe07a",inner:"#9a6a00",grad:["#ffe07a","#d99512"],deco:"gold"},
   "basket-star":{fill:"#2b3a7a",line:"#1c275a",rim:"#4a5bb0",inner:"#121a40",grad:["#3a4c99","#1f2a5e"],deco:"star"},
 };
@@ -1778,13 +1813,16 @@ function Renderer(cv){
     if(P.sun||P.moon){const sg=g.createRadialGradient(sx,sy,8,sx,sy,90);const gc=P.moon?"220,235,255":"255,236,160";sg.addColorStop(0,`rgba(${gc},${P.moon?.35:.9})`);sg.addColorStop(1,`rgba(${gc},0)`);g.fillStyle=sg;g.beginPath();g.arc(sx,sy,90,0,7);g.fill()}
     const rnd=(s=>()=>{s=(s*16807)%2147483647;return(s-1)/2147483646})(11);
     if(P.stars){for(let i=0;i<W*H/2200;i++){const x=rnd()*W,y=rnd()*H*.6,r=.6+rnd()*1.6;g.globalAlpha=.4+rnd()*.6;g.fillStyle="#fff";g.beginPath();g.arc(x,y,r,0,7);g.fill()}g.globalAlpha=1}
+    if(P.nebula){for(const [nx,ny,nr,c] of [[.25,.22,.32,"190,90,255"],[.7,.15,.28,"90,160,255"],[.55,.38,.3,"255,90,200"]]){const ng=g.createRadialGradient(nx*W,ny*H,4,nx*W,ny*H,nr*Math.max(W,H));ng.addColorStop(0,`rgba(${c},.38)`);ng.addColorStop(1,`rgba(${c},0)`);g.fillStyle=ng;g.fillRect(0,0,W,H)}}
+    if(P.planet){const px=W*.2,py=H*.2,pr=Math.min(W,H)*.06+10;const pg=g.createLinearGradient(px-pr,py-pr,px+pr,py+pr);pg.addColorStop(0,"#ffd9a8");pg.addColorStop(1,"#c0527a");g.fillStyle=pg;g.beginPath();g.arc(px,py,pr,0,7);g.fill();
+      g.strokeStyle="rgba(255,230,200,.8)";g.lineWidth=3;g.beginPath();g.ellipse(px,py,pr*1.8,pr*.45,-.35,0,7);g.stroke()}
     if(P.aurora){for(let k=0;k<3;k++){const y0=H*(.16+k*.08),col=["rgba(80,255,180,","rgba(120,200,255,","rgba(200,120,255,"][k];
       const ag=g.createLinearGradient(0,y0-40,0,y0+60);ag.addColorStop(0,col+"0)");ag.addColorStop(.5,col+".45)");ag.addColorStop(1,col+"0)");g.fillStyle=ag;g.beginPath();g.moveTo(0,y0+60);
       for(let x=0;x<=W+20;x+=20)g.lineTo(x,y0+Math.sin(x/W*Math.PI*2.2+k*1.3)*H*.05);for(let x=W+20;x>=0;x-=20)g.lineTo(x,y0+70+Math.sin(x/W*Math.PI*2.2+k*1.3)*H*.05);g.closePath();g.fill()}}
     if(P.moon){g.fillStyle="rgba(255,250,220,.18)";g.beginPath();g.arc(sx,sy,60,0,7);g.fill();g.fillStyle=P.moon;g.beginPath();g.arc(sx,sy,30,0,7);g.fill();g.fillStyle=P.sky[0];g.globalAlpha=.9;g.beginPath();g.arc(sx+13,sy-8,26,0,7);g.fill();g.globalAlpha=1}
     else if(P.sun){g.fillStyle=P.sun;g.beginPath();g.arc(sx,sy,36,0,7);g.fill()}
     if(P.clouds){g.fillStyle="rgba(255,255,255,.55)";for(let i=0;i<6;i++){const cx=rnd()*W,cy=H*(.08+rnd()*.3),cw=120+rnd()*160;g.beginPath();g.ellipse(cx,cy,cw/2,cw/6,0,0,7);g.fill();g.beginPath();g.ellipse(cx-cw*.15,cy-cw*.1,cw/4,cw/6,0,0,7);g.fill()}}
-    if(P.mountains){for(const [mx,mh,col] of [[.18,.36,"#7a95ad"],[.5,.44,"#6b87a1"],[.82,.34,"#7f9ab1"],[.34,.28,"#8ea7bc"],[.68,.3,"#8aa3b8"]]){const bx=mx*W,top=H*(.68-mh),bw=W*.32;
+    if(P.mountains){for(const [mx,mh,col] of [[.18,.36,"#7a95ad"],[.5,.44,"#6b87a1"],[.82,.34,"#7f9ab1"],[.34,.28,"#8ea7bc"],[.68,.3,"#8aa3b8"]].map((m,i)=>P.mcol?[m[0],m[1],P.mcol[i%3]]:m)){const bx=mx*W,top=H*(.68-mh),bw=W*.32;
       g.fillStyle=col;g.beginPath();g.moveTo(bx-bw/2,H*.7);g.lineTo(bx,top);g.lineTo(bx+bw/2,H*.7);g.closePath();g.fill();
       g.fillStyle="#fbfdff";g.beginPath();g.moveTo(bx,top);g.lineTo(bx-bw*.11,top+H*.07);g.lineTo(bx-bw*.04,top+H*.06);g.lineTo(bx,top+H*.08);g.lineTo(bx+bw*.05,top+H*.055);g.lineTo(bx+bw*.11,top+H*.07);g.closePath();g.fill()}}
     const hill=(y0,amp,col,ph)=>{g.fillStyle=col;g.beginPath();g.moveTo(0,H);for(let x=0;x<=W+20;x+=16)g.lineTo(x,y0+Math.sin(x/W*Math.PI*1.5+ph)*amp+Math.sin(x/150+ph*3)*amp*.25);g.lineTo(W,H);g.closePath();g.fill()};
@@ -1795,7 +1833,11 @@ function Renderer(cv){
       if(!P.round&&rnd()<.55){pine(x,ty,s*1.6,col);if(P.snow){g.fillStyle="rgba(255,255,255,.9)";g.beginPath();g.moveTo(x-s*.18,ty-s*1.6*.62);g.lineTo(x,ty-s*1.6*.86);g.lineTo(x+s*.18,ty-s*1.6*.62);g.closePath();g.fill()}}
       else if(P.lolli){g.fillStyle="#fff";g.fillRect(x-2,ty-s*.4,4,s*.7);g.fillStyle=col;g.beginPath();g.arc(x,ty-s*.6,s*.42,0,7);g.fill();g.strokeStyle="rgba(255,255,255,.75)";g.lineWidth=3;g.beginPath();for(let a=0;a<12;a+=.3){const r=s*.035*a;g.lineTo(x+Math.cos(a)*r,ty-s*.6+Math.sin(a)*r)}g.stroke()}
       else{g.fillStyle=col;g.beginPath();g.arc(x,ty-s*.4,s*.6,0,7);g.fill();if(P.snow){g.fillStyle="rgba(255,255,255,.85)";g.beginPath();g.arc(x,ty-s*.7,s*.32,Math.PI,0);g.fill()}}}
-    hill(H*.8,H*.028,P.hill,1.7);hill(H*.885,H*.016,P.near,2.6);
+    hill(H*.8,H*.028,P.hill,1.7);
+    if(P.crystals){const cols=["#b48cff","#7fe8ff","#ff9ff0","#d6c8ff"];for(let x=10;x<W;x+=40+rnd()*60){const cy=H*.83+rnd()*H*.03,ch=(18+rnd()*34)*V.SC,cw=ch*.32,col=cols[Math.floor(rnd()*4)];
+      for(const [dx,k] of [[-cw*.9,.7],[0,1],[cw*.9,.6]]){const hh=ch*k;g.fillStyle=col;g.beginPath();g.moveTo(x+dx-cw/2,cy);g.lineTo(x+dx-cw/2,cy-hh*.75);g.lineTo(x+dx,cy-hh);g.lineTo(x+dx+cw/2,cy-hh*.75);g.lineTo(x+dx+cw/2,cy);g.closePath();g.fill();
+        g.fillStyle="rgba(255,255,255,.45)";g.beginPath();g.moveTo(x+dx-cw/2,cy-hh*.75);g.lineTo(x+dx,cy-hh);g.lineTo(x+dx,cy);g.lineTo(x+dx-cw/2,cy);g.closePath();g.fill()}}}
+    hill(H*.885,H*.016,P.near,2.6);
     for(let i=0;i<W*H/2600;i++){const x=rnd()*W,y=H*.84+rnd()*H*.16;g.fillStyle=P.flower[rnd()<.6?0:1];g.beginPath();g.arc(x,y,1.2+rnd()*1.6,0,7);g.fill()}
     if(P.snow){g.fillStyle="rgba(255,255,255,.85)";for(let i=0;i<W*H/5000;i++){g.beginPath();g.arc(rnd()*W,rnd()*H*.8,1+rnd()*2,0,7);g.fill()}}
     V.bg=b;
@@ -1820,11 +1862,17 @@ function Renderer(cv){
     ctx.rotate(walk*.05);ctx.translate(0,bob);
     if(PS==="vampire"){ctx.fillStyle="#1a0d24";ctx.beginPath();ctx.moveTo(-30,-92);ctx.quadraticCurveTo(-62,-40,-48,4);ctx.lineTo(48,4);ctx.quadraticCurveTo(62,-40,30,-92);ctx.closePath();ctx.fill();
       ctx.fillStyle="#a3122a";ctx.beginPath();ctx.moveTo(-24,-86);ctx.quadraticCurveTo(-50,-40,-40,0);ctx.lineTo(40,0);ctx.quadraticCurveTo(50,-40,24,-86);ctx.closePath();ctx.fill()}
+    if(PS==="phoenix"){const fl=V.reduce?0:Math.sin(o.t*8);for(const [sd,len,col] of [[-1,1,"#ff7a1a"],[1,1,"#ff7a1a"],[-1,.75,"#ffcf3a"],[1,.75,"#ffcf3a"]]){ctx.fillStyle=col;ctx.beginPath();ctx.moveTo(sd*18,-30);ctx.quadraticCurveTo(sd*(70*len),-50+fl*4,sd*(58*len),-110*len+fl*6);ctx.quadraticCurveTo(sd*40,-60,sd*10,-40);ctx.closePath();ctx.fill()}
+      ctx.save();ctx.shadowColor="rgba(255,140,30,.9)";ctx.shadowBlur=30;ell(0,-55,30,30,"rgba(255,150,40,.25)");ctx.restore()}
     if(PS!=="ghost"){ell(-14,-3+walk*2,9,5,PS==="zombie"?"#b9a36a":"#ef9a2a");ell(14,-3-walk*2,9,5,PS==="zombie"?"#b9a36a":"#ef9a2a")}
     let bodyFill=P.body;if(P.grad){bodyFill=ctx.createLinearGradient(0,-125,0,0);bodyFill.addColorStop(0,P.grad[0]);bodyFill.addColorStop(1,P.grad[1])}
     ell(0,-46,40,45,bodyFill);
     if(PS==="ghost"){ctx.fillStyle=bodyFill;ctx.beginPath();ctx.moveTo(-40,-40);ctx.lineTo(-40,-2);for(let k=0;k<5;k++){const x0=-40+k*16;ctx.quadraticCurveTo(x0+8,(k%2?4:12)+(V.reduce?0:Math.sin(o.t*4+k)*2),x0+16,-2)}ctx.lineTo(40,-40);ctx.closePath();ctx.fill()}
     ell(0,-38,27,30,P.belly);
+    if(P.nebula){ctx.save();ctx.beginPath();ctx.ellipse(0,-38,27,30,0,0,Math.PI*2);ctx.clip();const ng=ctx.createRadialGradient(-8,-44,2,0,-38,34);ng.addColorStop(0,"rgba(255,120,220,.75)");ng.addColorStop(.5,"rgba(140,90,255,.55)");ng.addColorStop(1,"rgba(60,30,140,.2)");ctx.fillStyle=ng;ctx.fillRect(-30,-70,60,64);
+      for(const [a,b,r] of [[-12,-50,1.4],[8,-30,1.2],[14,-56,1.6],[-6,-22,1.1],[0,-42,1.8]])ell(a,b,r,r,"#fff");ctx.restore()}
+    if(PS==="robot"){ctx.strokeStyle="#5d6977";ctx.lineWidth=1.6;for(const yy of [-54,-40,-26]){ctx.beginPath();ctx.moveTo(-22,yy);ctx.lineTo(22,yy);ctx.stroke()}ell(-10,-47,2.4,2.4,"#38f2ff");ell(10,-33,2.4,2.4,V.reduce||Math.sin(o.t*4)>0?"#ff5f5f":"#7a2a2a")}
+    if(PS==="phoenix"){ctx.fillStyle="#ffb02e";for(let k=0;k<3;k++){ctx.beginPath();ctx.moveTo(-18+k*12,-58+k*2);ctx.quadraticCurveTo(-12+k*12,-48,-18+k*12,-40);ctx.quadraticCurveTo(-24+k*12,-48,-18+k*12,-58+k*2);ctx.fill()}}
     if(P.pattern==="sailor"){ctx.save();ctx.beginPath();ctx.ellipse(0,-46,40,45,0,0,Math.PI*2);ctx.clip();for(let k=0;k<6;k++){ctx.fillStyle="#2e4a7d";ctx.fillRect(-42,-40+k*9,84,4)}ctx.restore();ell(0,-38,22,26,P.belly)}
     if(PS==="frank"){ctx.strokeStyle="#3d5a34";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-4,-62);ctx.lineTo(4,-16);ctx.stroke();for(let k=0;k<5;k++){const yy=-58+k*9,xx=-3.3+k*1.6;ctx.beginPath();ctx.moveTo(xx-5,yy);ctx.lineTo(xx+5,yy+1);ctx.stroke()}}
     if(PS==="zombie"){ell(-20,-30,9,7,"#6f8268");ell(22,-50,7,9,"#768a6f");ctx.strokeStyle="#4b5a46";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(14,-20);ctx.lineTo(22,-12);ctx.moveTo(22,-20);ctx.lineTo(14,-12);ctx.stroke()}
@@ -1843,15 +1891,19 @@ function Renderer(cv){
     if(PS==="frank"){ctx.save();ctx.beginPath();ctx.ellipse(0,-82,38,32,0,0,Math.PI*2);ctx.clip();ctx.fillStyle="#22261f";ctx.beginPath();ctx.moveTo(-40,-120);ctx.lineTo(40,-120);ctx.lineTo(40,-104);for(let x=40;x>=-40;x-=8)ctx.lineTo(x-4,x%16?-100:-104);ctx.closePath();ctx.fill();ctx.restore();
       ctx.strokeStyle="#3d5a34";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-22,-104);ctx.lineTo(-6,-98);ctx.stroke();for(let k=0;k<3;k++){ctx.beginPath();ctx.moveTo(-19+k*5,-106);ctx.lineTo(-17+k*5,-97);ctx.stroke()}}
     if(PS==="zombie"){ctx.save();ctx.translate(18,-102);ctx.rotate(.5);ctx.fillStyle="#f3ecd8";ctx.fillRect(-22,-5,44,10);ctx.strokeStyle="#c9bf9f";ctx.lineWidth=1.2;for(let k=-18;k<22;k+=6){ctx.beginPath();ctx.moveTo(k,-5);ctx.lineTo(k,5);ctx.stroke()}ctx.restore()}
+    if(PS==="robot"){ctx.strokeStyle="#5d6977";ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(0,-112);ctx.lineTo(0,-130);ctx.stroke();ctx.save();ctx.shadowColor="#38f2ff";ctx.shadowBlur=V.reduce?6:8+6*Math.abs(Math.sin(o.t*3));ell(0,-133,5,5,"#38f2ff");ctx.restore();
+      ctx.strokeStyle="rgba(40,50,60,.5)";ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(-30,-100);ctx.lineTo(30,-100);ctx.stroke()}
+    if(PS==="phoenix"){const fl=V.reduce?0:Math.sin(o.t*9)*3;for(const [dx,h,col] of [[-12,26,"#ff7a1a"],[0,36,"#ffcf3a"],[12,26,"#ff7a1a"]]){ctx.fillStyle=col;ctx.beginPath();ctx.moveTo(dx-8,-108);ctx.quadraticCurveTo(dx-4,-108-h*.6,dx+fl*.5,-108-h);ctx.quadraticCurveTo(dx+4,-108-h*.6,dx+8,-108);ctx.closePath();ctx.fill()}}
     if(PS==="vampire"){ctx.fillStyle=P.dark;ctx.beginPath();ctx.moveTo(-16,-112);ctx.lineTo(0,-98);ctx.lineTo(16,-112);ctx.closePath();ctx.fill()}
     if(P.pattern==="stars"){for(const [sx,sy,r] of [[-26,-92,1.6],[24,-98,1.3],[-30,-60,1.4],[31,-52,1.8],[-22,-20,1.3],[27,-28,1.5],[-8,-108,1.2],[10,-62,1]])ell(sx,sy,r,r,"#fff6c8");
       const tw=V.reduce?1:.6+.4*Math.sin(o.t*3);ctx.globalAlpha=tw;star4(ctx,-33,-40,4,"#ffe680");star4(ctx,34,-78,3.5,"#ffe680");ctx.globalAlpha=1}
     ctx.fillStyle=P.dark;ctx.beginPath();ctx.moveTo(-30,-100);ctx.lineTo(-36,-122);ctx.lineTo(-16,-108);ctx.fill();ctx.beginPath();ctx.moveTo(30,-100);ctx.lineTo(36,-122);ctx.lineTo(16,-108);ctx.fill();
+    if(P.chrome){ctx.save();ctx.beginPath();ctx.ellipse(0,-46,40,45,0,0,Math.PI*2);ctx.ellipse(0,-82,38,32,0,0,Math.PI*2);ctx.clip();const sh=V.reduce?0:((o.t*.5)%2)-1;const gx=sh*90;const lg=ctx.createLinearGradient(gx-30,-130,gx+30,10);lg.addColorStop(0,"rgba(255,255,255,0)");lg.addColorStop(.5,"rgba(255,255,255,.75)");lg.addColorStop(1,"rgba(255,255,255,0)");ctx.fillStyle=lg;ctx.fillRect(-50,-130,100,135);ctx.restore()}
     ell(-15,-84,17,16,P.disc);ell(15,-84,17,16,P.disc);
     for(const sd of [-1,1]){const ex=sd*15,ey=-85;
       if(o.mood===2){ctx.strokeStyle="#2b1906";ctx.lineWidth=3;ctx.lineCap="round";ctx.beginPath();ctx.moveTo(ex-7,ey-3*sd);ctx.lineTo(ex+7,ey+3*sd);ctx.stroke();continue}
       if(o.mood===1){ctx.strokeStyle="#2b1906";ctx.lineWidth=3.2;ctx.lineCap="round";ctx.beginPath();ctx.arc(ex,ey+3,7,Math.PI+.3,-.3);ctx.stroke();continue}
-      ctx.save();ctx.translate(ex,ey);ctx.scale(1,o.blink>0?.12:1);ell(0,0,11,11,P.eyeWhite||"#fff");if(PS==="ghost"){ctx.save();ctx.shadowColor="#7fd8ff";ctx.shadowBlur=12;ell(o.dir*2,1,5,5,P.iris);ctx.restore()}else{ell(o.dir*2,1,7.5,7.5,P.iris||"#5a3410");ell(o.dir*2,1,4.2,4.2,"#140a02")}ell(o.dir*2-2.5,-2.5,2.2,2.2,"#fff");ctx.restore();
+      ctx.save();ctx.translate(ex,ey);ctx.scale(1,o.blink>0?.12:1);ell(0,0,11,11,P.eyeWhite||"#fff");if(PS==="ghost"||PS==="robot"){ctx.save();ctx.shadowColor=P.iris;ctx.shadowBlur=12;ell(o.dir*2,1,5,5,P.iris);ctx.restore()}else{ell(o.dir*2,1,7.5,7.5,P.iris||"#5a3410");ell(o.dir*2,1,4.2,4.2,"#140a02")}ell(o.dir*2-2.5,-2.5,2.2,2.2,"#fff");ctx.restore();
       if(PS==="zombie"&&sd<0){ell(ex,ey-7,12.5,7,P.disc);ctx.strokeStyle=P.dark;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(ex-11,ey-2);ctx.lineTo(ex+11,ey-1);ctx.stroke()}}
     if(!PS){ell(-25,-72,5,3,"rgba(255,120,120,.45)");ell(25,-72,5,3,"rgba(255,120,120,.45)")}
     else if(PS==="ghost"){ell(-25,-72,5,3,"rgba(140,190,255,.4)");ell(25,-72,5,3,"rgba(140,190,255,.4)")}
@@ -1887,6 +1939,10 @@ function Renderer(cv){
       ctx.fillStyle="#3a1f05";for(const sd of [-1,1]){ctx.beginPath();ctx.moveTo(sd*16,-14);ctx.lineTo(sd*8,-14);ctx.lineTo(sd*12,-20);ctx.closePath();ctx.fill()}ctx.beginPath();ctx.moveTo(-14,-4);ctx.lineTo(14,-4);ctx.lineTo(10,2);ctx.lineTo(4,-1);ctx.lineTo(0,3);ctx.lineTo(-4,-1);ctx.lineTo(-10,2);ctx.closePath();ctx.fill()}
     if(B.deco==="gold"){ctx.strokeStyle="#fff3b0";ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(0,-26,44,7,0,Math.PI*1.1,Math.PI*1.6);ctx.stroke();const tt=o.t;for(let k=0;k<4;k++){const a=V.reduce?.8:.3+.7*Math.abs(Math.sin(tt*2.5+k*1.7));ctx.globalAlpha=a;star4(ctx,-36+k*24,-38+(k%2)*30,2.6,"#fff3b0");ctx.globalAlpha=1}
       ell(0,-8,6,6,"#d7263d");ell(-1.5,-9.5,1.8,1.8,"#ff9aa8")}
+    if(B.deco==="chrome"||B.deco==="crystal"){ctx.save();ctx.beginPath();ctx.moveTo(-46,-26);ctx.lineTo(46,-26);ctx.lineTo(34,6);ctx.quadraticCurveTo(0,12,-34,6);ctx.closePath();ctx.clip();const sh=V.reduce?0:((o.t*.6)%2)-1;const gx=sh*70;const lg=ctx.createLinearGradient(gx-20,-30,gx+20,12);lg.addColorStop(0,"rgba(255,255,255,0)");lg.addColorStop(.5,"rgba(255,255,255,.8)");lg.addColorStop(1,"rgba(255,255,255,0)");ctx.fillStyle=lg;ctx.fillRect(-50,-30,100,44);ctx.restore()}
+    if(B.deco==="crystal"){const cols=["#7fe8ff","#ff9ff0","#d6c8ff","#b48cff"];for(const [cx,h,k] of [[-34,16,0],[-20,22,1],[-6,14,2],[10,24,3],[26,18,0],[38,12,1]]){ctx.fillStyle=cols[k];ctx.beginPath();ctx.moveTo(cx-5,-28);ctx.lineTo(cx-5,-28-h*.7);ctx.lineTo(cx,-28-h);ctx.lineTo(cx+5,-28-h*.7);ctx.lineTo(cx+5,-28);ctx.closePath();ctx.fill();ctx.fillStyle="rgba(255,255,255,.5)";ctx.beginPath();ctx.moveTo(cx-5,-28-h*.7);ctx.lineTo(cx,-28-h);ctx.lineTo(cx,-28);ctx.lineTo(cx-5,-28);ctx.closePath();ctx.fill()}
+      const tt=o.t;for(let k=0;k<3;k++){ctx.globalAlpha=V.reduce?.8:.3+.7*Math.abs(Math.sin(tt*2.3+k*2));star4(ctx,-28+k*28,-50+(k%2)*6,3,"#fff");ctx.globalAlpha=1}}
+    if(B.deco==="chrome"){ell(0,-8,6,6,"#38c8ff");ell(-1.5,-9.5,1.8,1.8,"#d8f6ff")}
     if(B.deco==="star"){ctx.fillStyle="#fff4c8";ctx.beginPath();ctx.arc(30,-40,7,0,7);ctx.fill();ctx.fillStyle=B.inner;ctx.beginPath();ctx.arc(33,-42,6,0,7);ctx.fill()}
     ctx.restore();
   }
@@ -2015,6 +2071,7 @@ OWL.getState=()=>S;
 
 /* ---------------- icons ---------------- */
 const IC={
+  gem:'<svg class="gem-ic" viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="gmA" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f0d6ff"/><stop offset=".45" stop-color="#b06cff"/><stop offset="1" stop-color="#5a1fb8"/></linearGradient><clipPath id="gmC"><path d="M16 2l11 8-4 18H9L5 10z"/></clipPath></defs><path d="M16 3.5l11 8-4 17H9l-4-17z" fill="#3d1288" transform="translate(0 1)"/><path d="M16 2l11 8-4 18H9L5 10z" fill="url(#gmA)" stroke="#4a17a0" stroke-width="1.2" stroke-linejoin="round"/><path d="M5 10h22M16 2l-4 8 4 18 4-18z" fill="none" stroke="#e8c8ff" stroke-width=".8" opacity=".7"/><g fill="#fff" opacity=".95"><path d="M11.2 14.5l1.2-2.6 1.6 2"/><path d="M20.8 14.5l-1.2-2.6-1.6 2"/><ellipse cx="16" cy="19" rx="5" ry="5.6"/></g><circle cx="14.1" cy="17.6" r="1.5" fill="#4a17a0"/><circle cx="17.9" cy="17.6" r="1.5" fill="#4a17a0"/><path d="M15.2 20l.8 1.3.8-1.3z" fill="#ff9a1f"/><g clip-path="url(#gmC)"><rect class="coin-shine" x="-14" y="-4" width="6" height="40" fill="#fff" opacity=".5" transform="rotate(25 16 16)"/></g></svg>',
   coin:'<svg class="coin-ic" viewBox="0 0 32 32" aria-hidden="true"><defs><radialGradient id="cgA" cx="38%" cy="30%" r="75%"><stop offset="0" stop-color="#fff6c2"/><stop offset=".35" stop-color="#ffd23f"/><stop offset=".75" stop-color="#f5a300"/><stop offset="1" stop-color="#c97800"/></radialGradient><linearGradient id="cgB" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe680"/><stop offset="1" stop-color="#d98a00"/></linearGradient><clipPath id="cgC"><circle cx="16" cy="16" r="14"/></clipPath></defs><circle cx="16" cy="17" r="14.5" fill="#a85f00"/><circle cx="16" cy="16" r="14.5" fill="url(#cgA)"/><circle cx="16" cy="16" r="11" fill="none" stroke="#c98200" stroke-width="1.6" opacity=".8"/><circle cx="16" cy="16" r="9.6" fill="url(#cgB)" opacity=".55"/><path d="M16 8.6l2.2 4.6 5 .7-3.6 3.5.9 5-4.5-2.4-4.5 2.4.9-5-3.6-3.5 5-.7z" fill="#fff3b8" stroke="#c98200" stroke-width="1" stroke-linejoin="round"/><g clip-path="url(#cgC)"><rect class="coin-shine" x="-14" y="-4" width="7" height="40" fill="#fff" opacity=".55" transform="rotate(25 16 16)"/></g></svg>',
   star:on=>`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.6l2.9 6 6.5.8-4.8 4.5 1.2 6.5L12 17.2l-5.8 3.2 1.2-6.5L2.6 9.4l6.5-.8z" fill="${on?"#f2a516":"#eadcc6"}" stroke="${on?"#b97a06":"#d6c4a8"}" stroke-width="1.3" stroke-linejoin="round"/></svg>`,
   heart:lost=>`<svg viewBox="0 0 24 24" class="${lost?"lost":""}" aria-hidden="true"><path d="M12 21s-8-5.2-8-11a4.6 4.6 0 0 1 8-3.1A4.6 4.6 0 0 1 20 10c0 5.8-8 11-8 11z" fill="#d23a3a" stroke="#9a1f1f" stroke-width="1.2"/></svg>`,
@@ -2102,13 +2159,14 @@ view_click:{
 }
 const topbar=(back,title)=>`<div class="topbar">${back?`<button class="icon-btn" data-act="back" aria-label="Назад">${IC.back}</button>`:""}${title?`<h2>${title}</h2>`:""}<div class="sp"></div>
   <span class="pill" aria-label="Монети: ${S.coins}">${IC.coin}<span id="coinN">${S.coins}</span></span>
+  <span class="pill gem-pill" aria-label="Кристали: ${S.gems||0}" title="Кристали — за щоденний і щотижневий рівні">${IC.gem}<span id="gemN">${S.gems||0}</span></span>
   <button class="icon-btn" data-act="quests" aria-label="Квести">${IC.quest}<span class="badge" id="qBadge" hidden></span></button>
   <button class="icon-btn" data-act="shop" aria-label="Оформлення">${IC.shop}</button>
   ${CL&&CL.enabled?`<button class="icon-btn acc-btn${CL.user?" on":""}" data-act="account" aria-label="Акаунт: ${CL.user?esc(CL.user.email):"гість"}" title="${CL.user?esc(CL.user.email):"Акаунт"}">${IC.user}</button>`:""}
   <button class="icon-btn" data-act="settings" aria-label="Налаштування">${IC.gear}</button></div>`;
 const commonActs={account:()=>openAccount(),quests:()=>openQuests(),shop:()=>go("shop",{from:screen}),settings:()=>openSettings()};
 let coinShown=null,coinAnim=0;
-function refreshBadges(){const b=$("#qBadge");if(b){const n=ST.claimableCount(S,now());b.hidden=!n;b.textContent=n}const c=$("#coinN");if(c)c.textContent=coinAnim&&coinShown!=null?coinShown:S.coins}
+function refreshBadges(){const b=$("#qBadge");if(b){const n=ST.claimableCount(S,now());b.hidden=!n;b.textContent=n}const c=$("#coinN");if(c)c.textContent=coinAnim&&coinShown!=null?coinShown:S.coins;const gm=$("#gemN");if(gm)gm.textContent=S.gems||0}
 /* монети летять до лічильника, він плавно росте */
 function flyCoins(fromEl,amount,startVal,baseDelay=0){
   const pill=$("#coinN")&&$("#coinN").closest(".pill");if(!pill||!amount)return;
@@ -2160,6 +2218,20 @@ RENDER.home=function(){
 };
 
 /* ---------- ARCADE MAP ---------- */
+/* ---------- щоденний і щотижневий рівні (кристали) ---------- */
+const GEM_RW={d:[0,2,3,4],w:[0,8,12,15]};
+const hashStr=t=>{let h=7;for(const ch of t)h=(h*31+ch.charCodeAt(0))>>>0;return h};
+function specialInfo(k){const t=now(),key=k==="d"?ST.dayKey(t):ST.weekKey(t);const h=hashStr(key+k);
+  const level=k==="d"?h%7:6+h%6;const rec=S.special&&S.special[k]&&S.special[k].key===key?S.special[k]:{key,stars:0};
+  return{k,key,level,stars:rec.stars,math:k==="d"?0:1,name:ARCADE.LEVELS[level].name,left:GEM_RW[k][3]-GEM_RW[k][rec.stars]}}
+function resetIn(k){const t=now(),d=new Date(t);let end;if(k==="d"){end=new Date(d.getFullYear(),d.getMonth(),d.getDate()+1)}else{const ws=new Date(ST.weekStart(t));end=new Date(ws.getFullYear(),ws.getMonth(),ws.getDate()+7)}
+  const ms=end-t,h=Math.floor(ms/36e5);return h>=24?`${Math.floor(h/24)} дн ${h%24} год`:h>0?`${h} год ${Math.floor(ms/6e4)%60} хв`:`${Math.max(1,Math.floor(ms/6e4))} хв`}
+function specialCards(){return `<section class="chapter special"><h3>Особливі рівні<span class="sum">${IC.gem} кристали</span></h3><div class="levels">${["d","w"].map(k=>{const I=specialInfo(k);
+  return `<div class="lv sp sp-${k}"><span class="n">${k==="d"?"Щоденний рівень · легкий":"Щотижневий рівень · складніший"}</span><span class="t">${esc(I.name)}</span>
+   <span class="tr">${I.left>0?`До ${I.left} ${IC.gem} · оновиться через ${resetIn(k)}`:`Усі кристали зібрано · новий через ${resetIn(k)}`}</span>
+   <div class="row">${starsHtml(I.stars)}</div><div class="btn-row"><button class="btn btn-primary" style="min-height:42px;padding:6px 12px" data-act="special" data-k="${k}">Грати</button></div></div>`}).join("")}</div>
+   <p class="small muted" style="margin:6px 2px 0">Щоденний: ${GEM_RW.d.slice(1).join(" / ")} ${IC.gem} за 1 / 2 / 3 зірки. Щотижневий: ${GEM_RW.w.slice(1).join(" / ")} ${IC.gem}. Кристали — для ультралегендарних скінів.</p></section>`}
+function playSpecial(k){const I=specialInfo(k);startRound(I.level,{special:k,math:I.math})}
 function setHint(){const set=S.settings;return set.control==="buttons"?"Спокійний режим: хмаринки зʼявляються по одній, ти натискаєш «Ловити» або «Пропустити».":`Від появи хмаринки до кошика: ${ARC.FALL[set.speed]} с. ${set.speed===2?"На цій швидкості пропущена правильна хмаринка забирає сердечко.":""}`}
 RENDER.map=function(){
   const L=ARCADE.LEVELS,st=S.arcade.stars,next=Math.min(S.arcade.open-1,11);
@@ -2172,13 +2244,14 @@ RENDER.map=function(){
      <label>Керування${seg("control",["Рухати сову","Кнопки"],set.control==="move"?0:1)}</label>
      <label id="timerRow"${set.control==="buttons"?"":" hidden"}>Таймер${seg("calmTimer",["Вимкнено","10 секунд"],set.calmTimer?1:0)}</label>
    </div><p class="small muted"><span id="setHint">${setHint()}</span> <button class="link" data-act="tut">Пройти навчання ще раз</button></p></div>
+   ${specialCards()}
    ${ARCADE.CHAPTERS.map(ch=>{const got=ch.levels.reduce((s,i)=>s+(st[i]||0),0);return `<section class="chapter"><h3>${ch.name}<span class="sum">${got} / ${ch.levels.length*3} зірок</span></h3><div class="levels">
      ${ch.levels.map(i=>{const locked=i+1>openN();return `<div class="lv${i===next&&!locked?" next-up":""}" aria-disabled="${locked}">
        <span class="n">Рівень ${i+1}${i===next&&!locked?' · <span class="go-tag">Далі</span>':""}</span><span class="t">${L[i].name}</span><span class="tr">Тренує: ${L[i].trains}</span>
        <div class="row">${locked?`<span class="small muted">Відкриється після рівня ${i}</span>`:starsHtml(st[i]||0)}</div>
        <div class="btn-row">${locked?"":`<button class="btn btn-primary" style="min-height:42px;padding:6px 12px" data-act="lvl" data-i="${i}" aria-label="Грати рівень ${i+1}">Грати</button>`}</div></div>`}).join("")}</div></section>`}).join("")}
   </div>`;
-  VACTS={...commonActs,...adminActs,back:()=>go("home"),tut:()=>startRound(0,{tutorial:true,from:"map"}),
+  VACTS={...commonActs,...adminActs,back:()=>go("home"),tut:()=>startRound(0,{tutorial:true,from:"map"}),special:b=>playSpecial(b.dataset.k),
     lvl:b=>{const i=+b.dataset.i;if(!S.arcade.tutDone&&!ADMIN)startRound(0,{tutorial:true,from:"map",after:i});else playLevel(i)},
     set:b=>{const k=b.dataset.k,v=+b.dataset.v;if(k==="control")S.settings.control=v?"buttons":"move";else if(k==="calmTimer")S.settings.calmTimer=!!v;else S.settings[k]=v;save();
       b.parentNode.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x===b?"true":"false"));
@@ -2206,7 +2279,7 @@ let G=null,V=null,paused=false,keys={l:false,r:false},roundOpts=null,endTimer=nu
 function startRound(level,opts={}){
   closeAllModals();clearTimeout(endTimer);
   roundOpts={level,...opts};
-  G=ARC.newRound({level,math:S.settings.math,speed:S.settings.speed,mode:opts.tutorial?"move":S.settings.control,calmTimer:S.settings.calmTimer,tutorial:!!opts.tutorial});
+  G=ARC.newRound({level,math:opts.math!=null?opts.math:S.settings.math,speed:S.settings.speed,mode:opts.tutorial?"move":S.settings.control,calmTimer:S.settings.calmTimer,tutorial:!!opts.tutorial});
   G.rewarded=false;paused=false;keys.l=keys.r=false;V.owl.target=null;V.owl.nx=.5;
   go("game");
 }
@@ -2261,6 +2334,15 @@ function onRoundEnd(){
   const r=G.result,lv=G.level;
   if(r.tutorial){S.arcade.tutDone=true;save();sfx("win");V.confetti();V.owl.jumpT=1;
     endTimer=setTimeout(()=>{const after=roundOpts.after;if(after!=null)openIntroAfterTut(after);else{go(roundOpts.from==="home"?"home":"map");toast("Навчання пройдено! Тепер обери рівень.")}},900);return}
+  const sp=roundOpts.special;
+  if(sp){const I=specialInfo(sp);r.special=sp;r.parts=[];
+    if(r.won)r.parts.push([`За ${r.stars} ${r.stars===1?"зірку":"зірки"}`,r.coins]);else if(r.coins)r.parts.push(["За спробу",r.coins]);
+    r.gems=r.won?Math.max(0,GEM_RW[sp][r.stars]-GEM_RW[sp][I.stars]):0;r.gemsFrom=S.gems||0;S.gems=(S.gems||0)+r.gems;
+    if(r.won&&r.stars>I.stars)S.special[sp]={key:I.key,stars:r.stars};
+    r.coinsFrom=S.coins;S.coins+=r.coins;S.arcade.results++;
+    if(r.correct)ST.fireQuest(S,"catch",r.correct,now());if(r.maxStreak>=8)ST.fireQuest(S,"streak8",1,now());if(r.won&&r.stars===3)ST.fireQuest(S,"stars3",1,now());if(r.won)ST.fireQuest(S,"arcadeWin",1,now());
+    save();if(r.won){sfx("win");V.confetti();V.owl.jumpT=1.2}else{sfx("lose");V.owl.mood=2;V.owl.moodT=1.2}
+    const res={...r,levelName:ARCADE.LEVELS[lv].name};endTimer=setTimeout(()=>go("result",{res}),r.won?1100:800);return}
   const prevStars=S.arcade.stars[lv]||0;r.parts=[];
   if(r.won)r.parts.push([`За ${r.stars} ${r.stars===1?"зірку":"зірки"}`,r.coins]);else if(r.coins)r.parts.push(["За спробу",r.coins]);
   if(r.won&&!prevStars){r.parts.push(["Перше проходження",40]);r.coins+=40}
@@ -2286,14 +2368,14 @@ function pauseGame(){
 }
 /* ---------- RESULT ---------- */
 RENDER.result=function({res}){
-  const r=res,lv=r.level,L=ARCADE.LEVELS;const hasNext=(r.won||ADMIN)&&lv+1<12;
+  const r=res,lv=r.level,L=ARCADE.LEVELS;const hasNext=!r.special&&(r.won||ADMIN)&&lv+1<12;
   const bad=r.log.filter(x=>x.outcome==="caught-wrong"),miss=r.log.filter(x=>x.outcome==="missed-ok"),good=r.log.filter(x=>x.outcome==="caught-ok");
   view().innerHTML=`<div class="wrap narrow">${topbar(false)}<div class="sheet">
-    <div class="result-head"><p class="eyebrow">Рівень ${lv+1} · ${esc(r.levelName)}</p><h1>${r.won?(r.stars===3?"Бездоганно!":"Рівень пройдено!"):"Цього разу не вийшло"}</h1>
+    <div class="result-head"><p class="eyebrow">${r.special?(r.special==="d"?"Щоденний рівень":"Щотижневий рівень"):"Рівень "+(lv+1)} · ${esc(r.levelName)}</p><h1>${r.won?(r.stars===3?"Бездоганно!":"Рівень пройдено!"):"Цього разу не вийшло"}</h1>
       ${r.won?starsHtml(r.stars,"stars big-stars"):`<p class="muted">Сердечка закінчились. Розбери помилки — і спробуй ще раз.</p>`}
-      ${r.won&&lv+2<=12&&S.arcade.open===lv+2&&lv<11?`<p class="tag good">Відкрито рівень ${lv+2}</p>`:""}</div>
+      ${!r.special&&r.won&&lv+2<=12&&S.arcade.open===lv+2&&lv<11?`<p class="tag good">Відкрито рівень ${lv+2}</p>`:""}</div>
     <div class="tally"><div><b><span aria-hidden="true">✓</span>${r.correct}</b>правильно впіймано</div><div><b><span aria-hidden="true">✗</span>${r.wrong}</b>неправильно впіймано</div><div><b><span aria-hidden="true">↓</span>${r.missed}</b>пропущено правильних</div></div>
-    <div class="reward" id="rwBox"><div class="reward-total">${IC.coin}<b>+${r.coins}</b></div>${(r.parts||[]).map(([n,v])=>`<span class="rw-part">${esc(n)} <b>+${v}</b></span>`).join("")}${r.maxStreak>=5?`<span class="rw-part">Найдовша серія ×${r.maxStreak}</span>`:""}</div>
+    <div class="reward" id="rwBox"><div class="reward-total">${IC.coin}<b>+${r.coins}</b></div>${r.special?`<div class="reward-total gem-total">${IC.gem}<b>+${r.gems||0}</b></div>${r.won&&!r.gems?`<span class="rw-part">Кристали за цей результат уже отримано</span>`:""}`:""}${(r.parts||[]).map(([n,v])=>`<span class="rw-part">${esc(n)} <b>+${v}</b></span>`).join("")}${r.maxStreak>=5?`<span class="rw-part">Найдовша серія ×${r.maxStreak}</span>`:""}</div>
     <div class="btn-row"><button class="btn btn-primary btn-big" data-act="again">Ще одна спроба</button>${hasNext?`<button class="btn btn-forest btn-big" data-act="next">Наступний рівень</button>`:""}</div>
     <div class="btn-row"><button class="btn btn-ghost" data-act="review" aria-expanded="false" id="rvBtn">Розібрати${bad.length+miss.length?` (${bad.length+miss.length})`:""}</button><button class="btn btn-ghost" data-act="map">До карти</button></div>
     <div id="rvBox" hidden></div></div></div>`;
@@ -2301,7 +2383,7 @@ RENDER.result=function({res}){
      <div>${kind==="bad"?'<span class="tag bad">✗ Впіймано, але не підходить</span>':kind==="miss"?'<span class="tag warn">↓ Підходило, але пропущено</span>':'<span class="tag good">✓ Впіймано правильно</span>'}</div>
      <p class="small"><b>Правило:</b> ${mt(x.rule)}</p><p><b>Чому:</b> ${mt(x.why)}</p>
 </div>`;
-  VACTS={...commonActs,again:()=>startRound(lv),next:()=>playLevel(lv+1),map:()=>go("map"),
+  VACTS={...commonActs,again:()=>r.special?playSpecial(r.special):startRound(lv),next:()=>playLevel(lv+1),map:()=>go("map"),
     review:b=>{const box=$("#rvBox");const open=box.hidden;box.hidden=!open;b.setAttribute("aria-expanded",open);
       if(open&&!box.innerHTML){box.innerHTML=`<div class="review-list">${bad.length+miss.length?"":`<p class="notice good">Помилок немає. Ось що ти впіймав(ла):</p>`}${bad.map(x=>item(x,"bad")).join("")}${miss.map(x=>item(x,"miss")).join("")}${good.slice(0,bad.length+miss.length?3:8).map(x=>item(x,"good")).join("")}</div>`;
         if(bad.length+miss.length){ST.fireQuest(S,"review",Math.min(3,bad.length+miss.length),now());save()}}}};
@@ -2311,7 +2393,7 @@ RENDER.result=function({res}){
 
 /* ---------- SHOP ---------- */
 function shopSlot(c){const own=S.cosm.owned.includes(c.id),eq=S.cosm.eq[c.kind]===c.id;
-  return eq?'<span class="tag good">Використовується</span>':own?`<button class="btn btn-ghost" data-act="eq" data-id="${c.id}">Обрати</button>`:`<button class="btn btn-primary" data-act="buy" data-id="${c.id}" ${S.coins<c.price?"disabled":""}>${IC.coin.replace("<svg",'<svg width="18" height="18"')} ${c.price}</button>`;}
+  return eq?'<span class="tag good">Використовується</span>':own?`<button class="btn btn-ghost" data-act="eq" data-id="${c.id}">Обрати</button>`:(c.cur==="gem"?`<button class="btn btn-primary btn-gem" data-act="buy" data-id="${c.id}" ${(S.gems||0)<c.price?"disabled":""}>${IC.gem.replace("<svg",'<svg width="18" height="18"')} ${c.price}</button>`:`<button class="btn btn-primary" data-act="buy" data-id="${c.id}" ${S.coins<c.price?"disabled":""}>${IC.coin.replace("<svg",'<svg width="18" height="18"')} ${c.price}</button>`);}
 /* оновлюємо лише кнопки й позначки, без перемальовування всієї сітки */
 function refreshShop(){
   view().querySelectorAll(".item[data-try]").forEach(el=>{const c=ST.COSMETICS.find(x=>x.id===el.dataset.try);const eq=S.cosm.eq[c.kind]===c.id;
@@ -2324,13 +2406,13 @@ RENDER.shop=function(p){
   const sw={"basket-classic":"linear-gradient(#d08d4b,#9a5f28)","basket-vyshyvka":"repeating-linear-gradient(90deg,#c0262d 0 10px,#1d1d1d 10px 20px,#f6efe0 20px 30px)","basket-kalyna":"radial-gradient(circle at 30% 40%,#d7262c 0 12px,transparent 13px),radial-gradient(circle at 60% 55%,#d7262c 0 10px,transparent 11px),linear-gradient(#d08d4b,#9a5f28)",
     "owl-brown":"linear-gradient(#8a5426,#f6dfba)","owl-snow":"linear-gradient(#e9edf2,#ffffff)","owl-ginger":"linear-gradient(#c8641e,#fde4c4)","bg-summer":"linear-gradient(#7fc3ea,#79b85e)","bg-autumn":"linear-gradient(#8fc0e0,#c8642a)","bg-evening":"linear-gradient(#3c4f86,#c27aa0,#3d6b4f)"};
   const kinds={owl:"Сова",persona:"Особистості",basket:"Кошики",bg:"Фон аркади"};
-  view().innerHTML=`<div class="wrap shop-wrap">${topbar(true,"Оформлення")}<p class="muted" style="background:rgba(255,250,244,.9);border-radius:10px;padding:4px 10px;margin:0">Монети заробляються в аркаді та квестах. Наведи на скін, щоб приміряти.</p>
+  view().innerHTML=`<div class="wrap shop-wrap">${topbar(true,"Оформлення")}<p class="muted" style="background:rgba(255,250,244,.9);border-radius:10px;padding:4px 10px;margin:0">Монети — за рівні й квести, кристали — за щоденний і щотижневий рівні. Наведи на скін, щоб приміряти.</p>
    <div class="shop-layout"><div class="shop-list">
    ${Object.entries(kinds).map(([k,n])=>`<section class="chapter"><h3>${n}</h3><div class="shop">${ST.COSMETICS.filter(c=>c.kind===k).map(c=>{const own=S.cosm.owned.includes(c.id),eq=S.cosm.eq[k]===c.id;
      return `<div class="item${eq?" eq":""}" data-try="${c.id}" data-rar="${c.rar||"common"}" tabindex="-1"><canvas class="prev" data-prev="${c.id}" data-kind="${k}" role="img" aria-label="Як виглядає: ${c.name}"></canvas><span class="rar rar-${c.rar||"common"}">${RAR[c.rar||"common"]}</span><b>${c.name}</b><div class="slot" data-slot="${c.id}">${shopSlot(c)}</div></div>`}).join("")}</div></section>`).join("")}
    </div><aside class="stage" aria-label="Примірка"><canvas id="stageCv" aria-hidden="true"></canvas><div class="stage-cap"><span class="eyebrow" id="stKind">Твоя сова</span><b id="stName"></b><span class="small muted" id="stInfo"></span></div></aside></div></div>`;
   VACTS={...commonActs,back:()=>go(p.from&&RENDER[p.from]&&p.from!=="game"&&p.from!=="session"?p.from:"home"),
-    buy:b=>{const c=ST.COSMETICS.find(x=>x.id===b.dataset.id);if(S.cosm.owned.includes(c.id)||S.coins<c.price)return;S.coins-=c.price;S.cosm.owned.push(c.id);S.cosm.eq[c.kind]=c.id;if(c.kind==="owl")S.cosm.eq.persona="persona-none";save();applyCosmetics();toast(`Нове: ${c.name}`);refreshShop();if(STAGE)STAGE.owl.jumpT=.6},
+    buy:b=>{const c=ST.COSMETICS.find(x=>x.id===b.dataset.id);const gem=c.cur==="gem";if(S.cosm.owned.includes(c.id)||(gem?(S.gems||0):S.coins)<c.price)return;if(gem)S.gems-=c.price;else S.coins-=c.price;S.cosm.owned.push(c.id);S.cosm.eq[c.kind]=c.id;if(c.kind==="owl")S.cosm.eq.persona="persona-none";save();applyCosmetics();toast(`Нове: ${c.name}`);refreshShop();if(STAGE)STAGE.owl.jumpT=.6},
     eq:b=>{const c=ST.COSMETICS.find(x=>x.id===b.dataset.id);S.cosm.eq[c.kind]=c.id;if(c.kind==="owl")S.cosm.eq.persona="persona-none";save();applyCosmetics();refreshShop();if(STAGE)STAGE.owl.jumpT=.6}};
   refreshBadges();
   initPreviews();initStage();
@@ -2347,7 +2429,7 @@ function initPreviews(){
 let STAGE=null,stageTry=null;
 const KIND_NAME={basket:"Кошик",owl:"Сова",bg:"Фон",persona:"Особистість"};
 const effOwl=eq=>eq.persona&&eq.persona!=="persona-none"?eq.persona:eq.owl;
-const RAR={common:"Звичайний",rare:"Рідкісний",epic:"Епічний",legend:"Легендарний"};
+const RAR={common:"Звичайний",rare:"Рідкісний",epic:"Епічний",legend:"Легендарний",ultra:"Ультралегендарний"};
 function stageShow(id){
   if(!STAGE)return;const eq=S.cosm.eq;const c=id&&ST.COSMETICS.find(x=>x.id===id);
   STAGE.owlId=c&&c.kind==="owl"?c.id:c&&c.kind==="persona"?(c.id==="persona-none"?eq.owl:c.id):effOwl(eq);STAGE.basketId=c&&c.kind==="basket"?c.id:eq.basket;
@@ -2356,7 +2438,7 @@ function stageShow(id){
   const cc=c||ST.COSMETICS.find(x=>x.id===effOwl(eq)),rr=cc.rar||"common";
   const kEl=$("#stKind");kEl.textContent=(c?KIND_NAME[c.kind]+(own?"":" · примірка"):"Твоя сова")+" · "+RAR[rr];kEl.className="eyebrow rar-txt-"+rr;
   $("#stName").textContent=cc.name;$(".stage").dataset.rar=rr;
-  $("#stInfo").textContent=(cc.desc?cc.desc+". ":"")+(c?(S.cosm.eq[c.kind]===c.id?"Використовується":own?"Уже твоє — можна обрати":`Ціна: ${c.price} монет`):"Наведи на скін, щоб приміряти");
+  $("#stInfo").textContent=(cc.desc?cc.desc+". ":"")+(c?(S.cosm.eq[c.kind]===c.id?"Використовується":own?"Уже твоє — можна обрати":`Ціна: ${c.price} ${c.cur==="gem"?"кристалів":"монет"}`):"Наведи на скін, щоб приміряти");
   if(c&&STAGE.owl)STAGE.owl.jumpT=.35;
 }
 function initStage(){
