@@ -455,6 +455,26 @@ h1[tabindex="-1"]:focus,h2[tabindex="-1"]:focus{outline:none}
 .tally{grid-template-columns:repeat(3,minmax(0,1fr))}
 .tally div{overflow-wrap:anywhere;hyphens:auto}
 @media (max-width:400px){.tally{gap:6px}.tally div{font-size:12px;padding:8px 4px}}
+/* аудит 2: тост по центру, згортання налаштувань, компактна панель на телефоні */
+@keyframes toastIn{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
+#toast{animation:toastIn .3s var(--ease) both}
+.setcard>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-weight:800;color:var(--ink)}
+.setcard>summary::-webkit-details-marker{display:none}
+.setcard>summary::after{content:"";margin-left:auto;width:10px;height:10px;border-right:3px solid var(--amber);border-bottom:3px solid var(--amber);transform:rotate(45deg);transition:transform .25s ease;flex:none}
+.setcard[open]>summary::after{transform:rotate(-135deg)}
+.setcard[open]>summary{margin-bottom:10px}
+.set-sum{font-size:13px;font-weight:700;color:var(--muted)}
+.lv.sp .tr{white-space:normal;overflow:visible;text-overflow:clip;display:block}
+@media (max-width:560px){
+  .topbar{gap:6px}
+  .topbar h2{flex:1 1 calc(100% - 52px);font-size:26px;margin:0}
+  .topbar .icon-btn{width:40px;height:40px}
+  .topbar .icon-btn svg{width:20px;height:20px}
+  .topbar .pill{padding:4px 9px;font-size:15px}
+  .topbar .pill svg{width:18px;height:18px}
+  .topbar .acc-btn{display:none}
+  #toast{font-size:14px;padding:8px 12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));max-width:min(320px,calc(100% - 32px))}
+}
 
 </style>
 <div id="app">
@@ -1415,7 +1435,7 @@ const QUESTS={
     {id:"arcade5",text:"Пройди 5 рівнів аркади",goal:5,ev:"arcadeWin",rw:60,gem:3},
     {id:"catch150",text:"Впіймай 150 правильних хмаринок",goal:150,ev:"catch",rw:80,gem:3},
     {id:"stars3w",text:"Збери 3 зірки на трьох рівнях",goal:3,ev:"stars3",rw:80,gem:4},
-    {id:"mix2",text:"Пройди 2 рівні-мікси",goal:2,ev:"mix",rw:70,gem:2},
+    {id:"special2",text:"Пройди 2 особливі рівні (щоденний або тижневий)",goal:2,ev:"specialWin",rw:70,gem:2},
   ],
 };
 function seededPick(arr,n,seed){let h=0;for(const c of seed)h=(h*31+c.charCodeAt(0))>>>0;const a=arr.slice(),out=[];while(out.length<n&&a.length){h=(h*1103515245+12345)>>>0;out.push(a.splice(h%a.length,1)[0])}return out}
@@ -2245,12 +2265,12 @@ RENDER.map=function(){
   const set=S.settings;
   const seg=(name,vals,cur)=>`<div class="seg" role="group" aria-label="${name}">${vals.map((v,i)=>`<button data-act="set" data-k="${name}" data-v="${i}" aria-pressed="${cur===i}">${v}</button>`).join("")}</div>`;
   view().innerHTML=`<div class="wrap">${topbar(true,"Аркада")}${adminBar()}
-   <div class="card"><div class="setrow">
+   <details class="card setcard" id="setCard"${setOpen()?" open":""}><summary><span>Налаштування гри</span><span class="set-sum" id="setSum">${setSummary()}</span></summary><div class="setrow">
      <label>Швидкість хмаринок${seg("speed",ARC.SPEED_NAMES,set.speed)}</label>
      <label>Математика${seg("math",["Базова","Складніша"],set.math)}</label>
      <label>Керування${seg("control",["Рухати сову","Кнопки"],set.control==="move"?0:1)}</label>
      <label id="timerRow"${set.control==="buttons"?"":" hidden"}>Таймер${seg("calmTimer",["Вимкнено","10 секунд"],set.calmTimer?1:0)}</label>
-   </div><p class="small muted"><span id="setHint">${setHint()}</span> <button class="link" data-act="tut">Пройти навчання ще раз</button></p></div>
+   </div><p class="small muted"><span id="setHint">${setHint()}</span> <button class="link" data-act="tut">Пройти навчання ще раз</button></p></details>
    ${specialCards()}
    ${ARCADE.CHAPTERS.map(ch=>{const got=ch.levels.reduce((s,i)=>s+(st[i]||0),0);return `<section class="chapter"><h3>${ch.name}<span class="sum">${got} / ${ch.levels.length*3} зірок</span></h3><div class="levels">
      ${ch.levels.map(i=>{const locked=i+1>openN();return `<div class="lv${i===next&&!locked?" next-up":""}" aria-disabled="${locked}">
@@ -2258,13 +2278,16 @@ RENDER.map=function(){
        <div class="row">${locked?`<span class="small muted">Відкриється після рівня ${i}</span>`:starsHtml(st[i]||0)}</div>
        <div class="btn-row">${locked?"":`<button class="btn btn-primary" style="min-height:42px;padding:6px 12px" data-act="lvl" data-i="${i}" aria-label="Грати рівень ${i+1}">Грати</button>`}</div></div>`}).join("")}</div></section>`}).join("")}
   </div>`;
-  VACTS={...commonActs,...adminActs,back:()=>go("home"),tut:()=>startRound(0,{tutorial:true,from:"map"}),special:b=>playSpecial(b.dataset.k),
+  VACTS={...commonActs,...adminActs,back:()=>go("home"),tut:()=>startRound(0,{tutorial:true,from:"map"}),special:b=>{const k=b.dataset.k;if(!S.arcade.tutDone&&!ADMIN)startRound(0,{tutorial:true,from:"map",afterSp:k});else playSpecial(k)},
     lvl:b=>{const i=+b.dataset.i;if(!S.arcade.tutDone&&!ADMIN)startRound(0,{tutorial:true,from:"map",after:i});else playLevel(i)},
     set:b=>{const k=b.dataset.k,v=+b.dataset.v;if(k==="control")S.settings.control=v?"buttons":"move";else if(k==="calmTimer")S.settings.calmTimer=!!v;else S.settings[k]=v;save();
       b.parentNode.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x===b?"true":"false"));
-      const tr=$("#timerRow");if(tr)tr.hidden=S.settings.control!=="buttons";const h=$("#setHint");if(h)h.textContent=setHint()}};
+      const tr=$("#timerRow");if(tr)tr.hidden=S.settings.control!=="buttons";const h=$("#setHint");if(h)h.textContent=setHint();const sm=$("#setSum");if(sm)sm.textContent=setSummary()}};
+  const sc=$("#setCard");if(sc)sc.addEventListener("toggle",()=>{try{localStorage.setItem("owl-set-open",sc.open?"1":"0")}catch(e){}});
   refreshBadges();
 };
+function setOpen(){let v=null;try{v=localStorage.getItem("owl-set-open")}catch(e){}return v==null?!matchMedia("(max-width:700px)").matches:v==="1"}
+function setSummary(){const t=S.settings;return `${ARC.SPEED_NAMES[t.speed]} · ${["Базова","Складніша"][t.math]} · ${t.control==="buttons"?"Кнопки":"Рухати сову"}`}
 /* «Грати» одразу запускає гру, без вікна перед рівнем */
 function playLevel(i){
   if(!S.arcade.seen)S.arcade.seen=[];
@@ -2340,14 +2363,14 @@ function onRoundEnd(){
   G.rewarded=true;                               // нагорода — рівно один раз
   const r=G.result,lv=G.level;
   if(r.tutorial){S.arcade.tutDone=true;save();sfx("win");V.confetti();V.owl.jumpT=1;
-    endTimer=setTimeout(()=>{const after=roundOpts.after;if(after!=null)openIntroAfterTut(after);else{go(roundOpts.from==="home"?"home":"map");toast("Навчання пройдено! Тепер обери рівень.")}},900);return}
+    endTimer=setTimeout(()=>{const after=roundOpts.after,asp=roundOpts.afterSp;if(asp){go("map");toast("Навчання пройдено!");playSpecial(asp)}else if(after!=null)openIntroAfterTut(after);else{go(roundOpts.from==="home"?"home":"map");toast("Навчання пройдено! Тепер обери рівень.")}},900);return}
   const sp=roundOpts.special;
   if(sp){const I=specialInfo(sp);r.special=sp;r.parts=[];
     if(r.won)r.parts.push([`За ${r.stars} ${r.stars===1?"зірку":"зірки"}`,r.coins]);else if(r.coins)r.parts.push(["За спробу",r.coins]);
     r.gems=r.won?Math.max(0,GEM_RW[sp][r.stars]-GEM_RW[sp][I.stars]):0;r.gemsFrom=S.gems||0;S.gems=(S.gems||0)+r.gems;
     if(r.won&&r.stars>I.stars)S.special[sp]={key:I.key,stars:r.stars};
     r.coinsFrom=S.coins;S.coins+=r.coins;S.arcade.results++;
-    if(r.correct)ST.fireQuest(S,"catch",r.correct,now());if(r.maxStreak>=8)ST.fireQuest(S,"streak8",1,now());if(r.won&&r.stars===3)ST.fireQuest(S,"stars3",1,now());if(r.won)ST.fireQuest(S,"arcadeWin",1,now());
+    if(r.correct)ST.fireQuest(S,"catch",r.correct,now());if(r.maxStreak>=8)ST.fireQuest(S,"streak8",1,now());if(r.won&&r.stars===3)ST.fireQuest(S,"stars3",1,now());if(r.won){ST.fireQuest(S,"arcadeWin",1,now());ST.fireQuest(S,"specialWin",1,now())}
     save();if(r.won){sfx("win");V.confetti();V.owl.jumpT=1.2}else{sfx("lose");V.owl.mood=2;V.owl.moodT=1.2}
     const res={...r,levelName:ARCADE.LEVELS[lv].name};endTimer=setTimeout(()=>go("result",{res}),r.won?1100:800);return}
   const prevStars=S.arcade.stars[lv]||0;r.parts=[];
