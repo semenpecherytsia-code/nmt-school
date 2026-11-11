@@ -419,6 +419,14 @@ h1[tabindex="-1"]:focus,h2[tabindex="-1"]:focus{outline:none}
 .fr>span{padding:0 .18em}
 .fr>span:first-child{border-bottom:.1em solid currentColor}
 
+/* акаунт */
+.acc-form{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.acc-form input{flex:1 1 220px;min-height:46px;border:2px solid var(--line);border-radius:12px;padding:8px 12px;font:inherit;background:#fff}
+.acc-form input:focus{outline:none;border-color:#ff8a00;box-shadow:0 0 0 3px rgba(255,138,0,.2)}
+.icon-btn.acc-btn{position:relative}
+.icon-btn.acc-btn.on::after{content:"";position:absolute;right:4px;top:4px;width:10px;height:10px;border-radius:50%;background:#22a05a;border:2px solid #fff}
+.btn svg{width:20px;height:20px;flex:none}
+
 </style>
 <div id="app">
   <canvas id="world" aria-hidden="true"></canvas>
@@ -1439,18 +1447,22 @@ function parseImport(text){
 }
 
 /* ---------- сховище з резервом у памʼяті ---------- */
-const Store={mode:"local",corruptRaw:null,migrated:false,
+const Store={mode:"local",corruptRaw:null,migrated:false,key:KEY,
+  /* окреме локальне сховище для кожного акаунта (кеш хмарного прогресу) */
+  useKey(k){this.key=k||KEY;this.corruptRaw=null},
+  peek(k){try{const o=JSON.parse(localStorage.getItem(k)||"null");return validateV2(o)}catch(e){return null}},
   test(){try{const k="__owl_t";localStorage.setItem(k,"1");localStorage.removeItem(k);return true}catch(e){return false}},
   load(){
     if(!this.test()){this.mode="memory";return defaults()}
-    let raw=null;try{raw=localStorage.getItem(KEY)}catch(e){}
+    let raw=null;try{raw=localStorage.getItem(this.key)}catch(e){}
     if(raw){let o=null;try{o=JSON.parse(raw)}catch(e){}const S=validateV2(o);if(S)return S;this.corruptRaw=raw;return defaults()}
+    if(this.key!==KEY)return defaults();
     let r1=null;try{r1=localStorage.getItem(V1KEY)}catch(e){}
     if(r1){let o=null;try{o=JSON.parse(r1)}catch(e){}const S=migrateV1(o);if(S){this.migrated=true;return S}}
     return defaults();
   },
   save(S){if(this.mode!=="local")return false;if(this.corruptRaw)return false; /* не перезаписуємо пошкоджене, доки користувач не вирішить */
-    try{localStorage.setItem(KEY,JSON.stringify(S));return true}catch(e){this.mode="memory";return false}},
+    try{localStorage.setItem(this.key,JSON.stringify(S));return true}catch(e){this.mode="memory";return false}},
   discardCorrupt(){this.corruptRaw=null},
 };
 
@@ -1927,6 +1939,59 @@ const FONT='"Segoe UI","Noto Sans","Roboto","Helvetica Neue",Arial,sans-serif';
 OWL.ARC={newRound,step,calmAct,record,checkEnd,finish,rotateMix,spawn,makeItem,Renderer,FALL,SPEED_NAMES,GOAL,LIVES,ROTATE_EVERY,ruleText,CALM_TIME};
 })();
 
+/* ---- cloud.js ---- */
+/* ============================================================
+   Акаунт через пошту (Supabase): вхід посиланням з листа,
+   прогрес кожного акаунта зберігається в таблиці owl_progress.
+   Без інтернету чи у файлі з диска гра працює як раніше (локально).
+   ============================================================ */
+(function(){
+const CFG={url:"https://vgbpdamqorbcmxktvebh.supabase.co",key:"sb_publishable_2L5yjO2NDZOXC-Um3F1Rjw_GYWEcmoi",
+  lib:"https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js",table:"owl_progress"};
+const onWeb=/^https?:$/.test(location.protocol)&&!/claude|anthropic/i.test(location.hostname);
+const C={enabled:false,ready:false,user:null,status:"",err:"",_cb:[],client:null};
+C.onChange=f=>{C._cb.push(f)};
+const emit=()=>{for(const f of C._cb){try{f(C)}catch(e){console.error(e)}}};
+
+function loadLib(){return new Promise((res,rej)=>{if(window.supabase&&window.supabase.createClient)return res();
+  const s=document.createElement("script");s.src=CFG.lib;s.async=true;s.onload=()=>res();s.onerror=()=>rej(new Error("lib"));document.head.appendChild(s)})}
+
+C.init=async function(noCloud){
+  if(!onWeb||noCloud){C.ready=true;emit();return}
+  try{await loadLib()}catch(e){C.ready=true;emit();return}
+  C.client=window.supabase.createClient(CFG.url,CFG.key,{auth:{flowType:"implicit",detectSessionInUrl:true,persistSession:true,autoRefreshToken:true,storageKey:"owl-auth"}});
+  C.enabled=true;
+  C.client.auth.onAuthStateChange((ev,session)=>{const u=session&&session.user;const id=u?u.id:null;
+    if((C.user&&C.user.id)!==id){C.user=u?{id:u.id,email:u.email||""}:null;setTimeout(emit,0)}
+    if(location.hash&&/access_token|error_description/.test(location.hash)){try{history.replaceState(null,"",location.pathname+location.search)}catch(e){}}});
+  const {data}=await C.client.auth.getSession();const u=data&&data.session&&data.session.user;
+  C.user=u?{id:u.id,email:u.email||""}:null;C.ready=true;emit();
+};
+C.sendLink=async function(email){
+  if(!C.client)return{ok:false,err:"Вхід доступний лише на сайті з інтернетом."};
+  const {error}=await C.client.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname,shouldCreateUser:true}});
+  if(error)return{ok:false,err:/rate|seconds/i.test(error.message)?"Забагато спроб. Зачекай хвилину й спробуй ще раз.":"Не вдалося надіслати лист: "+error.message};
+  return{ok:true};
+};
+C.signOut=async function(){if(C.client)await C.client.auth.signOut();C.user=null;emit()};
+C.pull=async function(){
+  if(!C.client||!C.user)return{ok:false};
+  const {data,error}=await C.client.from(CFG.table).select("data,updated_at").eq("user_id",C.user.id).maybeSingle();
+  if(error)return{ok:false,err:error.message};
+  return{ok:true,row:data};
+};
+let timer=0,pending=null,busy=false;
+async function flush(){if(!pending||busy||!C.client||!C.user)return;busy=true;const S=pending;pending=null;
+  const {error}=await C.client.from(CFG.table).upsert({user_id:C.user.id,email:C.user.email,data:S,updated_at:new Date().toISOString()});
+  busy=false;if(error){C.err=error.message;pending=pending||S;console.warn("cloud save",error.message)}else C.err="";
+  if(pending)schedule()}
+function schedule(){clearTimeout(timer);timer=setTimeout(flush,1200)}
+C.push=function(S,now){if(!C.user)return;pending=JSON.parse(JSON.stringify(S));if(now){clearTimeout(timer);flush()}else schedule()};
+window.addEventListener("pagehide",()=>{if(pending)flush()});
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden"&&pending)flush()});
+OWL.CLOUD=C;
+})();
+
 /* ---- ui.js ---- */
 /* ============================================================
    UI — екрани, модальні вікна, керування. Стан: S (збереження).
@@ -1942,7 +2007,8 @@ const LET=["А","Б","В","Г","Д"];
 const fmtDate=t=>t?new Date(t).toLocaleDateString("uk-UA",{day:"numeric",month:"long"}):"—";
 
 let S=ST.Store.load();
-function save(){ST.Store.save(S);refreshBadges()}
+function save(){ST.Store.save(S);if(CL&&CL.user)CL.push(S);refreshBadges()}
+const CL=OWL.CLOUD;
 OWL.getState=()=>S;
 
 /* ---------------- icons ---------------- */
@@ -1951,6 +2017,7 @@ const IC={
   star:on=>`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.6l2.9 6 6.5.8-4.8 4.5 1.2 6.5L12 17.2l-5.8 3.2 1.2-6.5L2.6 9.4l6.5-.8z" fill="${on?"#f2a516":"#eadcc6"}" stroke="${on?"#b97a06":"#d6c4a8"}" stroke-width="1.3" stroke-linejoin="round"/></svg>`,
   heart:lost=>`<svg viewBox="0 0 24 24" class="${lost?"lost":""}" aria-hidden="true"><path d="M12 21s-8-5.2-8-11a4.6 4.6 0 0 1 8-3.1A4.6 4.6 0 0 1 20 10c0 5.8-8 11-8 11z" fill="#d23a3a" stroke="#9a1f1f" stroke-width="1.2"/></svg>`,
   quest:'<svg viewBox="0 0 24 24" fill="none" stroke="#2b1906" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h11l3 3v13H5z"/><path d="M9 10h7M9 14h7M9 18h4"/></svg>',
+  user:'<svg viewBox="0 0 24 24" fill="none" stroke="#2b1906" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>',
   gear:'<svg viewBox="0 0 24 24" fill="none" stroke="#2b1906" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></svg>',
   shop:'<svg viewBox="0 0 24 24" fill="none" stroke="#2b1906" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><path d="M4 9h16l-1.5 11h-13z"/><path d="M8 9a4 4 0 0 1 8 0"/></svg>',
   back:'<svg viewBox="0 0 24 24" fill="none" stroke="#2b1906" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>',
@@ -1995,6 +2062,7 @@ function openModal({html,acts={},closable=true,wide=false,label="Діалог",o
   });
   back.addEventListener("input",e=>{const f=m.acts["@input"];if(f)f(e.target,e)});
   back.addEventListener("change",e=>{const f=m.acts["@change"];if(f)f(e.target,e)});
+  back.addEventListener("submit",e=>{e.preventDefault();const f=m.acts["@submit"];if(f)f(e.target,e)});
   document.body.appendChild(back);modals.push(m);
   const first=back.querySelector("[autofocus]")||back.querySelector("button,input,select,textarea,[tabindex]");first&&first.focus();
   return m;
@@ -2034,8 +2102,9 @@ const topbar=(back,title)=>`<div class="topbar">${back?`<button class="icon-btn"
   <span class="pill" aria-label="Монети: ${S.coins}">${IC.coin}<span id="coinN">${S.coins}</span></span>
   <button class="icon-btn" data-act="quests" aria-label="Квести">${IC.quest}<span class="badge" id="qBadge" hidden></span></button>
   <button class="icon-btn" data-act="shop" aria-label="Оформлення">${IC.shop}</button>
+  ${CL&&CL.enabled?`<button class="icon-btn acc-btn${CL.user?" on":""}" data-act="account" aria-label="${CL.user?"Акаунт: "+esc(CL.user.email):"Увійти через пошту"}" title="${CL.user?esc(CL.user.email):"Увійти через пошту"}">${IC.user}</button>`:""}
   <button class="icon-btn" data-act="settings" aria-label="Налаштування">${IC.gear}</button></div>`;
-const commonActs={quests:()=>openQuests(),shop:()=>go("shop",{from:screen}),settings:()=>openSettings()};
+const commonActs={account:()=>openAccount(),quests:()=>openQuests(),shop:()=>go("shop",{from:screen}),settings:()=>openSettings()};
 let coinShown=null,coinAnim=0;
 function refreshBadges(){const b=$("#qBadge");if(b){const n=ST.claimableCount(S,now());b.hidden=!n;b.textContent=n}const c=$("#coinN");if(c)c.textContent=coinAnim&&coinShown!=null?coinShown:S.coins}
 /* монети летять до лічильника, він плавно росте */
@@ -2327,6 +2396,49 @@ function openQuests(tab="d"){
   render();
 }
 
+/* ---------- АКАУНТ (вхід через пошту) ---------- */
+let accSent="";
+function accountCard(){
+  if(!CL||!CL.enabled)return `<div class="card"><h3>Акаунт</h3><p class="small muted">${/^https?:$/.test(location.protocol)?"Вхід зараз недоступний (немає звʼязку). Прогрес зберігається в цьому браузері.":"Вхід через пошту працює на сайті. Тут прогрес зберігається в цьому браузері."}</p></div>`;
+  if(CL.user)return `<div class="card"><h3>Акаунт</h3><p>Ти увійшов(-ла) як <b>${esc(CL.user.email)}</b>.</p><p class="small muted">Монети, зірки, скіни й завдання зберігаються в акаунті. Увійди з цією поштою на будь-якому пристрої — і прогрес буде там.</p>
+    <div class="btn-row"><button class="btn btn-ghost" data-act="logout">Вийти</button></div></div>`;
+  return `<div class="card"><h3>Увійти через пошту</h3><p class="small muted">Введи пошту — ми надішлемо лист із посиланням для входу. Після входу прогрес зберігається в акаунті й не загубиться.</p>
+    <form class="acc-form" data-form="login"><input type="email" id="accEmail" required autocomplete="email" placeholder="твоя@пошта.com" aria-label="Пошта" value="${esc(accSent)}"><button class="btn btn-primary" type="submit">Надіслати посилання</button></form>
+    <p class="small" id="accMsg" ${accSent?"":"hidden"}>${accSent?`Лист надіслано на <b>${esc(accSent)}</b>. Відкрий його й натисни посилання — ти повернешся в гру вже з акаунтом. Немає листа? Перевір «Спам».`:""}</p></div>`;
+}
+function accountActs(rerenderFn){return{
+  logout:async()=>{await CL.signOut();toast("Ти вийшов(-ла) з акаунта");rerenderFn&&rerenderFn()},
+  "@submit":async f=>{if(f.dataset.form!=="login")return;const inp=f.querySelector("#accEmail");const email=(inp.value||"").trim();const msg=f.parentNode.querySelector("#accMsg");
+    if(!/^\S+@\S+\.\S+$/.test(email)){msg.hidden=false;msg.textContent="Перевір пошту — схоже, в ній помилка.";return}
+    const btn=f.querySelector("button");btn.disabled=true;btn.textContent="Надсилаю…";
+    const r=await CL.sendLink(email);btn.disabled=false;btn.textContent="Надіслати посилання";msg.hidden=false;
+    if(r.ok){accSent=email;msg.innerHTML=`Лист надіслано на <b>${esc(email)}</b>. Відкрий його й натисни посилання — ти повернешся в гру вже з акаунтом. Немає листа? Перевір «Спам».`}else msg.textContent=r.err}}}
+function openAccount(){
+  const m=openModal({label:"Акаунт",html:"",acts:{}});
+  const render=()=>{setModalHtml(m,accountCard()+`<button class="btn btn-quiet" data-act="close">Закрити</button>`)};
+  m.acts={close:()=>closeModal(),...accountActs(()=>render())};m.rerender=render;render();
+}
+/* вхід/вихід: перемикаємо прогрес на акаунт або назад на гостьовий */
+let cloudUid=null;
+async function onCloud(){
+  const uid=CL.user?CL.user.id:null;
+  if(uid===cloudUid){if(screen)rerender();return}
+  cloudUid=uid;
+  if(uid){
+    const guest=S;const uKey=ST.KEY+":"+uid;
+    const r=await CL.pull();if((CL.user&&CL.user.id)!==uid)return;
+    let next=null;
+    if(r.ok&&r.row&&r.row.data)next=ST.validateV2(r.row.data);
+    if(!next)next=ST.Store.peek(uKey);
+    const fresh=!next;if(!next)next=guest;
+    ST.Store.useKey(uKey);S=next;ST.Store.save(S);
+    if(fresh||!(r.ok&&r.row))CL.push(S,true);
+    toast(fresh?"Акаунт створено — прогрес збережено в ньому":"Вхід виконано — прогрес завантажено");
+  }else{ST.Store.useKey(ST.KEY);S=ST.Store.load()}
+  applyCosmetics();closeAllModals();go(screen==="game"?"home":(screen||"home"));
+}
+if(CL)CL.onChange(()=>{if(CL.ready)onCloud()});
+
 /* ---------- SETTINGS ---------- */
 function openSettings(){
   const m=openModal({label:"Налаштування",wide:true,html:"",acts:{}});
@@ -2338,8 +2450,7 @@ function openSettings(){
      <div class="btn-row"><button class="btn btn-ghost" data-act="mute" aria-pressed="${st.muted}">${st.muted?IC.mute+" Звук вимкнено":IC.sound+" Звук увімкнено"}</button></div></div>
     <div class="card"><h3>Рух і анімація</h3><div class="seg" role="group" aria-label="Рух">${[["system","Як у системі"],["reduce","Менше руху"],["full","Повна анімація"]].map(([k,n])=>`<button data-act="motion" data-v="${k}" aria-pressed="${st.motion===k}">${n}</button>`).join("")}</div>
      <p class="small muted">«Менше руху» вимикає тряску, частинки, конфеті й рух хмар на фоні.</p></div>
-    <div class="card"><h3>Прогрес</h3><p class="small muted">${ST.Store.mode==="memory"?"Браузер не зберігає дані: прогрес діє лише до закриття сторінки.":"Прогрес зберігається в цьому браузері."} Експорт — щоб перенести прогрес на інший пристрій або зберегти копію.</p>
-     <div class="btn-row"><button class="btn btn-ghost" data-act="export">Експорт</button><button class="btn btn-ghost" data-act="import">Імпорт</button><button class="btn btn-quiet" data-act="reset">Скинути прогрес</button></div></div>
+${accountCard()}
     <button class="btn btn-primary" data-act="close">Готово</button>`);
   };
   m.acts={close:()=>closeModal(),
@@ -2347,7 +2458,7 @@ function openSettings(){
     "@change":el=>{if(el.id==="vol")sfx("click")},
     mute:()=>{S.settings.muted=!S.settings.muted;save();render()},
     motion:b=>{S.settings.motion=b.dataset.v;save();applyMotion();render()},
-    export:()=>openExport(),import:()=>openImport(),
+    ...accountActs(()=>render()),
     reset:()=>openModal({label:"Скинути прогрес",html:`<h2>Скинути весь прогрес?</h2><p>Зірки, монети й оформлення буде видалено. Спершу можна зробити експорт.</p><div class="btn-row"><button class="btn btn-ghost" data-act="no" autofocus>Скасувати</button><button class="btn btn-primary" data-act="yes">Так, скинути</button></div>`,acts:{no:()=>closeModal(),yes:()=>{closeAllModals();S=ST.defaults();ST.Store.discardCorrupt();save();applyCosmetics();go("home");toast("Прогрес скинуто")}}}),
     copyCorrupt:()=>copyText(ST.Store.corruptRaw),
     discardCorrupt:()=>{ST.Store.discardCorrupt();save();render();toast("Починаємо з чистого аркуша. Поточний прогрес тепер зберігається.")}};
@@ -2428,6 +2539,7 @@ function boot(){
   V=ARC.Renderer($("#world"));applyCosmetics();V.resize();applyMotion();initPointer($("#world"));
   go("home");
   requestAnimationFrame(t=>{lastFrame=t;loop(t)});
+  if(CL)CL.init(ADMIN_BUILD);
 }
 /* тестові гачки */
 OWL.UI={go,startRound,openQuests,openSettings,pauseGame,get G(){return G},get screen(){return screen},get V(){return V},setState:s=>{S=s},save,closeAllModals,handleEvents};
