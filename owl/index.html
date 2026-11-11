@@ -480,6 +480,30 @@ h1[tabindex="-1"]:focus,h2[tabindex="-1"]:focus{outline:none}
   #toast{font-size:14px;padding:8px 12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));max-width:min(320px,calc(100% - 32px))}
 }
 @media (max-width:560px){#stageCv{height:150px}.stage{padding:8px;gap:6px}.stage-cap b{font-size:18px}.stage-cap{font-size:13px}}
+/* серія днів, рейтинг, широкі екрани */
+.home-extra{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.lb-btn{display:inline-flex;align-items:center;gap:8px;width:auto}
+.lb-btn svg{width:20px;height:20px}
+.lb-btn.sm{min-height:34px;padding:4px 12px;font-size:14px;margin-left:auto}
+.chapter.special h3{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.streak-pill{color:#b34a00;gap:6px}.streak-pill svg{width:20px;height:20px}
+.sk-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;margin:8px 0}
+.sk-day{background:var(--paper);border:2px solid var(--line);border-radius:12px;padding:6px 2px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:12px;font-weight:800;color:var(--muted)}
+.sk-day.done{opacity:.55}.sk-day.now{border-color:#ff8a00;background:#fff3e3;color:var(--ink);box-shadow:0 0 0 3px #ffd5a8}
+.sk-r{display:inline-flex;align-items:center;gap:2px;color:var(--ink)}.sk-r.gem{color:#5a1fb8}
+@media (max-width:420px){.sk-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.lb-mine{font-weight:700}
+.lb-list{display:flex;flex-direction:column;gap:6px;max-height:min(52vh,460px);overflow:auto}
+.lb-row{display:flex;align-items:center;gap:10px;background:var(--paper);border-radius:12px;padding:8px 12px}
+.lb-row.me{background:#fff3e3;box-shadow:inset 0 0 0 2px #ff8a00}
+.lb-pos{width:28px;text-align:center;font-weight:800}.lb-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.lb-pts{font-variant-numeric:tabular-nums}
+@media (min-width:1400px){
+  .wrap{max-width:1180px}
+  .wrap.narrow{max-width:720px}
+  .shop-wrap{max-width:1320px}
+  .levels{grid-template-columns:repeat(auto-fill,minmax(210px,1fr))}
+}
+@media (min-width:1800px){.wrap{max-width:1320px}.shop-wrap{max-width:1480px}}
 
 </style>
 <div id="app">
@@ -1481,7 +1505,8 @@ function questsFor(now){
 function defaults(){return{
   v:2,coins:0,gems:0,created:Date.now(),
   special:{d:{key:"",stars:0},w:{key:"",stars:0}},
-  settings:{speed:1,math:0,control:"move",calmTimer:false,volume:0.7,muted:false,motion:"system"},
+  streak:{last:"",n:0,best:0},lb:{week:"",pts:0},
+  settings:{speed:1,math:0,control:"move",calmTimer:false,volume:0.7,muted:false,music:true,motion:"system"},
   arcade:{stars:{},open:1,tutDone:false,results:0,seen:[]},
   cosm:{owned:["basket-classic","owl-brown","bg-summer","persona-none"],eq:{basket:"basket-classic",owl:"owl-brown",bg:"bg-summer",persona:"persona-none"}},
   skills:{},notebook:[],
@@ -1500,8 +1525,10 @@ function validateV2(o){
   if(!isObj(o)||o.v!==2)return null;
   const D=defaults(),S=D;
   S.coins=int(o.coins,0,1e7,0);S.gems=int(o.gems,0,1e6,0);
+  if(isObj(o.streak))S.streak={last:str(o.streak.last,20,""),n:int(o.streak.n,0,1e5,0),best:int(o.streak.best,0,1e5,0)};
+  if(isObj(o.lb))S.lb={week:str(o.lb.week,20,""),pts:int(o.lb.pts,0,1e7,0)};
   if(isObj(o.special))for(const k of ["d","w"]){const v=o.special[k];if(isObj(v))S.special[k]={key:str(v.key,20,""),stars:int(v.stars,0,3,0)}}S.created=num(o.created,0,1e14,Date.now());
-  if(isObj(o.settings)){const s=o.settings;S.settings={speed:int(s.speed,0,2,1),math:int(s.math,0,1,0),control:["move","buttons"].includes(s.control)?s.control:"move",calmTimer:!!s.calmTimer,volume:num(s.volume,0,1,0.7),muted:!!s.muted,motion:["system","reduce","full"].includes(s.motion)?s.motion:"system"}}
+  if(isObj(o.settings)){const s=o.settings;S.settings={speed:int(s.speed,0,2,1),math:int(s.math,0,1,0),control:["move","buttons"].includes(s.control)?s.control:"move",calmTimer:!!s.calmTimer,volume:num(s.volume,0,1,0.7),muted:!!s.muted,music:s.music!==false,motion:["system","reduce","full"].includes(s.motion)?s.motion:"system"}}
   if(isObj(o.arcade)){const st={};if(isObj(o.arcade.stars))for(const [k,v] of Object.entries(o.arcade.stars)){const i=+k;if(Number.isInteger(i)&&i>=0&&i<12&&Number.isInteger(v)&&v>=0&&v<=3)st[i]=v}
     S.arcade={stars:st,open:int(o.arcade.open,1,12,1),tutDone:!!o.arcade.tutDone,results:int(o.arcade.results,0,1e7,0),seen:Array.isArray(o.arcade.seen)?[...new Set(o.arcade.seen.filter(x=>Number.isInteger(x)&&x>=0&&x<12))]:[]}}
   if(isObj(o.cosm)){const ids=COSMETICS.map(c=>c.id);const owned=Array.isArray(o.cosm.owned)?o.cosm.owned.filter(x=>ids.includes(x)):[];
@@ -1623,6 +1650,17 @@ function claimQuest(S,key,now){
   S.quests.claimed[key]=true;S.coins+=q.rw;const gem=q.gem||0;S.gems=(S.gems||0)+gem;
   return{ok:true,coins:q.rw,gems:gem};
 }
+/* серія днів: заходиш щодня — нагорода росте 7 днів, потім цикл повторюється */
+const STREAK_RW=[[20,0],[30,0],[40,1],[50,0],[60,0],[70,1],[100,3]];
+function streakCheck(S,now){
+  const today=dayKey(now);if(S.streak.last===today)return null;
+  const d=new Date(now);const y=dayKey(new Date(d.getFullYear(),d.getMonth(),d.getDate()-1).getTime());
+  const n=S.streak.last===y?S.streak.n+1:1;const [c,g]=STREAK_RW[(n-1)%7];
+  S.streak={last:today,n,best:Math.max(S.streak.best||0,n)};S.coins+=c;S.gems=(S.gems||0)+g;
+  return{n,coins:c,gems:g};
+}
+/* очки тижня для рейтингу: правильні хмаринки + 5 за кожну зірку */
+function addWeekPts(S,now,pts){const wk=weekKey(now);if(S.lb.week!==wk)S.lb={week:wk,pts:0};S.lb.pts+=Math.max(0,Math.round(pts));return S.lb.pts}
 const claimableCount=(S,now)=>{const v=questView(S,now);return[...v.d,...v.w].filter(q=>!q.claimed&&q.p>=q.goal).length};
 
 /* ---------- наступна дія ---------- */
@@ -1639,7 +1677,7 @@ function nextAction(S,now){
   return{kind:"continue",skill:null,label:"Почати тренування",sub:"Обери тему або пройди розминку"};
 }
 
-Object.assign(OWL,{STATE:{KEY,V1KEY,DAY,dayKey,weekKey,weekStart,endOfDay,COSMETICS,QUESTS,questsFor,defaults,validateV2,migrateV1,parseImport,Store,skillStat,recordAnswer,skillSummary,weakSkills,addMistake,mistakeAttempt,dueToday,fireQuest,questView,claimQuest,claimableCount,nextAction,sanitizeMock}});
+Object.assign(OWL,{STATE:{KEY,V1KEY,DAY,dayKey,weekKey,weekStart,endOfDay,COSMETICS,QUESTS,questsFor,defaults,validateV2,migrateV1,parseImport,Store,skillStat,recordAnswer,skillSummary,weakSkills,addMistake,mistakeAttempt,dueToday,fireQuest,questView,claimQuest,claimableCount,STREAK_RW,streakCheck,addWeekPts,nextAction,sanitizeMock}});
 })();
 
 /* ---- arcade.js ---- */
@@ -2098,6 +2136,7 @@ const PASS_KEY="owl-admin-pass";C.admin=false;C.adminPass=null;
 C.isAdminEmail=async e=>{try{return !!(await rpc("owl_is_admin",{p_email:norm(e)}))}catch(x){return false}};
 C.adminLogin=async(e,pass)=>{const ok=!!(await rpc("owl_admin_ok",{p_email:norm(e),p_pass:pass}));if(ok){C.admin=true;C.adminPass=pass;try{localStorage.setItem(PASS_KEY,pass)}catch(x){}}return ok};
 C.adminRestore=async()=>{if(!C.user)return false;let p=null;try{p=localStorage.getItem(PASS_KEY)}catch(x){}if(!p)return false;try{return await C.adminLogin(C.user.email,p)}catch(x){return false}};
+C.leaderboard=async week=>rpc("owl_leaderboard",{p_week:week,p_email:C.user?C.user.email:""});
 C.players=async()=>rpc("owl_admin_players",{p_email:C.user.email,p_pass:C.adminPass});
 let timer=0,pending=null,busy=false;
 async function flush(){if(!pending||busy||!C.user)return;busy=true;const S=pending;pending=null;
@@ -2135,6 +2174,9 @@ const IC={
   coin:'<svg class="coin-ic" viewBox="0 0 32 32" aria-hidden="true"><defs><radialGradient id="cgA" cx="38%" cy="30%" r="75%"><stop offset="0" stop-color="#fff6c2"/><stop offset=".35" stop-color="#ffd23f"/><stop offset=".75" stop-color="#f5a300"/><stop offset="1" stop-color="#c97800"/></radialGradient><linearGradient id="cgB" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe680"/><stop offset="1" stop-color="#d98a00"/></linearGradient><clipPath id="cgC"><circle cx="16" cy="16" r="14"/></clipPath></defs><circle cx="16" cy="17" r="14.5" fill="#a85f00"/><circle cx="16" cy="16" r="14.5" fill="url(#cgA)"/><circle cx="16" cy="16" r="11" fill="none" stroke="#c98200" stroke-width="1.6" opacity=".8"/><circle cx="16" cy="16" r="9.6" fill="url(#cgB)" opacity=".55"/><path d="M16 8.6l2.2 4.6 5 .7-3.6 3.5.9 5-4.5-2.4-4.5 2.4.9-5-3.6-3.5 5-.7z" fill="#fff3b8" stroke="#c98200" stroke-width="1" stroke-linejoin="round"/><g clip-path="url(#cgC)"><rect class="coin-shine" x="-14" y="-4" width="7" height="40" fill="#fff" opacity=".55" transform="rotate(25 16 16)"/></g></svg>',
   star:on=>`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.6l2.9 6 6.5.8-4.8 4.5 1.2 6.5L12 17.2l-5.8 3.2 1.2-6.5L2.6 9.4l6.5-.8z" fill="${on?"#f2a516":"#eadcc6"}" stroke="${on?"#b97a06":"#d6c4a8"}" stroke-width="1.3" stroke-linejoin="round"/></svg>`,
   heart:lost=>`<svg viewBox="0 0 24 24" class="${lost?"lost":""}" aria-hidden="true"><path d="M12 21s-8-5.2-8-11a4.6 4.6 0 0 1 8-3.1A4.6 4.6 0 0 1 20 10c0 5.8-8 11-8 11z" fill="#d23a3a" stroke="#9a1f1f" stroke-width="1.2"/></svg>`,
+  trophy:'<svg viewBox="0 0 24 24" fill="none" stroke="#2b1906" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg>',
+  fire:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2c1 4 5 6 5 11a5 5 0 0 1-10 0c0-2 1-4 2-5 0 2 1 3 2 3 0-3-1-6 1-9z" fill="#ff7a00"/><path d="M12 12c1 2 2.5 3 2.5 5a2.5 2.5 0 0 1-5 0c0-1.5 1-2.5 2.5-5z" fill="#ffd34d"/></svg>',
+  music:'<svg viewBox="0 0 24 24" fill="none" stroke="#2b1906" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg>',
   quest:'<svg viewBox="0 0 24 24" fill="none" stroke="#2b1906" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h11l3 3v13H5z"/><path d="M9 10h7M9 14h7M9 18h4"/></svg>',
   user:'<svg viewBox="0 0 24 24" fill="none" stroke="#2b1906" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>',
   gear:'<svg viewBox="0 0 24 24" fill="none" stroke="#2b1906" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></svg>',
@@ -2205,6 +2247,7 @@ function go(name,params={}){
   document.body.classList.toggle("game",name==="game");
   if(V)V.hideOwl=name==="shop";
   RENDER[name](params);
+  if(name!=="game"&&streakReady)setTimeout(checkStreak,350);
   if(name!=="game")view().scrollTop=0;
   const h=view().querySelector("h1,h2");if(h&&name!=="game"){h.setAttribute("tabindex","-1");try{h.focus({preventScroll:true})}catch(e){}}
 }
@@ -2272,8 +2315,9 @@ RENDER.home=function(){
    ${storageNotice()}${adminBar()}
    <div class="next"><div class="txt"><div class="eyebrow">${first?"З чого почати":"Продовжити"}</div><h3>${first?"Коротке навчання: дві хмаринки":`Рівень ${next+1}: ${esc(ARCADE.LEVELS[next].name)}`}</h3><p class="muted small">${first?"Покаже, як ловити хмаринки кошиком.":`Зібрано зірок: ${stars} із 36`}</p></div>
     <div class="btn-row" style="flex:1 1 260px"><button class="btn btn-primary" data-act="${first?"tut":"play"}">${first?"Почати навчання":"Грати"}</button><button class="btn btn-ghost" data-act="arcade">Усі рівні</button></div></div>
+   <div class="home-extra"><button class="btn btn-ghost lb-btn" data-act="lb">${IC.trophy} Рейтинг тижня</button>${S.streak.n?`<span class="pill streak-pill" title="Серія днів">${IC.fire} ${S.streak.n} ${plDays(S.streak.n)} поспіль</span>`:""}</div>
    <div class="home-spacer" aria-hidden="true"></div></div>`;
-  VACTS={...commonActs,...adminActs,arcade:()=>go("map"),tut:()=>startRound(0,{tutorial:true,from:"home"}),play:()=>{go("map");playLevel(next)}};
+  VACTS={...commonActs,...adminActs,lb:()=>openLeaderboard(),arcade:()=>go("map"),tut:()=>startRound(0,{tutorial:true,from:"home"}),play:()=>{go("map");playLevel(next)}};
   refreshBadges();
 };
 
@@ -2286,7 +2330,7 @@ function specialInfo(k){const t=now(),key=k==="d"?ST.dayKey(t):ST.weekKey(t);con
   return{k,key,level,stars:rec.stars,math:k==="d"?0:1,name:ARCADE.LEVELS[level].name,left:GEM_RW[k][3]-GEM_RW[k][rec.stars]}}
 function resetIn(k){const t=now(),d=new Date(t);let end;if(k==="d"){end=new Date(d.getFullYear(),d.getMonth(),d.getDate()+1)}else{const ws=new Date(ST.weekStart(t));end=new Date(ws.getFullYear(),ws.getMonth(),ws.getDate()+7)}
   const ms=end-t,h=Math.floor(ms/36e5);return h>=24?`${Math.floor(h/24)} дн ${h%24} год`:h>0?`${h} год ${Math.floor(ms/6e4)%60} хв`:`${Math.max(1,Math.floor(ms/6e4))} хв`}
-function specialCards(){return `<section class="chapter special"><h3>Особливі рівні<span class="sum">${IC.gem} кристали</span></h3><div class="levels">${["d","w"].map(k=>{const I=specialInfo(k);
+function specialCards(){return `<section class="chapter special"><h3>Особливі рівні<span class="sum">${IC.gem} кристали</span><button class="btn btn-ghost lb-btn sm" data-act="lb">${IC.trophy} Рейтинг тижня</button></h3><div class="levels">${["d","w"].map(k=>{const I=specialInfo(k);
   return `<div class="lv sp sp-${k}"><span class="n">${k==="d"?"Щоденний рівень · легкий":"Щотижневий рівень · складніший"}</span><span class="t">${esc(I.name)}</span>
    <span class="tr">${I.left>0?`До ${I.left} ${IC.gem} · оновиться через ${resetIn(k)}`:`Усі кристали зібрано · новий через ${resetIn(k)}`}</span>
    <div class="row">${starsHtml(I.stars)}</div><div class="btn-row"><button class="btn btn-primary" style="min-height:42px;padding:6px 12px" data-act="special" data-k="${k}">Грати</button></div></div>`}).join("")}</div>
@@ -2311,7 +2355,7 @@ RENDER.map=function(){
        <div class="row">${locked?`<span class="small muted">Відкриється після рівня ${i}</span>`:starsHtml(st[i]||0)}</div>
        <div class="btn-row">${locked?"":`<button class="btn btn-primary" style="min-height:42px;padding:6px 12px" data-act="lvl" data-i="${i}" aria-label="Грати рівень ${i+1}">Грати</button>`}</div></div>`}).join("")}</div></section>`}).join("")}
   </div>`;
-  VACTS={...commonActs,...adminActs,back:()=>go("home"),tut:()=>startRound(0,{tutorial:true,from:"map"}),special:b=>{const k=b.dataset.k;if(!S.arcade.tutDone&&!ADMIN)startRound(0,{tutorial:true,from:"map",afterSp:k});else playSpecial(k)},
+  VACTS={...commonActs,...adminActs,back:()=>go("home"),tut:()=>startRound(0,{tutorial:true,from:"map"}),lb:()=>openLeaderboard(),special:b=>{const k=b.dataset.k;if(!S.arcade.tutDone&&!ADMIN)startRound(0,{tutorial:true,from:"map",afterSp:k});else playSpecial(k)},
     lvl:b=>{const i=+b.dataset.i;if(!S.arcade.tutDone&&!ADMIN)startRound(0,{tutorial:true,from:"map",after:i});else playLevel(i)},
     set:b=>{const k=b.dataset.k,v=+b.dataset.v;if(k==="control")S.settings.control=v?"buttons":"move";else if(k==="calmTimer")S.settings.calmTimer=!!v;else S.settings[k]=v;save();
       b.parentNode.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x===b?"true":"false"));
@@ -2402,7 +2446,7 @@ function onRoundEnd(){
     if(r.won)r.parts.push([`За ${r.stars} ${r.stars===1?"зірку":"зірки"}`,r.coins]);else if(r.coins)r.parts.push(["За спробу",r.coins]);
     r.gems=r.won?Math.max(0,GEM_RW[sp][r.stars]-GEM_RW[sp][I.stars]):0;r.gemsFrom=S.gems||0;S.gems=(S.gems||0)+r.gems;
     if(r.won&&r.stars>I.stars)S.special[sp]={key:I.key,stars:r.stars};
-    r.coinsFrom=S.coins;S.coins+=r.coins;S.arcade.results++;
+    r.coinsFrom=S.coins;S.coins+=r.coins;S.arcade.results++;r.pts=r.correct+(r.won?r.stars*5:0);ST.addWeekPts(S,now(),r.pts);
     if(r.correct)ST.fireQuest(S,"catch",r.correct,now());if(r.maxStreak>=8)ST.fireQuest(S,"streak8",1,now());if(r.won&&r.stars===3)ST.fireQuest(S,"stars3",1,now());if(r.won){ST.fireQuest(S,"arcadeWin",1,now());ST.fireQuest(S,"specialWin",1,now())}
     save();if(r.won){sfx("win");V.confetti();V.owl.jumpT=1.2}else{sfx("lose");V.owl.mood=2;V.owl.moodT=1.2}
     const res={...r,levelName:ARCADE.LEVELS[lv].name};endTimer=setTimeout(()=>go("result",{res}),r.won?1100:800);return}
@@ -2410,7 +2454,7 @@ function onRoundEnd(){
   if(r.won)r.parts.push([`За ${r.stars} ${r.stars===1?"зірку":"зірки"}`,r.coins]);else if(r.coins)r.parts.push(["За спробу",r.coins]);
   if(r.won&&!prevStars){r.parts.push(["Перше проходження",40]);r.coins+=40}
   if(r.won&&r.stars===3&&prevStars<3){r.parts.push(["Перші 3 зірки",30]);r.coins+=30}
-  r.coinsFrom=S.coins;S.coins+=r.coins;S.arcade.results++;
+  r.coinsFrom=S.coins;S.coins+=r.coins;S.arcade.results++;r.pts=r.correct+(r.won?r.stars*5:0);ST.addWeekPts(S,now(),r.pts);
   if(r.correct)ST.fireQuest(S,"catch",r.correct,now());if(r.maxStreak>=8)ST.fireQuest(S,"streak8",1,now());if(r.won&&r.stars===3)ST.fireQuest(S,"stars3",1,now());
   if(r.won){const prev=S.arcade.stars[lv]||0;if(r.stars>prev)S.arcade.stars[lv]=r.stars;if(lv+2>S.arcade.open)S.arcade.open=Math.min(12,lv+2);
     ST.fireQuest(S,"arcadeWin",1,now());if(ARCADE.LEVELS[lv].mix)ST.fireQuest(S,"mix",1,now())}
@@ -2572,7 +2616,7 @@ function openLoginGate(){
     if(!next)next=ST.Store.peek(uKey);
     let firstHere=false;try{firstHere=!localStorage.getItem("owl-used-email");localStorage.setItem("owl-used-email","1")}catch(e){}
     if(!next)next=firstHere?S:ST.defaults();
-    ST.Store.useKey(uKey);S=next;ST.Store.save(S);if(!data)CL.push(S,true);
+    ST.Store.useKey(uKey);S=next;ST.Store.save(S);if(!data)CL.push(S,true);streakReady=true;setTimeout(checkStreak,600);
     if(CL.admin)ADMIN=true;
     applyCosmetics();closeAllModals();go("home");toast(CL.admin?"Вхід адміна: режим тестування увімкнено":data?"З поверненням! Прогрес завантажено":"Готово! Прогрес зберігатиметься за цією поштою")}};
   setTimeout(()=>{const i=m.el.querySelector("#accEmail");if(i)i.focus()},50);
@@ -2602,7 +2646,60 @@ async function cloudBoot(){
   ST.Store.useKey(ST.KEY+":"+CL.user.email);S=ST.Store.load();applyCosmetics();rerender();
   CL.adminRestore().then(ok=>{if(ok){ADMIN=true;if(screen!=="game")rerender()}});
   try{const data=await CL.load();const v=data?ST.validateV2(data):null;if(v){S=v;ST.Store.save(S);applyCosmetics();if(screen!=="game")rerender()}else CL.push(S,true)}catch(e){console.warn("cloud load",e.message)}
+  streakReady=true;if(screen!=="game")checkStreak();
 }
+
+/* ---------- СЕРІЯ ДНІВ ---------- */
+let streakReady=false;
+const plDays=n=>{const a=n%10,b=n%100;return a===1&&b!==11?"день":a>=2&&a<=4&&(b<12||b>14)?"дні":"днів"};
+function checkStreak(){
+  if(!streakReady||screen==="game"||window.OWL_TEST_NOSTREAK||document.querySelector(".gate"))return;
+  const r=ST.streakCheck(S,now());if(!r)return;save();refreshBadges();if(screen==="home")rerender();openStreak(r);
+}
+function openStreak(r){
+  const cur=(r.n-1)%7;
+  const cells=ST.STREAK_RW.map(([c,g],i)=>`<div class="sk-day${i<cur?" done":""}${i===cur?" now":""}"><span class="sk-n">День ${i+1}</span><span class="sk-r">${IC.coin.replace("<svg",'<svg width="16" height="16"')} ${c}</span>${g?`<span class="sk-r gem">${IC.gem.replace("<svg",'<svg width="16" height="16"')} ${g}</span>`:""}</div>`).join("");
+  const m=openModal({label:"Серія днів",html:`<h2>${IC.fire.replace("<svg",'<svg width="30" height="30" style="vertical-align:-6px"')} Серія: ${r.n} ${plDays(r.n)} поспіль</h2>
+    <p class="muted">${r.n===1?"Заходь щодня — нагорода росте! Пропустиш день, і серія почнеться спочатку.":"Так тримати! Завтра нагорода буде ще більшою."}</p>
+    <div class="sk-grid">${cells}</div>
+    <div class="reward"><div class="reward-total">${IC.coin}<b>+${r.coins}</b></div>${r.gems?`<div class="reward-total gem-total">${IC.gem}<b>+${r.gems}</b></div>`:""}</div>
+    <button class="btn btn-primary" data-act="close">Забрати</button>`,acts:{close:()=>{sfx("coin");closeModal()}}});
+}
+/* ---------- РЕЙТИНГ ТИЖНЯ ---------- */
+async function openLeaderboard(){
+  const wk=ST.weekKey(now()),mine=S.lb.week===wk?S.lb.pts:0;
+  const end=ST.weekStart(now())+7*ST.DAY,left=end-now(),dd=Math.floor(left/864e5),hh=Math.floor(left%864e5/36e5);
+  const head=`<h2>${IC.trophy.replace("<svg",'<svg width="28" height="28" style="vertical-align:-5px"')} Рейтинг тижня</h2><p class="muted small">Очки: правильно впіймана хмаринка +1, кожна зірка +5. Новий тиждень через ${dd} д ${hh} год.</p><p class="lb-mine">Твої очки цього тижня: <b>${mine}</b></p>`;
+  const m=openModal({label:"Рейтинг тижня",html:head+`<p class="muted">Завантаження…</p>`,acts:{close:()=>closeModal()}});
+  if(!CL||!CL.enabled||!CL.user){setModalHtml(m,head+`<p class="notice">Рейтинг працює на сайті, коли ти граєш зі своєю поштою.</p><button class="btn btn-primary" data-act="close">Закрити</button>`);return}
+  if(mine>0)CL.push(S,true);
+  let rows=null;try{rows=await CL.leaderboard(wk)||[]}catch(e){}
+  if(!rows){setModalHtml(m,head+`<p class="err">Не вдалося завантажити рейтинг. Перевір інтернет.</p><button class="btn btn-primary" data-act="close">Закрити</button>`);return}
+  const medal=i=>i===0?"🥇":i===1?"🥈":i===2?"🥉":String(i+1);
+  const meIn=rows.some(r=>r.me);
+  setModalHtml(m,head+`<div class="lb-list">${rows.length?rows.map((r,i)=>`<div class="lb-row${r.me?" me":""}"><span class="lb-pos">${medal(i)}</span><span class="lb-name">${esc(r.name)}${r.me?" (ти)":""}</span><b class="lb-pts">${r.pts}</b></div>`).join(""):`<p class="muted">Цього тижня ще ніхто не грав. Будь першим!</p>`}</div>
+    ${!meIn&&rows.length&&mine>0?`<p class="small muted">Ти поки поза топ-20. Грай ще — і потрапиш у список!</p>`:""}
+    <button class="btn btn-primary" data-act="close">Закрити</button>`);
+}
+/* ---------- МУЗИКА (генерується в браузері, без файлів) ---------- */
+const MUS=(()=>{let ctx=null,gain=null,timer=0,step=0,nextT=0,on=false,unlocked=false;
+  const BPM=96,SPB=60/BPM/2;               // восьмі ноти
+  const prog=[[0,4,7],[9,12,16],[5,9,12],[7,11,14]];        // C – Am – F – G
+  const mel=[12,16,19,16, 14,12,9,12, 17,16,14,12, 11,14,19,null, 12,16,19,21, 19,16,14,12, 9,12,14,16, 14,11,7,null];
+  const f=n=>261.63*Math.pow(2,n/12);
+  function note(freq,t,d,type,v){const o=ctx.createOscillator(),g=ctx.createGain();o.type=type;o.frequency.value=freq;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g).connect(gain);o.start(t);o.stop(t+d+.05)}
+  function tick(){while(nextT<ctx.currentTime+.3){const bar=Math.floor(step/8)%4,ch=prog[bar],i=step%8;
+      if(i===0)note(f(ch[0]-12),nextT,SPB*7,"triangle",.5);
+      if(i%2===0)note(f(ch[(i/2)%3]),nextT,SPB*1.6,"sine",.18);
+      const m=mel[step%mel.length];if(m!=null)note(f(m),nextT,SPB*.9,"triangle",.32);
+      nextT+=SPB;step++}}
+  function want(){return unlocked&&S.settings.music&&!S.settings.muted&&S.settings.volume>0&&!document.hidden}
+  function sync(){if(!unlocked)return;const w=want();
+    if(w&&!on){try{ctx=ctx||new (window.AudioContext||window.webkitAudioContext)();if(ctx.state==="suspended")ctx.resume();if(!gain){gain=ctx.createGain();gain.connect(ctx.destination)}nextT=ctx.currentTime+.1;timer=setInterval(tick,100);on=true}catch(e){}}
+    else if(!w&&on){clearInterval(timer);on=false;if(gain)gain.gain.setTargetAtTime(0,ctx.currentTime,.05)}
+    if(on&&gain)gain.gain.setTargetAtTime(S.settings.volume*.09,ctx.currentTime,.1)}
+  return{unlock(){if(!unlocked){unlocked=true;sync()}},sync,get on(){return on}};
+})();
 
 /* ---------- SETTINGS ---------- */
 function openSettings(){
@@ -2612,16 +2709,17 @@ function openSettings(){
     setModalHtml(m,`<h2>Налаштування</h2>
     ${ST.Store.corruptRaw?`<div class="notice bad"><div><b>Знайдено пошкоджене збереження.</b> Можна скопіювати його для відновлення або почати з чистого аркуша.<textarea class="io" readonly aria-label="Пошкоджене збереження">${esc(ST.Store.corruptRaw)}</textarea><div class="btn-row" style="margin-top:8px"><button class="btn btn-ghost" data-act="copyCorrupt">Копіювати</button><button class="btn btn-primary" data-act="discardCorrupt">Почати з чистого аркуша</button></div></div></div>`:""}
     <div class="card"><h3>Звук</h3><label class="small" for="vol">Гучність: ${Math.round(st.volume*100)}%</label><input type="range" id="vol" min="0" max="100" step="5" value="${Math.round(st.volume*100)}">
-     <div class="btn-row"><button class="btn btn-ghost" data-act="mute" aria-pressed="${st.muted}">${st.muted?IC.mute+" Звук вимкнено":IC.sound+" Звук увімкнено"}</button></div></div>
+     <div class="btn-row"><button class="btn btn-ghost" data-act="mute" aria-pressed="${st.muted}">${st.muted?IC.mute+" Звук вимкнено":IC.sound+" Звук увімкнено"}</button><button class="btn btn-ghost" data-act="music" aria-pressed="${st.music}">${IC.music} ${st.music?"Музика увімкнена":"Музика вимкнена"}</button></div></div>
     <div class="card"><h3>Рух і анімація</h3><div class="seg" role="group" aria-label="Рух">${[["system","Як у системі"],["reduce","Менше руху"],["full","Повна анімація"]].map(([k,n])=>`<button data-act="motion" data-v="${k}" aria-pressed="${st.motion===k}">${n}</button>`).join("")}</div>
      <p class="small muted">«Менше руху» вимикає тряску, частинки, конфеті й рух хмар на фоні.</p></div>
 ${accountCard()}
     <button class="btn btn-primary" data-act="close">Готово</button>`);
   };
   m.acts={close:()=>closeModal(),
-    "@input":el=>{if(el.id==="vol"){S.settings.volume=+el.value/100;save();const l=m.el.querySelector('label[for="vol"]');if(l)l.textContent=`Гучність: ${el.value}%`}},
+    "@input":el=>{if(el.id==="vol"){S.settings.volume=+el.value/100;save();MUS.sync();const l=m.el.querySelector('label[for="vol"]');if(l)l.textContent=`Гучність: ${el.value}%`}},
     "@change":el=>{if(el.id==="vol")sfx("click")},
-    mute:()=>{S.settings.muted=!S.settings.muted;save();render()},
+    mute:()=>{S.settings.muted=!S.settings.muted;save();MUS.sync();render()},
+    music:()=>{S.settings.music=!S.settings.music;save();MUS.sync();render()},
     motion:b=>{S.settings.motion=b.dataset.v;save();applyMotion();render()},
     ...accountActs(),
     reset:()=>openModal({label:"Скинути прогрес",html:`<h2>Скинути весь прогрес?</h2><p>Зірки, монети й оформлення буде видалено. Спершу можна зробити експорт.</p><div class="btn-row"><button class="btn btn-ghost" data-act="no" autofocus>Скасувати</button><button class="btn btn-primary" data-act="yes">Так, скинути</button></div>`,acts:{no:()=>closeModal(),yes:()=>{closeAllModals();S=ST.defaults();ST.Store.discardCorrupt();save();applyCosmetics();go("home");toast("Прогрес скинуто")}}}),
@@ -2706,9 +2804,12 @@ function boot(){
   go("home");
   requestAnimationFrame(t=>{lastFrame=t;loop(t)});
   if(CL)cloudBoot();
+  if(!CL||!CL.enabled){streakReady=true;setTimeout(checkStreak,400)}
+  const wake=()=>{MUS.unlock()};document.addEventListener("pointerdown",wake,{passive:true});document.addEventListener("keydown",wake);
+  document.addEventListener("visibilitychange",()=>MUS.sync());
 }
 /* тестові гачки */
-OWL.UI={go,startRound,openQuests,openSettings,pauseGame,get G(){return G},get screen(){return screen},get V(){return V},setState:s=>{S=s},save,closeAllModals,handleEvents};
+OWL.UI={MUS,openLeaderboard,checkStreak,go,startRound,openQuests,openSettings,pauseGame,get G(){return G},get screen(){return screen},get V(){return V},setState:s=>{S=s},save,closeAllModals,handleEvents};
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot);else boot();
 })();
 
