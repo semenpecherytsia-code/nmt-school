@@ -427,6 +427,10 @@ h1[tabindex="-1"]:focus,h2[tabindex="-1"]:focus{outline:none}
 .icon-btn.acc-btn.on::after{content:"";position:absolute;right:4px;top:4px;width:10px;height:10px;border-radius:50%;background:#22a05a;border:2px solid #fff}
 .btn svg{width:20px;height:20px;flex:none}
 .gate{text-align:center;display:flex;flex-direction:column;gap:10px;align-items:center}.gate .logo{font-size:40px;margin:0}.gate .acc-form{width:100%;justify-content:center}.gate .err{color:#b3362b;margin:0}
+.adm-kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:8px 0 14px}.adm-kpi div{background:#fff;border:2px solid var(--line);border-radius:14px;padding:10px 12px;display:flex;flex-direction:column}.adm-kpi b{font-size:26px;color:#ff8a00}.adm-kpi span{font-size:13px;color:#7a5a3a}
+.adm-tbl{overflow-x:auto;margin-bottom:14px;border:2px solid var(--line);border-radius:14px;background:#fff}.adm-tbl table{border-collapse:collapse;width:100%;font-size:14px}.adm-tbl th,.adm-tbl td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}.adm-tbl th{background:#fff4e6;font-weight:700}
+.gate input[type=password]{flex:1 1 220px;min-height:46px;border:2px solid var(--line);border-radius:12px;padding:8px 12px;font:inherit;background:#fff}
+.adm-tbl,.adm-kpi{flex:none}
 
 </style>
 <div id="app">
@@ -1972,7 +1976,13 @@ C.login=async function(email){
   return data;
 };
 C.load=async function(){if(!C.user)return null;return rpc("owl_load",{p_email:C.user.email})};
-C.logout=function(){C.user=null;try{localStorage.removeItem(EMAIL_KEY)}catch(x){}};
+C.logout=function(){C.user=null;C.admin=false;C.adminPass=null;try{localStorage.removeItem(EMAIL_KEY);localStorage.removeItem(PASS_KEY)}catch(x){}};
+/* адміни: пароль перевіряє сервер (owl_admin_ok), список гравців віддає лише з правильним паролем */
+const PASS_KEY="owl-admin-pass";C.admin=false;C.adminPass=null;
+C.isAdminEmail=async e=>{try{return !!(await rpc("owl_is_admin",{p_email:norm(e)}))}catch(x){return false}};
+C.adminLogin=async(e,pass)=>{const ok=!!(await rpc("owl_admin_ok",{p_email:norm(e),p_pass:pass}));if(ok){C.admin=true;C.adminPass=pass;try{localStorage.setItem(PASS_KEY,pass)}catch(x){}}return ok};
+C.adminRestore=async()=>{if(!C.user)return false;let p=null;try{p=localStorage.getItem(PASS_KEY)}catch(x){}if(!p)return false;try{return await C.adminLogin(C.user.email,p)}catch(x){return false}};
+C.players=async()=>rpc("owl_admin_players",{p_email:C.user.email,p_pass:C.adminPass});
 let timer=0,pending=null,busy=false;
 async function flush(){if(!pending||busy||!C.user)return;busy=true;const S=pending;pending=null;
   try{await rpc("owl_save",{p_email:C.user.email,p_data:S});C.err=""}catch(e){C.err=e.message;pending=pending||S;console.warn("cloud save",e.message)}
@@ -2129,10 +2139,12 @@ const fmtSec=v=>String(Math.round(v*10)/10).replace(".",",");
 /* ---------- режим тестування (адмін) ---------- */
 const ADMIN_BUILD=false/*ADMIN_BUILD*/;
 let ADMIN=ADMIN_BUILD;
-function setAdmin(v){if(!ADMIN_BUILD)return;ADMIN=v;toast(v?"Режим тестування увімкнено: усі рівні відкриті":"Режим тестування вимкнено");rerender()}
+function setAdmin(v){if(!ADMIN_BUILD&&!(CL&&CL.admin))return;ADMIN=v;toast(v?"Режим тестування увімкнено: усі рівні відкриті":"Режим тестування вимкнено");rerender()}
 const openN=()=>ADMIN?12:S.arcade.open;
-const adminBar=()=>ADMIN?`<div class="notice warn" role="status"><div><b>Режим тестування.</b> Усі рівні відкриті, навчання не обовʼязкове. <button class="link" data-act="adminCoins">+500 монет</button> · <button class="link" data-act="adminOff">Вимкнути до перезапуску</button></div></div>`:"";
-const adminActs={adminOff:()=>setAdmin(false),adminCoins:()=>{if(!ADMIN)return;S.coins+=500;save();toast("+500 монет")}};
+const adminBar=()=>{const cl=CL&&CL.admin;const pl=cl?` · <button class="link" data-act="adminPlayers">Гравці</button>`:"";
+  if(ADMIN)return `<div class="notice warn" role="status"><div><b>Режим тестування.</b> Усі рівні відкриті, навчання не обовʼязкове. <button class="link" data-act="adminCoins">+500 монет</button> · <button class="link" data-act="adminOff">Вимкнути${cl?"":" до перезапуску"}</button>${pl}</div></div>`;
+  return cl?`<div class="notice info" role="status"><div><b>Ти адмін.</b> <button class="link" data-act="adminOn">Увімкнути режим тестування</button>${pl}</div></div>`:""};
+const adminActs={adminOff:()=>setAdmin(false),adminOn:()=>setAdmin(true),adminPlayers:()=>openPlayers(),adminCoins:()=>{if(!ADMIN)return;S.coins+=500;save();toast("+500 монет")}};
 /* ---------- HOME ---------- */
 RENDER.home=function(){
   const st=S.arcade.stars,stars=Object.values(st).reduce((x,y)=>x+(+y||0),0),next=Math.min(S.arcade.open-1,11);
@@ -2394,29 +2406,55 @@ function accountCard(){
   return `<div class="card"><h3>Акаунт</h3><p>Ти граєш як <b>${esc(CL.user?CL.user.email:"гість")}</b>.</p><p class="small muted">Монети, зірки, скіни й завдання зберігаються за цією поштою. Введи її на будь-якому пристрої — і прогрес буде там.</p>
     <div class="btn-row"><button class="btn btn-ghost" data-act="logout">Змінити пошту</button></div></div>`;
 }
-function accountActs(){return{logout:()=>{CL.logout();ST.Store.useKey(ST.KEY);S=ST.Store.load();applyCosmetics();closeAllModals();go("home");openLoginGate()}}}
+function accountActs(){return{logout:()=>{CL.logout();if(!ADMIN_BUILD)ADMIN=false;ST.Store.useKey(ST.KEY);S=ST.Store.load();applyCosmetics();closeAllModals();go("home");openLoginGate()}}}
 function openAccount(){const m=openModal({label:"Акаунт",html:accountCard()+`<button class="btn btn-quiet" data-act="close">Закрити</button>`,acts:{}});m.acts={close:()=>closeModal(),...accountActs()}}
 function openLoginGate(){
   const m=openModal({label:"Вхід",closable:false,html:`<div class="gate"><p class="logo">Совиний <b>кошик</b></p><h2>Введи свою пошту</h2>
     <p class="muted">Прогрес — монети, зірки й скіни — збережеться за цією поштою. Наступного разу просто введи її знову, на будь-якому пристрої.</p>
-    <form class="acc-form" data-form="login"><input type="email" id="accEmail" required autocomplete="email" inputmode="email" placeholder="твоя@пошта.com" aria-label="Пошта"><button class="btn btn-primary btn-big" type="submit">Грати</button></form>
+    <form class="acc-form" data-form="login"><input type="email" id="accEmail" required autocomplete="email" inputmode="email" placeholder="твоя@пошта.com" aria-label="Пошта"><input type="password" id="accPass" autocomplete="current-password" placeholder="Пароль адміна" aria-label="Пароль адміна" hidden><button class="btn btn-primary btn-big" type="submit">Грати</button></form>
     <p class="err" id="accMsg" hidden></p></div>`,acts:{}});
   m.acts={"@submit":async f=>{const inp=f.querySelector("#accEmail"),msg=m.el.querySelector("#accMsg"),btn=f.querySelector("button");const email=(inp.value||"").trim().toLowerCase();
     if(!CL.validEmail(email)){msg.hidden=false;msg.textContent="Перевір пошту — схоже, в ній помилка.";inp.focus();return}
     btn.disabled=true;btn.textContent="Входжу…";msg.hidden=true;
+    const pin=f.querySelector("#accPass");const fail=t=>{btn.disabled=false;btn.textContent="Грати";msg.hidden=false;msg.textContent=t};
+    let isAdm=false;try{isAdm=await CL.isAdminEmail(email)}catch(e){}
+    if(isAdm){if(pin.hidden||!pin.value){pin.hidden=false;pin.focus();return fail("Це пошта адміна — введи пароль.")}
+      let ok=false;try{ok=await CL.adminLogin(email,pin.value)}catch(e){return fail("Не вдалося підключитися. Перевір інтернет і спробуй ще раз.")}
+      if(!ok){pin.value="";pin.focus();return fail("Неправильний пароль.")}}
     let data=null;try{data=await CL.login(email)}catch(e){btn.disabled=false;btn.textContent="Грати";msg.hidden=false;msg.textContent="Не вдалося підключитися. Перевір інтернет і спробуй ще раз.";return}
     const uKey=ST.KEY+":"+email;let next=data?ST.validateV2(data):null;
     if(!next)next=ST.Store.peek(uKey);
     let firstHere=false;try{firstHere=!localStorage.getItem("owl-used-email");localStorage.setItem("owl-used-email","1")}catch(e){}
     if(!next)next=firstHere?S:ST.defaults();
     ST.Store.useKey(uKey);S=next;ST.Store.save(S);if(!data)CL.push(S,true);
-    applyCosmetics();closeAllModals();go("home");toast(data?"З поверненням! Прогрес завантажено":"Готово! Прогрес зберігатиметься за цією поштою")}};
+    if(CL.admin)ADMIN=true;
+    applyCosmetics();closeAllModals();go("home");toast(CL.admin?"Вхід адміна: режим тестування увімкнено":data?"З поверненням! Прогрес завантажено":"Готово! Прогрес зберігатиметься за цією поштою")}};
   setTimeout(()=>{const i=m.el.querySelector("#accEmail");if(i)i.focus()},50);
+}
+/* адмінка: гравці й статистика (як на matannmt) */
+async function openPlayers(){
+  const m=openModal({label:"Гравці",wide:true,html:`<h2>Гравці</h2><p class="muted">Завантажую…</p>`,acts:{close:()=>closeModal()}});
+  let rows=[];try{rows=await CL.players()||[]}catch(e){setModalHtml(m,`<h2>Гравці</h2><p class="err">Не вдалося завантажити: ${esc(e.message)}</p><button class="btn btn-primary" data-act="close">Закрити</button>`);return}
+  const L=ARCADE.LEVELS,now0=Date.now();
+  const P=rows.map(r=>{const d=r.data||{},st=(d.arcade&&d.arcade.stars)||{};const vals=Object.values(st).map(Number);
+    return{email:r.email,stars:vals.reduce((a,b)=>a+b,0),passed:vals.filter(v=>v>0).length,coins:+d.coins||0,skins:((d.cosm&&d.cosm.owned)||[]).length,st,at:new Date(r.updated_at).getTime()}});
+  P.sort((a,b)=>b.stars-a.stars||b.at-a.at);
+  const active=P.filter(p=>now0-p.at<7*864e5).length,avg=P.length?(P.reduce((a,p)=>a+p.passed,0)/P.length).toFixed(1):"0";
+  const lvl=L.map((l,i)=>{const pass=P.filter(p=>(p.st[i]||0)>0);const s3=P.filter(p=>p.st[i]===3).length;return{i,name:l.name,pass:pass.length,avg:pass.length?(pass.reduce((a,p)=>a+p.st[i],0)/pass.length).toFixed(1):"—",s3}});
+  const ago=t=>{const m0=Math.round((now0-t)/6e4);return m0<60?m0+" хв тому":m0<1440?Math.round(m0/60)+" год тому":Math.round(m0/1440)+" дн тому"};
+  setModalHtml(m,`<h2>Гравці</h2>
+   <div class="adm-kpi"><div><b>${P.length}</b><span>усього гравців</span></div><div><b>${active}</b><span>грали за 7 днів</span></div><div><b>${avg}</b><span>рівнів пройдено в середньому</span></div></div>
+   <h3>Рейтинг гравців</h3><div class="adm-tbl"><table><thead><tr><th>#</th><th>Пошта</th><th>Зірки</th><th>Рівні</th><th>Монети</th><th>Скіни</th><th>Останній вхід</th></tr></thead><tbody>
+   ${P.map((p,k)=>`<tr><td>${k+1}</td><td>${esc(p.email)}</td><td>${p.stars} / 36</td><td>${p.passed} / 12</td><td>${p.coins}</td><td>${p.skins}</td><td>${ago(p.at)}</td></tr>`).join("")||`<tr><td colspan="7" class="muted">Поки немає гравців</td></tr>`}</tbody></table></div>
+   <h3>Рівні</h3><div class="adm-tbl"><table><thead><tr><th>Рівень</th><th>Пройшли</th><th>Середньо зірок</th><th>На 3 зірки</th></tr></thead><tbody>
+   ${lvl.map(l=>`<tr><td>${l.i+1}. ${esc(l.name)}</td><td>${l.pass} / ${P.length}</td><td>${l.avg}</td><td>${l.s3}</td></tr>`).join("")}</tbody></table></div>
+   <button class="btn btn-primary" data-act="close">Закрити</button>`);
 }
 async function cloudBoot(){
   CL.init(ADMIN_BUILD);if(!CL.enabled)return;
   if(!CL.user){openLoginGate();return}
   ST.Store.useKey(ST.KEY+":"+CL.user.email);S=ST.Store.load();applyCosmetics();rerender();
+  CL.adminRestore().then(ok=>{if(ok){ADMIN=true;if(screen!=="game")rerender()}});
   try{const data=await CL.load();const v=data?ST.validateV2(data):null;if(v){S=v;ST.Store.save(S);applyCosmetics();if(screen!=="game")rerender()}else CL.push(S,true)}catch(e){console.warn("cloud load",e.message)}
 }
 
