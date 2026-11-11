@@ -7,6 +7,10 @@
 <body>
 <title>Совиний кошик</title>
 <meta name="description" content="Гра: сова ловить хмаринки з правильними виразами">
+<meta name="color-scheme" content="only light">
+<meta name="supported-color-schemes" content="light">
+<meta name="theme-color" content="#ff8a00">
+<meta name="darkreader-lock">
 <style>
 /* Layout: a cozy Ukrainian study artbook. Arcade and map live on a painted forest canvas;
    training and the mock exam sit on warm paper with one centred working column. Single light look by design. */
@@ -18,7 +22,7 @@
   --f-body:"Segoe UI","Noto Sans","Roboto","Helvetica Neue",Arial,sans-serif;
   --f-head:Georgia,"Noto Serif","Cambria","Times New Roman",serif;
   --f-math:"Cambria Math","Cambria","STIX Two Math","Noto Serif",Georgia,serif;
-  color-scheme:light;
+  color-scheme:only light;
 }
 *{box-sizing:border-box}
 [hidden]{display:none!important}
@@ -475,6 +479,7 @@ h1[tabindex="-1"]:focus,h2[tabindex="-1"]:focus{outline:none}
   .topbar .acc-btn{display:none}
   #toast{font-size:14px;padding:8px 12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));max-width:min(320px,calc(100% - 32px))}
 }
+@media (max-width:560px){#stageCv{height:150px}.stage{padding:8px;gap:6px}.stage-cap b{font-size:18px}.stage-cap{font-size:13px}}
 
 </style>
 <div id="app">
@@ -2464,7 +2469,7 @@ RENDER.shop=function(p){
   const sw={"basket-classic":"linear-gradient(#d08d4b,#9a5f28)","basket-vyshyvka":"repeating-linear-gradient(90deg,#c0262d 0 10px,#1d1d1d 10px 20px,#f6efe0 20px 30px)","basket-kalyna":"radial-gradient(circle at 30% 40%,#d7262c 0 12px,transparent 13px),radial-gradient(circle at 60% 55%,#d7262c 0 10px,transparent 11px),linear-gradient(#d08d4b,#9a5f28)",
     "owl-brown":"linear-gradient(#8a5426,#f6dfba)","owl-snow":"linear-gradient(#e9edf2,#ffffff)","owl-ginger":"linear-gradient(#c8641e,#fde4c4)","bg-summer":"linear-gradient(#7fc3ea,#79b85e)","bg-autumn":"linear-gradient(#8fc0e0,#c8642a)","bg-evening":"linear-gradient(#3c4f86,#c27aa0,#3d6b4f)"};
   const kinds={owl:"Сова",persona:"Особистості",basket:"Кошики",bg:"Фон аркади"};
-  view().innerHTML=`<div class="wrap shop-wrap">${topbar(true,"Оформлення")}<p class="muted" style="background:rgba(255,250,244,.9);border-radius:10px;padding:4px 10px;margin:0">Монети — за рівні й квести, кристали — за особливі рівні та квести. Наведи на скін, щоб приміряти.</p>
+  view().innerHTML=`<div class="wrap shop-wrap">${topbar(true,"Оформлення")}<p class="muted" style="background:rgba(255,250,244,.9);border-radius:10px;padding:4px 10px;margin:0">Монети — за рівні й квести, кристали — за особливі рівні та квести. ${matchMedia("(hover:none)").matches?"Натисни":"Наведи"} на скін, щоб приміряти.</p>
    <div class="shop-layout"><div class="shop-list">
    ${Object.entries(kinds).map(([k,n])=>`<section class="chapter"><h3>${n}</h3><div class="shop">${ST.COSMETICS.filter(c=>c.kind===k).map(c=>{const own=S.cosm.owned.includes(c.id),eq=S.cosm.eq[k]===c.id;
      return `<div class="item${eq?" eq":""}" data-try="${c.id}" data-rar="${c.rar||"common"}" tabindex="-1"><canvas class="prev" data-prev="${c.id}" data-kind="${k}" role="img" aria-label="Як виглядає: ${c.name}"></canvas><span class="rar rar-${c.rar||"common"}">${RAR[c.rar||"common"]}</span><b>${c.name}</b><div class="slot" data-slot="${c.id}">${shopSlot(c)}</div></div>`}).join("")}</div></section>`).join("")}
@@ -2496,7 +2501,7 @@ function stageShow(id){
   const cc=c||ST.COSMETICS.find(x=>x.id===effOwl(eq)),rr=cc.rar||"common";
   const kEl=$("#stKind");kEl.textContent=(c?KIND_NAME[c.kind]+(own?"":" · примірка"):"Твоя сова")+" · "+RAR[rr];kEl.className="eyebrow rar-txt-"+rr;
   $("#stName").textContent=cc.name;$(".stage").dataset.rar=rr;
-  $("#stInfo").textContent=(cc.desc?cc.desc+". ":"")+(c?(S.cosm.eq[c.kind]===c.id?"Використовується":own?"Уже твоє — можна обрати":`Ціна: ${c.price} ${c.cur==="gem"?"кристалів":"монет"}`):"Наведи на скін, щоб приміряти");
+  $("#stInfo").textContent=(cc.desc?cc.desc+". ":"")+(c?(S.cosm.eq[c.kind]===c.id?"Використовується":own?"Уже твоє — можна обрати":`Ціна: ${c.price} ${c.cur==="gem"?"кристалів":"монет"}`):(matchMedia("(hover:none)").matches?"Натисни":"Наведи")+" на скін, щоб приміряти");
   if(c&&STAGE.owl)STAGE.owl.jumpT=.35;
 }
 function initStage(){
@@ -2506,9 +2511,10 @@ function initStage(){
   STAGE.owl.nx=.5;stageShow(null);
   const list=view().querySelector(".shop-list");
   const hov=e=>{const it=e.target.closest&&e.target.closest("[data-try]");const id=it?it.dataset.try:null;if(id!==stageTry){stageTry=id;stageShow(id)}};
-  list.addEventListener("mouseover",hov);list.addEventListener("focusin",hov);
-  list.addEventListener("mouseleave",()=>{stageTry=null;stageShow(null)});
-  list.addEventListener("touchstart",hov,{passive:true});
+  let touchT=0;const tap=e=>{touchT=Date.now();const it=e.target.closest&&e.target.closest("[data-try]");if(!it)return;const id=it.dataset.try;stageTry=id;stageShow(id)};
+  list.addEventListener("mouseover",e=>{if(Date.now()-touchT>800)hov(e)});list.addEventListener("focusin",e=>{if(Date.now()-touchT>800)hov(e)});
+  list.addEventListener("mouseleave",()=>{if(Date.now()-touchT<800)return;stageTry=null;stageShow(null)});
+  list.addEventListener("touchstart",tap,{passive:true});list.addEventListener("pointerup",e=>{if(e.pointerType!=="mouse")tap(e)});
 }
 function tickPreviews(dt){
   if(STAGE&&STAGE.cv.isConnected){const o=STAGE.owl;o.target=.5;o.nx=.5;STAGE.update(dt,null,{l:false,r:false});o.vx=0;o.dir=0;STAGE.draw(null)}
