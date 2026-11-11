@@ -2469,7 +2469,7 @@ RENDER.home=function(){
   view().innerHTML=`<div class="wrap">${topbar(false)}
    <div class="home-hero"><p class="logo">Совиний <b>кошик</b></p><p class="muted" style="background:rgba(255,250,241,.85);border-radius:10px;padding:2px 8px">Допоможи сові впіймати хмаринки з правильними виразами.</p></div>
    ${storageNotice()}${adminBar()}
-   <div class="next"><div class="txt"><div class="eyebrow">${first?"З чого почати":"Продовжити"}</div><h3>${first?"Коротке навчання: дві хмаринки":`Рівень ${next+1}: ${esc(ARCADE.LEVELS[next].name)}`}</h3><p class="muted small">${first?"Покаже, як ловити хмаринки кошиком.":`Зібрано зірок: ${stars} із ${CF.visible().length*3}`}</p></div>
+   <div class="next"><div class="txt"><div class="eyebrow">${first?"З чого почати":"Продовжити"}</div><h3>${first?"Коротке навчання: дві хмаринки":esc(ARCADE.LEVELS[next].name)}</h3><p class="muted small">${first?"Покаже, як ловити хмаринки кошиком.":`Зібрано зірок: ${stars} із ${CF.visible().length*3}`}</p></div>
     <div class="btn-row" style="flex:1 1 260px"><button class="btn btn-primary" data-act="${first?"tut":"play"}">${first?"Почати навчання":"Грати"}</button><button class="btn btn-ghost" data-act="arcade">Усі рівні</button></div></div>
    <div class="home-extra"><button class="btn btn-ghost lb-btn" data-act="lb">${IC.trophy} Рейтинг тижня</button></div>
    <div class="home-spacer" aria-hidden="true"></div></div>`;
@@ -2495,7 +2495,7 @@ RENDER.map=function(){
    </div><p class="small muted"><span id="setHint">${setHint()}</span> <button class="link" data-act="tut">Пройти навчання ще раз</button></p></details>
    ${ARCADE.CHAPTERS.map(ch=>{const lvs=ch.levels.filter(i=>ADMIN||!lvHidden(i));if(!lvs.length)return "";const got=lvs.reduce((s,i)=>s+(st[i]||0),0);return `<section class="chapter"><h3>${ch.name}<span class="sum">${got} / ${lvs.length*3} зірок</span></h3><div class="levels">
      ${lvs.map(i=>{const locked=lvLocked(i);return `<div class="lv${i===next&&!locked?" next-up":""}" aria-disabled="${locked}">
-       <span class="n">Рівень ${i+1}${i===next&&!locked?' · <span class="go-tag">Далі</span>':""}</span><span class="t">${esc(L[i].name)}${lvHidden(i)?' <span class="tag warn">Сховано</span>':""}</span><span class="tr">Тренує: ${esc(L[i].trains)}</span>
+       <span class="t">${esc(L[i].name)}${lvHidden(i)?' <span class="tag warn">Сховано</span>':""}</span>
        <div class="row">${locked?`<span class="small muted">Відкриється після попереднього рівня</span>`:starsHtml(st[i]||0)}</div>
        <div class="btn-row">${locked?"":`<button class="btn btn-primary" style="min-height:42px;padding:6px 12px" data-act="lvl" data-i="${i}" aria-label="Грати рівень ${i+1}">Грати</button>`}</div></div>`}).join("")}</div></section>`}).join("")}
   </div>`;
@@ -2516,7 +2516,7 @@ function playLevel(i){
 }
 function openIntro(i){
   const L=ARCADE.LEVELS[i],set=S.settings;
-  openModal({label:"Рівень "+(i+1),html:`<p class="eyebrow">Рівень ${i+1} · ${ARC.SPEED_NAMES[set.speed]} · ${set.math?"складніша математика":"базова математика"}</p><h2>${L.name}</h2>
+  openModal({label:"Рівень "+(i+1),html:`<p class="eyebrow">${ARC.SPEED_NAMES[set.speed]} · ${set.math?"складніша математика":"базова математика"}</p><h2>${L.name}</h2>
     <p>Тренує: ${L.trains}. ${L.mix?"Правило змінюється після кожних 4 правильних відповідей — гра покаже нове правило і дасть час його прочитати.":"Перед стартом покажемо правило великими літерами."}</p>
     <div class="tally"><div><b>${ARC.GOAL}</b>треба зловити</div><div><b>${ARC.LIVES}</b>сердечка</div><div><b>${set.control==="buttons"?"Кнопки":fmtSec(ARC.FALL[set.speed]*(L.slow||1))+" с"}</b>${set.control==="buttons"?"керування":"політ хмаринки"}</div></div>
     ${L.tip?`<div class="notice info"><div><b>Підказка:</b> ${mt(L.tip)}</div></div>`:""}
@@ -2678,9 +2678,9 @@ RENDER.result=function({res}){
   const r=res,lv=r.level,L=ARCADE.LEVELS;const nx=nextAfter(lv);const hasNext=!r.special&&!r.tirOnly&&(r.won||ADMIN)&&nx!=null;
   const bad=r.log.filter(x=>x.outcome==="caught-wrong"),miss=r.log.filter(x=>x.outcome==="missed-ok"),good=r.log.filter(x=>x.outcome==="caught-ok");
   view().innerHTML=`<div class="wrap narrow">${topbar(false)}<div class="sheet">
-    <div class="result-head"><p class="eyebrow">${r.tirOnly?"Тир":r.special?(r.special==="d"?"Щоденний рівень":"Щотижневий рівень"):"Рівень "+(lv+1)} · ${esc(r.levelName)}</p><h1>${r.won?(r.stars===3?"Бездоганно!":"Рівень пройдено!"):"Цього разу не вийшло"}</h1>
+    <div class="result-head"><p class="eyebrow">${esc(r.levelName)}</p><h1>${r.won?(r.stars===3?"Бездоганно!":"Рівень пройдено!"):"Цього разу не вийшло"}</h1>
       ${r.won?starsHtml(r.stars,"stars big-stars"):`<p class="muted">${r.timeout?"Час вийшов.":"Сердечка закінчились."} Розбери помилки — і спробуй ще раз.</p>`}
-      ${!r.special&&!r.tirOnly&&r.won&&nx!=null&&S.arcade.open===lv+2&&!(S.arcade.stars[nx]>0)?`<p class="tag good">Відкрито рівень ${nx+1}</p>`:""}</div>
+      ${!r.special&&!r.tirOnly&&r.won&&nx!=null&&S.arcade.open===lv+2&&!(S.arcade.stars[nx]>0)?`<p class="tag good">Відкрито: ${esc(L[nx].name)}</p>`:""}</div>
     <div class="tally"><div><b><span aria-hidden="true">✓</span>${r.correct}</b>правильно впіймано</div><div><b><span aria-hidden="true">✗</span>${r.wrong}</b>неправильно впіймано</div><div><b><span aria-hidden="true">↓</span>${r.missed}</b>пропущено правильних</div></div>
     ${r.maxStreak>=5?`<p class="small muted" style="text-align:center">Найдовша серія ×${r.maxStreak}</p>`:""}
     <div class="btn-row"><button class="btn btn-primary btn-big" data-act="again">Ще одна спроба</button>${hasNext?`<button class="btn btn-forest btn-big" data-act="next">Наступний рівень</button>`:""}</div>
