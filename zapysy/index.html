@@ -208,6 +208,18 @@ h1.page em{color:var(--mark);font-style:italic}
 .small{font-size:13px;color:var(--muted)}
 .foot{text-align:center;color:var(--muted);font-size:13px;margin-top:40px}
 .foot a{color:var(--muted)}
+.ava{width:40px;height:40px;border-radius:50%;border:0;background:#8a4b14;color:#fff;font-weight:800;font-family:var(--f-round);flex:none}
+.amenu{position:fixed;z-index:70;top:66px;right:max(16px,calc(50% - 474px));background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 18px 40px -16px rgba(0,0,0,.25);padding:8px;min-width:220px}
+.amenu .em{padding:8px 12px;color:var(--muted);font-size:13px;word-break:break-all}
+.amenu a,.amenu button{display:block;width:100%;text-align:left;border:0;background:none;padding:10px 12px;border-radius:10px;font-weight:700;text-decoration:none}
+.amenu a:hover,.amenu button:hover{background:var(--soft)}
+.gate{position:fixed;inset:0;z-index:100;background:var(--bg);display:grid;place-items:center;padding:16px;
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:28px 28px}
+.gate .card{width:100%;max-width:420px;padding:26px}
+.gate h2{font-family:var(--f-display);font-size:28px;margin:12px 0 6px;line-height:1.1}
+.gate h2 em{color:var(--mark)}
+.gate .logo i{box-shadow:0 0 0 1px var(--line)}
+body.embed .ava{display:none}
 body.embed .top{display:none}
 body.embed .wrap{padding-top:12px}
 </style>
@@ -221,9 +233,11 @@ body.embed .wrap{padding-top:12px}
       <a href="#/zapysy" data-r="zapysy">Записи занять</a>
       <a href="#/calendar" data-r="calendar">Календар</a>
       <a href="#/offline" data-r="offline">Збережене офлайн</a>
+      <a href="#/admin" data-r="admin" class="adm-link hidden">Адмінка</a>
     </nav>
     <span class="sp"></span>
     <a class="ibtn" href="#/offline" aria-label="Збережене офлайн" title="Збережене офлайн"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg><span class="dot hidden" id="offCount"></span></a>
+    <button class="ava hidden" id="ava" aria-label="Акаунт"></button>
   </div>
 </header>
 <div class="drawer" id="drawer"><nav>
@@ -231,6 +245,8 @@ body.embed .wrap{padding-top:12px}
   <a href="#/zapysy" data-r="zapysy">Записи занять</a>
   <a href="#/calendar" data-r="calendar">Календар</a>
   <a href="#/offline" data-r="offline">Збережене офлайн</a>
+  <a href="#/admin" data-r="admin" class="adm-link hidden">Адмінка</a>
+  <a href="#" id="dLogout">Вийти</a>
 </nav></div>
 <main class="wrap" id="app"></main>
 <div id="layer"></div>
@@ -239,9 +255,8 @@ body.embed .wrap{padding-top:12px}
 "use strict";
 /* ================== Налаштування ================== */
 const CLOUD={url:"https://vgbpdamqorbcmxktvebh.supabase.co",key:"sb_publishable_2L5yjO2NDZOXC-Um3F1Rjw_GYWEcmoi"};
-/* хеш пошти адміна — для локального режиму, поки в Supabase не виконано SQL (саму пошту в коді не тримаємо) */
-const ADMIN_HASH="a9b9525cab83369d1fe16438a4af10491b0d8bdfef024e78e33f002e2349791d";
-const LS={data:"ms-zap-data",draft:"ms-zap-draft",watch:"ms-zap-watch",admin:"ms-zap-admin",view:"ms-zap-calview"};
+/* адмінські пошти і пароль перевіряє лише сервер (Supabase), у коді їх немає */
+const LS={email:"ms-zap-email",data:"ms-zap-data",draft:"ms-zap-draft",watch:"ms-zap-watch",admin:"ms-zap-admin",view:"ms-zap-calview"};
 
 const MONTHS=["Січень","Лютий","Березень","Квітень","Травень","Червень","Липень","Серпень","Вересень","Жовтень","Листопад","Грудень"];
 const MONTHS_G=["січня","лютого","березня","квітня","травня","червня","липня","серпня","вересня","жовтня","листопада","грудня"];
@@ -416,7 +431,7 @@ function vRecords(){
   $("#expAll").onclick=()=>{gs.forEach(g=>UI.open[g.name]=!allOpen);vRecords()};
   document.querySelectorAll(".group .ghead").forEach(b=>b.onclick=()=>{const n=b.parentNode.dataset.g;UI.open[n]=!UI.open[n];b.parentNode.classList.toggle("open")});
 }
-function foot(){return`<div class="foot">${esc(S().brand||"Математика до НМТ")} · <a href="#/admin">Адмін</a></div>`}
+function foot(){return`<div class="foot">${esc(S().brand||"Математика до НМТ")}${ADM?` · <a href="#/admin">Адмінка</a>`:""}</div>`}
 
 /* ================== 2. Перегляд запису + «Зберегти офлайн» ================== */
 let curVideoUrl=null;
@@ -545,16 +560,7 @@ let ADM=lsGet(LS.admin,null); // {email, pass, mode:'cloud'|'local'}
 let EDIT=null,dirty=false;
 async function sha256(s){const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(s));return[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("")}
 function vAdmin(){
-  if(!ADM){
-    $("#app").innerHTML=`<h1 class="page">Вхід для <em>адміна</em></h1><div class="card" style="padding:20px;max-width:440px">
-      <form id="lf"><div class="field"><label>Пошта</label><input id="le" type="email" autocomplete="username" required></div>
-      <div class="field"><label>Пароль</label><input id="lp" type="password" autocomplete="current-password"></div>
-      <button class="btn" style="width:100%">Увійти</button><p class="small" id="lerr"></p></form></div>`;
-    $("#lf").onsubmit=async e=>{e.preventDefault();const em=$("#le").value.trim().toLowerCase(),pw=$("#lp").value;$("#lerr").textContent="Перевіряю…";
-      try{const ok=await rpc("ms_admin_ok",{p_email:em,p_pass:pw});if(ok){ADM={email:em,pass:pw,mode:"cloud"};cloudState="ok"}else{$("#lerr").textContent="Невірна пошта або пароль";return}}
-      catch(err){ if(await sha256("ms-zapysy:"+em)===ADMIN_HASH){ADM={email:em,pass:"",mode:"local"}}else{$("#lerr").textContent=onWeb?"Невірна пошта або пароль":"Невірна пошта";return}}
-      lsSet(LS.admin,ADM);EDIT=JSON.parse(JSON.stringify(lsGet(LS.draft,null)||DATA));vAdmin()};
-    return}
+  if(!ADM){$("#app").innerHTML=`<div class="card empty">Адмінка доступна після входу з адмінською поштою. <br><br><button class="btn" id="relog">Увійти іншою поштою</button></div>`;$("#relog").onclick=logout;return}
   if(!EDIT)EDIT=JSON.parse(JSON.stringify(lsGet(LS.draft,null)||DATA));
   const T=UI.adminTab;
   $("#app").innerHTML=`<h1 class="page">Адмін<em>ка</em></h1>
@@ -565,7 +571,7 @@ function vAdmin(){
   <div class="atabs">${[["lessons","Уроки й записи"],["sched","Розклад"],["groups","Групи"],["settings","Налаштування"],["backup","Резерв"]].map(t=>`<button data-t="${t[0]}" class="${T===t[0]?"on":""}">${t[1]}</button>`).join("")}</div>
   <div id="abody"></div>`;
   document.querySelectorAll(".atabs button").forEach(b=>b.onclick=()=>{UI.adminTab=b.dataset.t;vAdmin()});
-  $("#lo").onclick=()=>{ADM=null;EDIT=null;try{localStorage.removeItem(LS.admin)}catch(e){}vAdmin()};
+  $("#lo").onclick=logout;
   $("#pub").onclick=publish;
   ({lessons:aLessons,sched:aSched,groups:aGroups,settings:aSettings,backup:aBackup})[T]();
 }
@@ -687,11 +693,60 @@ function aBackup(){
   const d=$("#disc");if(d)d.onclick=()=>{EDIT=JSON.parse(JSON.stringify(DATA));dirty=false;try{localStorage.removeItem(LS.draft)}catch(e){}vAdmin()};
 }
 
+
+/* ================== Вхід за поштою ================== */
+let USER=lsGet(LS.email,null);
+const validEmail=e=>/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e);
+async function isAdminEmail(em){
+  try{const r=await rpc("ms_is_admin",{p_email:em});cloudState="ok";return {admin:!!r,mode:"cloud"}}
+  catch(e){return {admin:false,mode:"off"}}
+}
+function showGate(){
+  if(document.body.classList.contains("embed")&&USER)return;
+  let g=$(".gate");if(!g){g=document.createElement("div");g.className="gate";document.body.appendChild(g)}
+  let step="email",em="",mode="cloud";
+  const draw=()=>{g.innerHTML=`<div class="card"><span class="logo"><i>√x</i><span>${esc(S().brand||"Математика до НМТ")}</span></span>
+    <h2>${step==="email"?"Записи і <em>календар</em>":"Вхід для <em>адміна</em>"}</h2>
+    <p class="sub">${step==="email"?"Введіть пошту, щоб увійти.":"Пошта "+esc(em)+" — адмінська. Введіть пароль."}</p>
+    <form id="gf2">${step==="email"?`<div class="field"><label>Пошта</label><input id="ge" type="email" autocomplete="email" inputmode="email" required value="${esc(em)}"></div>`
+      :`<div class="field"><label>Пароль</label><input id="gp" type="password" autocomplete="current-password" required></div>`}
+    <button class="btn" style="width:100%">${step==="email"?"Увійти":"Увійти як адмін"}</button>
+    ${step==="pass"?`<button type="button" class="btn ghost" id="gback" style="width:100%;margin-top:8px">Інша пошта</button>`:""}
+    <p class="small" id="gerr"></p></form></div>`;
+    const f=$("#gf2");(f.querySelector("input")).focus();
+    if(step==="pass")$("#gback").onclick=()=>{step="email";draw()};
+    f.onsubmit=async e=>{e.preventDefault();const er=$("#gerr");const btn=f.querySelector(".btn");btn.disabled=true;
+      if(step==="email"){em=$("#ge").value.trim().toLowerCase();if(!validEmail(em)){er.textContent="Перевірте пошту";btn.disabled=false;return}
+        er.textContent="Перевіряю…";const r=await isAdminEmail(em);mode=r.mode;
+        if(r.admin){step="pass";draw();return}
+        USER=em;lsSet(LS.email,em);ADM=null;try{localStorage.removeItem(LS.admin)}catch(x){}g.remove();afterLogin();return}
+      const pw=$("#gp").value;er.textContent="Перевіряю…";let ok=false;
+      try{ok=!!(await rpc("ms_admin_ok",{p_email:em,p_pass:pw}))}catch(x){er.textContent="Немає звʼязку з сервером";btn.disabled=false;return}
+      if(!ok){er.textContent="Невірний пароль";btn.disabled=false;return}
+      USER=em;lsSet(LS.email,em);ADM={email:em,pass:pw,mode:"cloud"};lsSet(LS.admin,ADM);g.remove();afterLogin()};
+  };draw();
+}
+function afterLogin(){
+  const a=$("#ava");a.classList.toggle("hidden",!USER);a.textContent=USER?USER[0].toUpperCase():"";
+  document.querySelectorAll(".adm-link").forEach(x=>x.classList.toggle("hidden",!ADM));
+  render();
+}
+function logout(){USER=null;ADM=null;EDIT=null;try{localStorage.removeItem(LS.email);localStorage.removeItem(LS.admin)}catch(e){}
+  const m=$(".amenu");if(m)m.remove();afterLogin();showGate()}
+function toggleAmenu(){let m=$(".amenu");if(m){m.remove();return}
+  m=document.createElement("div");m.className="amenu";m.innerHTML=`<div class="em">${esc(USER||"")}${ADM?" · адмін":""}</div>
+    ${ADM?`<a href="#/admin">Адмінка</a>`:""}<a href="#/offline">Збережене офлайн</a><button id="amLo">Вийти</button>`;
+  document.body.appendChild(m);$("#amLo").onclick=logout;m.querySelectorAll("a").forEach(x=>x.onclick=()=>m.remove());
+  setTimeout(()=>document.addEventListener("click",function h(e){if(!m.contains(e.target)&&e.target.id!=="ava"){m.remove();document.removeEventListener("click",h)}}),0)}
+
 /* ================== Старт ================== */
 if(/[?&]embed=1/.test(location.search))document.body.classList.add("embed");
 $("#menuBtn").onclick=()=>$("#drawer").classList.add("on");
 $("#drawer").onclick=e=>{if(e.target.id==="drawer")$("#drawer").classList.remove("on")};
 dirty=!!lsGet(LS.draft,null);
+$("#ava").onclick=toggleAmenu;$("#dLogout").onclick=e=>{e.preventDefault();logout()};
+if(ADM&&ADM.email!==USER)ADM=null;
+afterLogin();if(!USER)showGate();
 route();loadOff().then(render);loadCloud();
 if(onWeb&&"serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
 </script>
