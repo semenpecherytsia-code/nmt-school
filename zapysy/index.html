@@ -1,0 +1,699 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Записи занять · Математика до НМТ</title>
+<meta name="theme-color" content="#fff3e4">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,700;1,700&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --mark:#ff8a00;--mark-d:#e57a00;--mark-ink:#fff;--ink:#2b1906;--muted:#8a6e58;--line:#f5e4d0;
+  --soft:#fff3e4;--soft2:#ffe6c7;--surface:#fff;--bg:#fffaf3;--ok:#14a06b;--ok-soft:#e1f6ec;--bad:#d64545;
+  --grid:rgba(255,138,0,.08);--shadow:0 18px 40px -22px rgba(255,138,0,.35);--r:22px;
+  --f-head:Arial,"Helvetica Neue",system-ui,sans-serif;--f-round:"Nunito",Arial,system-ui,sans-serif;
+  --f-display:"Noto Serif",Georgia,"Times New Roman",serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-head);font-size:16px;line-height:1.45;
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:28px 28px;min-height:100vh;-webkit-tap-highlight-color:transparent}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:inherit}
+.wrap{max-width:980px;margin:0 auto;padding:0 16px 120px}
+.hidden{display:none!important}
+
+/* top bar — як на matanschool.com */
+.top{position:sticky;top:10px;z-index:30;margin:10px auto 18px;max-width:980px;padding:0 16px}
+.bar{display:flex;align-items:center;gap:10px;background:linear-gradient(90deg,#ffe2bf,#fff0de 60%,#ffe9cf);
+  border:1px solid #ffd9ad;border-radius:999px;padding:8px 10px 8px 12px;box-shadow:var(--shadow)}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;font-weight:700;white-space:nowrap}
+.logo i{width:36px;height:36px;border-radius:50%;background:#fff;display:grid;place-items:center;color:var(--mark);
+  font-style:normal;font-family:var(--f-round);font-weight:900;font-size:14px}
+.tabs{display:flex;gap:4px;margin-left:auto}
+.tabs a{text-decoration:none;padding:9px 15px;border-radius:999px;font-weight:600;font-size:15px;white-space:nowrap}
+.tabs a.on{background:#fff;font-weight:700}
+.ibtn{width:40px;height:40px;border-radius:50%;border:0;background:transparent;display:grid;place-items:center;position:relative;flex:none}
+.ibtn:hover{background:rgba(255,255,255,.6)}
+.ibtn svg{width:22px;height:22px}
+.ibtn .dot{position:absolute;top:2px;right:2px;min-width:18px;height:18px;border-radius:9px;background:var(--mark);color:#fff;
+  font-size:11px;font-weight:800;display:grid;place-items:center;padding:0 4px;font-family:var(--f-round)}
+.menu-btn{display:none}
+@media (max-width:720px){
+  .tabs{display:none}.menu-btn{display:grid}.logo span{font-size:15px}.bar .sp{margin-left:auto}
+}
+.drawer{position:fixed;inset:0;z-index:60;background:rgba(43,25,6,.25);display:none}
+.drawer.on{display:block}
+.drawer nav{position:absolute;left:0;top:0;bottom:0;width:min(300px,84vw);background:#fff;padding:22px 14px;display:flex;flex-direction:column;gap:4px;box-shadow:0 0 40px rgba(0,0,0,.15)}
+.drawer nav a{padding:13px 14px;border-radius:14px;text-decoration:none;font-weight:700}
+.drawer nav a.on{background:var(--soft);color:var(--mark-d)}
+.drawer nav h4{margin:0 0 12px 12px;font-family:var(--f-display);font-size:22px}
+
+h1.page{font-family:var(--f-display);font-size:clamp(28px,5vw,44px);line-height:1.08;margin:8px 0 6px}
+h1.page em{color:var(--mark);font-style:italic}
+.sub{color:var(--muted);margin:0 0 18px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:0 10px 30px -24px rgba(120,60,0,.35)}
+.pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 12px;font-size:13px;font-weight:700;color:var(--muted)}
+.tag{display:inline-flex;align-items:center;gap:6px;background:var(--soft);color:var(--ink);border-radius:8px;padding:4px 9px;font-size:12.5px;font-weight:700}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:999px;padding:12px 20px;font-weight:700;
+  background:var(--mark);color:var(--mark-ink);box-shadow:0 10px 22px -12px rgba(255,138,0,.9);text-decoration:none;white-space:nowrap}
+.btn:hover{background:var(--mark-d)}
+.btn.ghost{background:#fff;color:var(--ink);border:1px solid var(--line);box-shadow:none}
+.btn.ghost:hover{background:var(--soft)}
+.btn.sm{padding:8px 13px;font-size:14px}
+.btn.danger{background:#fff;color:var(--bad);border:1px solid #f3c9c9;box-shadow:none}
+.btn[disabled]{opacity:.5;cursor:default}
+.btn svg{width:16px;height:16px}
+
+/* Записи: групи по місяцях */
+.rec-tools{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.search{flex:1;min-width:200px;display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);border-radius:999px;padding:10px 16px}
+.search input{border:0;outline:0;flex:1;background:transparent;min-width:0}
+.groups{display:flex;flex-direction:column;gap:12px}
+.group{overflow:hidden}
+.ghead{display:flex;gap:14px;align-items:flex-start;padding:16px 18px;width:100%;border:0;background:none;text-align:left}
+.gicon{width:42px;height:42px;border-radius:12px;background:var(--mark);color:#fff;display:grid;place-items:center;flex:none}
+.gicon svg{width:22px;height:22px}
+.gtitle{font-weight:700;font-size:17px}
+.gmeta{color:var(--muted);font-size:13.5px;margin:2px 0 8px}
+.chev{margin-left:auto;transition:transform .2s;color:var(--muted);flex:none;margin-top:10px}
+.group.open .chev{transform:rotate(180deg)}
+.glist{display:none;border-top:1px solid var(--line);padding:8px}
+.group.open .glist{display:block}
+.lrow{display:flex;align-items:center;gap:12px;padding:11px 10px;border-radius:14px;text-decoration:none}
+.lrow:hover{background:var(--soft)}
+.lplay{width:44px;height:34px;border-radius:9px;background:var(--ink);color:#fff;display:grid;place-items:center;flex:none}
+.lplay svg{width:14px;height:14px}
+.lrow b{display:block;font-size:15px}
+.lrow small{color:var(--muted);font-size:13px}
+.badge{margin-left:auto;font-size:12px;font-weight:800;border-radius:8px;padding:4px 8px;background:var(--soft);color:var(--muted);white-space:nowrap;font-family:var(--f-round)}
+.badge.ok{background:var(--ok-soft);color:var(--ok)}
+.badge.new{background:#fff;border:1px solid var(--line)}
+.empty{padding:30px 16px;text-align:center;color:var(--muted)}
+
+/* Перегляд запису */
+.back{display:inline-flex;align-items:center;gap:8px;text-decoration:none;color:var(--muted);font-weight:700;font-size:14px;margin:4px 0 12px}
+.ltitle{font-family:var(--f-display);font-size:clamp(22px,4vw,32px);line-height:1.15;margin:0 0 6px}
+.lmeta{color:var(--muted);font-size:14px;margin-bottom:14px}
+.seg{display:flex;gap:6px;overflow-x:auto;padding:6px;background:#fff;border:1px solid var(--line);border-radius:999px;margin-bottom:12px;scrollbar-width:none}
+.seg::-webkit-scrollbar{display:none}
+.seg button{border:0;background:none;border-radius:999px;padding:9px 16px;font-weight:700;white-space:nowrap;color:var(--muted);display:flex;gap:8px;align-items:center}
+.seg button.on{background:var(--mark);color:#fff}
+.seg button .n{background:rgba(255,255,255,.3);border-radius:999px;min-width:20px;height:20px;display:grid;place-items:center;font-size:12px}
+.seg button:not(.on) .n{background:var(--soft)}
+.player{background:#000;border-radius:18px;overflow:hidden;aspect-ratio:16/9;position:relative}
+.player video,.player iframe{width:100%;height:100%;display:block;border:0;background:#000}
+.player .msg{position:absolute;inset:0;display:grid;place-items:center;color:#fff;text-align:center;padding:20px}
+.offrow{display:flex;align-items:center;gap:12px;padding:14px 16px 6px;flex-wrap:wrap}
+.offrow .st{color:var(--muted);font-size:14px;flex:1;min-width:150px}
+.offrow .st b{color:var(--ok)}
+.prog{height:6px;border-radius:3px;background:var(--line);margin:8px 16px 6px;overflow:hidden}
+.prog i{display:block;height:100%;background:var(--mark);width:0;transition:width .3s}
+.watch{color:var(--muted);font-size:13px;padding:0 16px 14px;font-weight:700}
+.parts{padding:18px;margin-top:14px}
+.parts h3{margin:0 0 12px;font-size:18px;display:flex;justify-content:space-between;align-items:baseline}
+.parts h3 small{color:var(--muted);font-weight:600;font-size:13px}
+.part{display:flex;align-items:center;gap:14px;padding:12px;border:1px solid var(--line);border-radius:16px;background:#fffdf9;margin-bottom:8px;width:100%;text-align:left}
+.part.on{border-color:var(--mark);background:var(--soft)}
+.part .lplay{width:60px;height:44px}
+.part b{display:block}
+.part small{color:var(--muted);font-size:13px}
+.doc{padding:0;overflow:hidden}
+.doc iframe{width:100%;height:70vh;border:0;display:block;background:#fff}
+.doc .bar2{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line);gap:10px}
+.sticky-cta{position:fixed;left:0;right:0;bottom:0;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:linear-gradient(transparent,var(--bg) 35%);z-index:20}
+.sticky-cta .in{max-width:948px;margin:0 auto;display:flex;gap:10px}
+.sticky-cta .btn{flex:1;padding:16px}
+.desc{padding:16px 18px;margin-top:14px;white-space:pre-wrap;color:#4a3420}
+
+/* Календар */
+.toggle{display:flex;justify-content:center;margin:0 0 16px}
+.toggle div{display:inline-flex;background:#fff;border:1px solid var(--line);border-radius:999px;padding:5px}
+.toggle button{border:0;background:none;border-radius:999px;padding:9px 22px;font-weight:700;color:var(--muted)}
+.toggle button.on{background:var(--mark);color:#fff}
+.cal{padding:18px}
+@media (min-width:900px){.calwrap{max-width:720px;margin:0 auto}}
+.mnav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.mnav h2{margin:0;font-size:20px;text-align:center}
+.mnav h2 small{display:block;font-size:13px;color:var(--muted);font-weight:700;margin-top:2px}
+.mnav button{width:42px;height:42px;border-radius:12px;border:1px solid var(--line);background:#fff;display:grid;place-items:center;flex:none}
+.grid7{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}
+.grid7 .wd{font-size:13px;color:var(--muted);font-weight:700;padding:6px 0}
+.day{aspect-ratio:1;max-height:56px;border:0;background:none;border-radius:50%;font-weight:700;font-size:16px;display:grid;place-items:center;margin:0 auto;width:100%;max-width:56px;position:relative}
+.day.out{color:#cdb8a3;font-weight:600}
+.day.has{background:var(--soft2)}
+.day.has.past{background:#f1e6d8}
+.day.today{background:var(--mark);color:#fff}
+.day.sel{box-shadow:0 0 0 2px var(--ink) inset}
+.day.has::after{content:"";position:absolute;bottom:14%;width:5px;height:5px;border-radius:50%;background:var(--mark)}
+.day.today::after{background:#fff}
+.legend{display:flex;justify-content:center;gap:16px;margin-top:12px;color:var(--muted);font-size:13px;font-weight:700}
+.legend span{display:flex;align-items:center;gap:6px}
+.legend i{width:14px;height:14px;border-radius:50%;background:var(--soft2);display:inline-block}
+.legend i.t{background:var(--mark)}
+.dayhead{display:flex;justify-content:space-between;align-items:baseline;margin:22px 4px 10px}
+.dayhead h3{margin:0;font-size:18px}
+.dayhead small{color:var(--muted);font-weight:700}
+.ev{display:flex;align-items:center;gap:14px;padding:14px 16px;margin-bottom:10px}
+.ev .tm{font-family:var(--f-round);font-weight:900;font-size:18px;color:var(--mark);min-width:56px}
+.ev b{display:block}
+.ev small{color:var(--muted)}
+.ev .btn{margin-left:auto}
+.noev{border:2px dashed var(--line);border-radius:18px;padding:22px;text-align:center;color:var(--muted);font-weight:700}
+.list{padding:6px 0}
+.li{display:flex;align-items:center;gap:12px;padding:12px 16px;border-top:1px solid var(--line)}
+.li:first-child{border-top:0}
+.chk{width:26px;height:26px;border-radius:50%;border:2px solid #d9c3ab;flex:none;display:grid;place-items:center}
+.chk.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.chk svg{width:14px;height:14px}
+.li .d{font-weight:700;min-width:52px;font-size:15px}
+.li .t{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:700}
+.li.past .t{color:var(--muted);font-weight:600}
+.li .tm{color:var(--muted);font-weight:700;font-size:14px}
+.li.todayrow{background:var(--soft)}
+
+/* toast, modal */
+.toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 18px;border-radius:14px;z-index:90;font-weight:700;font-size:14px;max-width:min(92vw,520px);text-align:center;box-shadow:0 12px 30px rgba(0,0,0,.25)}
+.modal{position:fixed;inset:0;z-index:80;background:rgba(43,25,6,.35);display:flex;align-items:flex-start;justify-content:center;padding:30px 12px;overflow-y:auto}
+.modal .card{width:100%;max-width:640px;padding:20px}
+.modal h3{margin:0 0 14px;font-family:var(--f-display);font-size:22px}
+
+/* адмінка */
+.field{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+.field label{font-size:13px;font-weight:700;color:var(--muted)}
+.field input,.field select,.field textarea{border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:#fff;outline:0;width:100%}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--mark)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:560px){.row2{grid-template-columns:1fr}}
+.atabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.atabs button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 14px;font-weight:700}
+.atabs button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.abar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 16px;margin-bottom:14px}
+.abar .st{color:var(--muted);font-size:14px;flex:1}
+.warn{background:#fff4e0;border:1px solid #ffd59a;color:#7a4b00;border-radius:14px;padding:12px 14px;font-size:14px;margin-bottom:14px}
+.arow{display:flex;align-items:center;gap:10px;padding:10px 14px;border-top:1px solid var(--line)}
+.arow:first-child{border-top:0}
+.arow .d{min-width:92px;font-weight:700;font-size:14px}
+.arow .t{flex:1;min-width:0}
+.arow .t small{display:block;color:var(--muted)}
+.partedit{display:grid;grid-template-columns:1fr 2fr auto;gap:6px;margin-bottom:6px}
+@media (max-width:560px){.partedit{grid-template-columns:1fr auto}.partedit input:nth-child(2){grid-column:1/-1;grid-row:2}}
+.wdpick{display:flex;flex-wrap:wrap;gap:8px}
+.wdpick label{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:12px;padding:8px 10px;background:#fff;font-weight:700}
+.wdpick input[type=time]{border:1px solid var(--line);border-radius:8px;padding:4px 6px}
+.small{font-size:13px;color:var(--muted)}
+.foot{text-align:center;color:var(--muted);font-size:13px;margin-top:40px}
+.foot a{color:var(--muted)}
+body.embed .top{display:none}
+body.embed .wrap{padding-top:12px}
+</style>
+</head>
+<body>
+<header class="top" id="top">
+  <div class="bar">
+    <button class="ibtn menu-btn" id="menuBtn" aria-label="Меню"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+    <a class="logo" href="#/zapysy"><i>√x</i><span id="brand">Математика до НМТ</span></a>
+    <nav class="tabs" id="tabs">
+      <a href="#/zapysy" data-r="zapysy">Записи занять</a>
+      <a href="#/calendar" data-r="calendar">Календар</a>
+      <a href="#/offline" data-r="offline">Збережене офлайн</a>
+    </nav>
+    <span class="sp"></span>
+    <a class="ibtn" href="#/offline" aria-label="Збережене офлайн" title="Збережене офлайн"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg><span class="dot hidden" id="offCount"></span></a>
+  </div>
+</header>
+<div class="drawer" id="drawer"><nav>
+  <h4>Меню</h4>
+  <a href="#/zapysy" data-r="zapysy">Записи занять</a>
+  <a href="#/calendar" data-r="calendar">Календар</a>
+  <a href="#/offline" data-r="offline">Збережене офлайн</a>
+</nav></div>
+<main class="wrap" id="app"></main>
+<div id="layer"></div>
+
+<script>
+"use strict";
+/* ================== Налаштування ================== */
+const CLOUD={url:"https://vgbpdamqorbcmxktvebh.supabase.co",key:"sb_publishable_2L5yjO2NDZOXC-Um3F1Rjw_GYWEcmoi"};
+/* хеш пошти адміна — для локального режиму, поки в Supabase не виконано SQL (саму пошту в коді не тримаємо) */
+const ADMIN_HASH="a9b9525cab83369d1fe16438a4af10491b0d8bdfef024e78e33f002e2349791d";
+const LS={data:"ms-zap-data",draft:"ms-zap-draft",watch:"ms-zap-watch",admin:"ms-zap-admin",view:"ms-zap-calview"};
+
+const MONTHS=["Січень","Лютий","Березень","Квітень","Травень","Червень","Липень","Серпень","Вересень","Жовтень","Листопад","Грудень"];
+const MONTHS_G=["січня","лютого","березня","квітня","травня","червня","липня","серпня","вересня","жовтня","листопада","грудня"];
+const MONTHS_L=["січень","лютий","березень","квітень","травень","червень","липень","серпень","вересень","жовтень","листопад","грудень"];
+const WD_S=["нд","пн","вт","ср","чт","пт","сб"];
+const WD_F=["Неділя","Понеділок","Вівторок","Середа","Четвер","Пʼятниця","Субота"];
+
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const lsGet=(k,d)=>{try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}};
+const lsSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+const pl=(n,a,b,c)=>{const m=n%10,h=n%100;return n+" "+(m===1&&h!==11?a:m>=2&&m<=4&&(h<12||h>14)?b:c)};
+const pad=n=>String(n).padStart(2,"0");
+const ymd=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+const parseD=s=>{const [y,m,d]=String(s).split("-").map(Number);return new Date(y,m-1,d)};
+const uid=()=>Math.random().toString(36).slice(2,9);
+const ICON={
+  play:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l13-7.5z"/></svg>',
+  book:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 5.5C4 4.7 4.7 4 5.5 4H11v16H5.5c-.8 0-1.5-.7-1.5-1.5zM20 5.5c0-.8-.7-1.5-1.5-1.5H13v16h5.5c.8 0 1.5-.7 1.5-1.5z"/></svg>',
+  down:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>',
+  check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+  chev:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>',
+  left:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>',
+  right:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>',
+  search:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8a6e58" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>',
+  trash:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>'
+};
+
+/* ================== Демо-дані ================== */
+const TOPICS=["Вступний урок: як влаштоване НМТ","Дроби та дії з ними","Відсотки","Пропорції та відношення","Степені й корені","Модуль числа","Лінійні рівняння","Системи лінійних рівнянь","Квадратні рівняння",
+ "Теорема Вієта","Нерівності та метод інтервалів","Функції та їхні графіки","Лінійна функція","Квадратична функція","Текстові задачі на рух","Арифметична прогресія","Геометрична прогресія",
+ "Тригонометрія: основні формули","Тригонометричні рівняння","Логарифми","Показникові рівняння","Похідна","Застосування похідної","Первісна та інтеграл","Комбінаторика","Ймовірність",
+ "Статистика: середнє, мода, медіана","Планіметрія: трикутники","Чотирикутники","Коло і круг","Координати й вектори","Стереометрія: призма і піраміда","Тіла обертання","Пробне НМТ: розбір","Підсумковий урок семестру"];
+function demoData(){
+  const lessons=[];const now=new Date();let i=0;
+  for(let d=new Date(2026,8,1);d<=new Date(2026,11,31);d.setDate(d.getDate()+1)){
+    const w=d.getDay();if(w!==3&&w!==0)continue;
+    const date=ymd(d),time=w===3?"19:00":"12:00";
+    const L={id:"l"+date.replace(/-/g,""),date,time,title:TOPICS[i]||("Урок "+(i+1)),group:"",desc:"",parts:[],slides:"",notes:"",hidden:false};
+    if(new Date(date+"T"+time)<now){
+      L.parts=[{title:"Частина 1",url:"media/demo-lesson.mp4"}];
+      if(i%4===2)L.parts.push({title:"Частина 2 · розбір задач",url:"media/demo-lesson.mp4"});
+      L.desc="Конспект і домашнє завдання — у вкладках вище.";
+    }
+    lessons.push(L);i++;
+  }
+  lessons.push({id:"x1",date:"",time:"",title:"Повторення: дроби для шкільної програми",group:"Додаткові уроки",updated:"2026-10-02",desc:"",parts:[{title:"Частина 1",url:"media/demo-lesson.mp4"}],slides:"",notes:"",hidden:false});
+  lessons.push({id:"x2",date:"",time:"",title:"Повторення: рівняння для шкільної програми",group:"Додаткові уроки",updated:"2026-10-02",desc:"",parts:[{title:"Частина 1",url:"media/demo-lesson.mp4"}],slides:"",notes:"",hidden:false});
+  return {v:1,settings:{brand:"Математика до НМТ",subject:"Математика",eventName:"Урок",eventsName:"Уроки",weekdays:{3:"19:00",0:"12:00"}},
+    groups:{"Додаткові уроки":{note:"дивись, якщо потрібно для шкільних занять"}},lessons};
+}
+
+/* ================== Хмара (Supabase) ================== */
+const onWeb=/^https?:$/.test(location.protocol);
+async function rpc(fn,body){
+  const r=await fetch(CLOUD.url+"/rest/v1/rpc/"+fn,{method:"POST",headers:{"Content-Type":"application/json",apikey:CLOUD.key},body:JSON.stringify(body||{})});
+  const t=await r.text();if(!r.ok){const e=new Error(r.status+" "+t.slice(0,200));e.status=r.status;throw e}
+  return t?JSON.parse(t):null;
+}
+let DATA=lsGet(LS.data,null)||demoData();
+let cloudState="?"; // ok | missing | off
+async function loadCloud(){
+  if(!onWeb){cloudState="off";return}
+  try{const d=await rpc("ms_content_get");cloudState="ok";
+    if(d&&d.lessons){DATA=d;lsSet(LS.data,d);render()}}
+  catch(e){cloudState=(e.status===404||/PGRST202|Could not find/.test(e.message))?"missing":"off"}
+}
+
+/* ================== Офлайн-відео (IndexedDB) ================== */
+const IDB={db:null};
+IDB.open=()=>IDB.db||(IDB.db=new Promise((res,rej)=>{const r=indexedDB.open("ms-zap-offline",1);
+  r.onupgradeneeded=()=>{const db=r.result;db.createObjectStore("blobs");db.createObjectStore("meta")};
+  r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}));
+IDB.tx=async(store,mode,fn)=>{const db=await IDB.open();return new Promise((res,rej)=>{const t=db.transaction(store,mode);const s=t.objectStore(store);const q=fn(s);t.oncomplete=()=>res(q&&q.result);t.onerror=()=>rej(t.error)})};
+let OFF={}; // key -> meta
+async function loadOff(){try{const db=await IDB.open();await new Promise(res=>{const t=db.transaction("meta");const q=t.objectStore("meta").openCursor();const o={};
+  q.onsuccess=()=>{const c=q.result;if(c){o[c.key]=c.value;c.continue()}else{OFF=o;res()}};q.onerror=()=>res()})}catch(e){}updOffCount()}
+function updOffCount(){const n=Object.keys(OFF).length;const el=$("#offCount");el.textContent=n;el.classList.toggle("hidden",!n)}
+const offKey=(lid,pi)=>lid+"#"+pi;
+const DL={}; // key -> {pct, ctrl}
+async function saveOffline(L,pi){
+  const p=L.parts[pi];const key=offKey(L.id,pi);if(DL[key])return;
+  if(isYT(p.url)){toast("Відео з YouTube не можна зберегти офлайн. Додайте пряме посилання на файл .mp4");return}
+  const ctrl=new AbortController();DL[key]={pct:0,ctrl};paintOff();
+  try{
+    if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{});
+    const r=await fetch(p.url,{signal:ctrl.signal});if(!r.ok)throw new Error("HTTP "+r.status);
+    const total=+r.headers.get("content-length")||0;let blob;
+    if(r.body&&r.body.getReader){const rd=r.body.getReader();const chunks=[];let got=0;
+      for(;;){const {done,value}=await rd.read();if(done)break;chunks.push(value);got+=value.length;if(total){DL[key].pct=Math.round(got/total*100);paintOff()}}
+      blob=new Blob(chunks,{type:r.headers.get("content-type")||"video/mp4"});
+    }else blob=await r.blob();
+    const meta={lid:L.id,pi,title:L.title,part:p.title,size:blob.size,url:p.url,saved:Date.now(),date:L.date};
+    await IDB.tx("blobs","readwrite",s=>s.put(blob,key));await IDB.tx("meta","readwrite",s=>s.put(meta,key));
+    OFF[key]=meta;delete DL[key];updOffCount();toast("Збережено офлайн ✓");render();
+  }catch(e){delete DL[key];paintOff();if(e.name!=="AbortError")toast("Не вдалося зберегти: "+(/Failed to fetch|NetworkError|Load failed/.test(e.message)?"сервер з відео не дозволяє завантаження (CORS) або немає інтернету":e.message))}
+}
+async function removeOffline(key){try{await IDB.tx("blobs","readwrite",s=>s.delete(key));await IDB.tx("meta","readwrite",s=>s.delete(key))}catch(e){}delete OFF[key];updOffCount();render()}
+async function offBlobUrl(key){try{const b=await IDB.tx("blobs","readonly",s=>s.get(key));return b?URL.createObjectURL(b):null}catch(e){return null}}
+const mb=n=>(n/1048576).toFixed(n>10485760?0:1)+" МБ";
+
+/* ================== Перегляд (прогрес) ================== */
+let WATCH=lsGet(LS.watch,{}); // key -> {t, d}
+const wpct=k=>{const w=WATCH[k];return w&&w.d?Math.min(100,Math.round(w.t/w.d*100)):0};
+function lessonPct(L){if(!L.parts.length)return 0;let s=0;L.parts.forEach((p,i)=>s+=wpct(offKey(L.id,i)));return Math.round(s/L.parts.length)}
+
+/* ================== Хелпери даних ================== */
+const S=()=>DATA.settings||{};
+const lessonsAll=()=>(DATA.lessons||[]).filter(l=>!l.hidden);
+const byId=id=>(DATA.lessons||[]).find(l=>l.id===id);
+const isPast=L=>L.date&&new Date(L.date+"T"+(L.time||"23:59"))<new Date();
+const isYT=u=>/youtu\.?be/.test(u||"");
+const ytEmbed=u=>{const m=String(u).match(/(?:v=|youtu\.be\/|embed\/|shorts\/)([\w-]{6,})/);return m?"https://www.youtube.com/embed/"+m[1]+"?rel=0":u};
+const gdEmbed=u=>{const m=String(u).match(/drive\.google\.com\/file\/d\/([\w-]+)/);return m?"https://drive.google.com/file/d/"+m[1]+"/preview":u};
+const groupOf=L=>L.group||(L.date?MONTHS[parseD(L.date).getMonth()]+(parseD(L.date).getFullYear()!==new Date().getFullYear()?" "+parseD(L.date).getFullYear():""):"Інше");
+const fmtDay=s=>{const d=parseD(s);return d.getDate()+" "+MONTHS_G[d.getMonth()]};
+function agoText(s){if(!s)return"";const d=Math.floor((new Date().setHours(0,0,0,0)-parseD(s))/864e5);
+  if(d<=0)return"оновлено сьогодні";if(d===1)return"оновлено вчора";if(d<31)return"оновлено "+pl(d,"день","дні","днів")+" тому";const x=parseD(s);return"оновлено "+pad(x.getDate())+"."+pad(x.getMonth()+1)+"."+x.getFullYear()}
+function recGroups(q){
+  const map={};
+  lessonsAll().filter(l=>l.parts&&l.parts.length&&(!l.date||isPast(l))).forEach(l=>{
+    if(q&&!(l.title+" "+groupOf(l)).toLowerCase().includes(q))return;
+    const g=groupOf(l);(map[g]=map[g]||{name:g,items:[],upd:""}).items.push(l);
+    const u=l.updated||l.date||"";if(u>map[g].upd)map[g].upd=u;
+  });
+  const arr=Object.values(map);arr.forEach(g=>g.items.sort((a,b)=>(b.date||b.updated||"").localeCompare(a.date||a.updated||"")));
+  return arr.sort((a,b)=>b.upd.localeCompare(a.upd));
+}
+
+/* ================== Роутер ================== */
+let R={name:"zapysy",args:[]};
+const UI={open:{},q:"",calView:lsGet(LS.view,"cal"),month:null,sel:null,tab:"video",part:0,adminTab:"lessons",adminMonth:""};
+function route(){
+  const h=(location.hash||"#/zapysy").slice(2).split("/");R={name:h[0]||"zapysy",args:h.slice(1).map(decodeURIComponent)};
+  document.querySelectorAll("[data-r]").forEach(a=>a.classList.toggle("on",a.dataset.r===R.name||(R.name==="lesson"&&a.dataset.r==="zapysy")));
+  $("#drawer").classList.remove("on");
+  if(R.name==="lesson"){UI.tab="video";UI.part=+(R.args[1]||0)}
+  render();window.scrollTo(0,0);
+}
+window.addEventListener("hashchange",route);
+function render(){
+  $("#brand").textContent=S().brand||"Математика до НМТ";
+  const f={zapysy:vRecords,lesson:vLesson,calendar:vCalendar,offline:vOffline,admin:vAdmin}[R.name]||vRecords;
+  f();
+}
+let toastT=0;function toast(t){let el=$(".toast");if(!el){el=document.createElement("div");el.className="toast";document.body.appendChild(el)}el.textContent=t;el.style.display="block";clearTimeout(toastT);toastT=setTimeout(()=>el.style.display="none",3200)}
+
+/* ================== 1. Записи занять (по місяцях) ================== */
+function vRecords(){
+  const gs=recGroups(UI.q.trim().toLowerCase());const total=gs.reduce((s,g)=>s+g.items.length,0);const allOpen=gs.length&&gs.every(g=>UI.open[g.name]);
+  $("#app").innerHTML=`
+  <h1 class="page">Записи <em>занять</em></h1>
+  <p class="sub">${pl(gs.length,"модуль","модулі","модулів")} · ${pl(total,"запис","записи","записів")}</p>
+  <div class="rec-tools">
+    <label class="search">${ICON.search}<input id="q" placeholder="Пошук уроку" value="${esc(UI.q)}"></label>
+    <button class="pill" id="expAll">${allOpen?"Згорнути все":"Розгорнути все"}</button>
+  </div>
+  <div class="groups">${gs.map(g=>{const note=(DATA.groups&&DATA.groups[g.name]||{}).note;return`
+    <div class="card group ${UI.open[g.name]||UI.q?"open":""}" data-g="${esc(g.name)}">
+      <button class="ghead"><span class="gicon">${ICON.book}</span><span>
+        <div class="gtitle">${esc(g.name)}${note?` <span style="font-weight:600">(${esc(note)})</span>`:""}</div>
+        <div class="gmeta">${pl(g.items.length,"запис","записи","записів")} · ${agoText(g.upd)}</div>
+        <span class="tag">${ICON.book.replace('<svg','<svg width="14" height="14"')} ${esc(S().subject||"Математика")}</span></span>
+        <span class="chev">${ICON.chev}</span></button>
+      <div class="glist">${g.items.map(l=>{const pc=lessonPct(l);const off=l.parts.some((p,i)=>OFF[offKey(l.id,i)]);return`
+        <a class="lrow" href="#/lesson/${encodeURIComponent(l.id)}"><span class="lplay">${ICON.play}</span>
+          <span style="min-width:0"><b>${esc(l.title)}</b><small>${l.date?fmtDay(l.date)+" · ":""}${pl(l.parts.length,"частина","частини","частин")}${off?" · збережено офлайн":""}</small></span>
+          <span class="badge ${pc>=95?"ok":pc?"":"new"}">${pc>=95?"переглянуто":pc?pc+"%":"нове"}</span></a>`}).join("")}</div>
+    </div>`}).join("")||`<div class="card empty">${UI.q?"Нічого не знайдено":"Записів ще немає"}</div>`}</div>
+  ${foot()}`;
+  $("#q").oninput=e=>{UI.q=e.target.value;const p=e.target.selectionStart;vRecords();const i=$("#q");i.focus();i.setSelectionRange(p,p)};
+  $("#expAll").onclick=()=>{gs.forEach(g=>UI.open[g.name]=!allOpen);vRecords()};
+  document.querySelectorAll(".group .ghead").forEach(b=>b.onclick=()=>{const n=b.parentNode.dataset.g;UI.open[n]=!UI.open[n];b.parentNode.classList.toggle("open")});
+}
+function foot(){return`<div class="foot">${esc(S().brand||"Математика до НМТ")} · <a href="#/admin">Адмін</a></div>`}
+
+/* ================== 2. Перегляд запису + «Зберегти офлайн» ================== */
+let curVideoUrl=null;
+function vLesson(){
+  const L=byId(R.args[0]);
+  if(!L){$("#app").innerHTML=`<a class="back" href="#/zapysy">${ICON.left} Назад до записів занять</a><div class="card empty">Урок не знайдено</div>`;return}
+  if(UI.part>=L.parts.length)UI.part=0;
+  const tabs=[["video","Відео",L.parts.length],["slides","Презентація до уроку"],["notes","Конспект до уроку"]];
+  $("#app").innerHTML=`
+  <a class="back" href="#/zapysy">${ICON.left} Назад до записів занять</a>
+  <h2 class="ltitle">${esc(L.title)}</h2>
+  <div class="lmeta">${L.date?WD_F[parseD(L.date).getDay()]+", "+fmtDay(L.date)+(L.time?" · "+L.time:""):esc(groupOf(L))}</div>
+  <div class="seg">${tabs.map(t=>`<button data-t="${t[0]}" class="${UI.tab===t[0]?"on":""}">${t[1]}${t[2]!=null?`<span class="n">${t[2]}</span>`:""}</button>`).join("")}</div>
+  <div id="tabBody"></div>`;
+  document.querySelectorAll(".seg button").forEach(b=>b.onclick=()=>{UI.tab=b.dataset.t;vLesson()});
+  const body=$("#tabBody");
+  if(UI.tab==="video"){
+    if(!L.parts.length){body.innerHTML=`<div class="card empty">Запис ще не додано</div>`;return}
+    const p=L.parts[UI.part],key=offKey(L.id,UI.part);
+    body.innerHTML=`
+    <div class="card" style="overflow:hidden;padding:0">
+      <div class="player" id="player"></div>
+      <div class="offrow"><span class="st" id="offSt"></span><span id="offBtn"></span></div>
+      <div class="prog"><i id="wbar" style="width:${wpct(key)}%"></i></div>
+      <div class="watch" id="wtxt"></div>
+    </div>
+    <div class="card parts"><h3>Частини запису <small>${pl(L.parts.length,"частина","частини","частин")}</small></h3>
+      ${L.parts.map((q,i)=>{const k=offKey(L.id,i),pc=wpct(k);return`<button class="part ${i===UI.part?"on":""}" data-i="${i}"><span class="lplay">${ICON.play}</span>
+        <span style="min-width:0;flex:1"><b>${esc(q.title||"Частина "+(i+1))}</b><small>${OFF[k]?"збережено офлайн · "+mb(OFF[k].size):"не збережено офлайн"}</small></span>
+        <span class="badge ${pc>=95?"ok":pc?"":"new"}">${pc>=95?"✓":pc?pc+"%":"нове"}</span></button>`}).join("")}
+    </div>
+    ${L.desc?`<div class="card desc">${esc(L.desc)}</div>`:""}
+    <div class="sticky-cta"><div class="in"><button class="btn" id="cont">${ICON.play} ${wpct(key)>2&&wpct(key)<95?"Продовжити перегляд":"Дивитися"}</button></div></div>`;
+    document.querySelectorAll(".part").forEach(b=>b.onclick=()=>{UI.part=+b.dataset.i;history.replaceState(null,"","#/lesson/"+encodeURIComponent(L.id)+"/"+UI.part);vLesson()});
+    mountPlayer(L,p,key);paintOff();
+  }else{
+    const url=L[UI.tab];const name=UI.tab==="slides"?"Презентація":"Конспект";
+    body.innerHTML=url?`<div class="card doc"><div class="bar2"><b>${name}</b><a class="btn sm ghost" href="${esc(url)}" target="_blank" rel="noopener">Відкрити окремо</a></div>
+      <iframe src="${esc(gdEmbed(url))}" loading="lazy"></iframe></div>`:`<div class="card empty">${name} до цього уроку ще не додано</div>`;
+  }
+}
+async function mountPlayer(L,p,key){
+  const box=$("#player");if(curVideoUrl){URL.revokeObjectURL(curVideoUrl);curVideoUrl=null}
+  if(isYT(p.url)){box.innerHTML=`<iframe src="${esc(ytEmbed(p.url))}" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>`;$("#cont").onclick=()=>box.scrollIntoView({behavior:"smooth",block:"center"});return}
+  let src=p.url;if(OFF[key]){const u=await offBlobUrl(key);if(u){src=u;curVideoUrl=u}}
+  box.innerHTML=`<video controls playsinline preload="metadata"></video>`;
+  const v=box.querySelector("video");v.src=src;
+  const w=WATCH[key];v.addEventListener("loadedmetadata",()=>{if(w&&w.t&&w.t<v.duration-3)v.currentTime=w.t});
+  let last=0;v.addEventListener("timeupdate",()=>{if(!v.duration)return;const now=Date.now();if(now-last<1500)return;last=now;
+    WATCH[key]={t:Math.floor(v.currentTime),d:Math.floor(v.duration)};lsSet(LS.watch,WATCH);paintWatch(key)});
+  v.addEventListener("ended",()=>{WATCH[key]={t:Math.floor(v.duration),d:Math.floor(v.duration)};lsSet(LS.watch,WATCH);paintWatch(key)});
+  v.addEventListener("error",()=>{if(!navigator.onLine&&!OFF[key])box.insertAdjacentHTML("beforeend",`<div class="msg">Немає інтернету. Це відео не збережено офлайн.</div>`)});
+  $("#cont").onclick=()=>{box.scrollIntoView({behavior:"smooth",block:"center"});v.play().catch(()=>{})};
+  paintWatch(key);
+}
+function paintWatch(key){const pc=wpct(key),b=$("#wbar"),t=$("#wtxt");if(!b)return;b.style.width=pc+"%";
+  const w=WATCH[key];t.textContent=pc>=95?"Переглянуто повністю":pc?`Переглянуто ${pc}% · зупинились на ${Math.floor(w.t/60)}:${pad(w.t%60)}`:"Ще не переглядали"}
+function paintOff(){
+  if(R.name!=="lesson"||UI.tab!=="video")return;const L=byId(R.args[0]);if(!L||!L.parts.length)return;
+  const key=offKey(L.id,UI.part),st=$("#offSt"),bt=$("#offBtn");if(!st)return;const p=L.parts[UI.part];
+  if(DL[key]){st.innerHTML=`Завантаження… ${DL[key].pct?DL[key].pct+"%":""}`;bt.innerHTML=`<button class="btn sm ghost" id="ob">Скасувати</button>`;$("#ob").onclick=()=>DL[key].ctrl.abort()}
+  else if(OFF[key]){st.innerHTML=`<b>✓ збережено офлайн</b> · ${mb(OFF[key].size)} · можна дивитись без інтернету`;bt.innerHTML=`<button class="btn sm danger" id="ob">${ICON.trash} Видалити</button>`;$("#ob").onclick=()=>removeOffline(key)}
+  else{st.textContent=isYT(p.url)?"YouTube-відео дивляться лише онлайн":"не збережено офлайн";bt.innerHTML=isYT(p.url)?"":`<button class="btn sm ghost" id="ob">${ICON.down} Зберегти офлайн</button>`;const b=$("#ob");if(b)b.onclick=()=>saveOffline(L,UI.part)}
+}
+
+/* ================== Збережене офлайн ================== */
+function vOffline(){
+  const items=Object.entries(OFF).sort((a,b)=>b[1].saved-a[1].saved);const tot=items.reduce((s,[,m])=>s+m.size,0);
+  $("#app").innerHTML=`<h1 class="page">Збережене <em>офлайн</em></h1>
+  <p class="sub">${items.length?pl(items.length,"відео","відео","відео")+" · "+mb(tot)+" на цьому пристрої":"Тут зʼявляться записи, які ви зберегли кнопкою «Зберегти офлайн»."}</p>
+  <div class="card" style="padding:8px">${items.map(([k,m])=>`<div class="lrow"><a class="lplay" href="#/lesson/${encodeURIComponent(m.lid)}/${m.pi}" style="text-decoration:none">${ICON.play}</a>
+    <a href="#/lesson/${encodeURIComponent(m.lid)}/${m.pi}" style="min-width:0;flex:1;text-decoration:none"><b>${esc(m.title)}</b><small>${esc(m.part||"")} · ${mb(m.size)}</small></a>
+    <button class="btn sm danger" data-k="${esc(k)}">${ICON.trash}</button></div>`).join("")||`<div class="empty">Поки нічого не збережено</div>`}</div>
+  <p class="small" style="margin-top:14px">Відео зберігаються в браузері цього пристрою. Щоб сайт відкривався без інтернету, на телефоні додайте його на головний екран.</p>${foot()}`;
+  document.querySelectorAll("[data-k]").forEach(b=>b.onclick=()=>removeOffline(b.dataset.k));
+}
+
+/* ================== 3. Календар + Список ================== */
+function vCalendar(){
+  const today=new Date();today.setHours(0,0,0,0);
+  if(!UI.month)UI.month=new Date(today.getFullYear(),today.getMonth(),1);
+  if(!UI.sel)UI.sel=ymd(today);
+  const y=UI.month.getFullYear(),m=UI.month.getMonth();
+  const evs=lessonsAll().filter(l=>l.date);const byDate={};evs.forEach(l=>(byDate[l.date]=byDate[l.date]||[]).push(l));
+  Object.values(byDate).forEach(a=>a.sort((p,q)=>(p.time||"").localeCompare(q.time||"")));
+  const ev=S().eventName||"Урок";
+  const nav=(title,sub)=>`<div class="mnav"><button id="pm" aria-label="Попередній місяць">${ICON.left}</button><h2>${title}${sub?`<small>${sub}</small>`:""}</h2><button id="nm" aria-label="Наступний місяць">${ICON.right}</button></div>`;
+  let inner="";
+  if(UI.calView==="cal"){
+    const first=new Date(y,m,1);const start=new Date(first);start.setDate(1-((first.getDay()+6)%7));
+    let cells="";for(let i=0;i<42;i++){const d=new Date(start);d.setDate(start.getDate()+i);const k=ymd(d);
+      if(i===35&&d.getMonth()!==m)break;
+      const cls=["day",d.getMonth()!==m?"out":"",byDate[k]?"has":"",byDate[k]&&d<today?"past":"",+d===+today?"today":"",k===UI.sel?"sel":""].join(" ");
+      cells+=`<button class="${cls}" data-d="${k}">${d.getDate()}</button>`}
+    const sd=parseD(UI.sel),list=byDate[UI.sel]||[];
+    inner=`<div class="card cal">${nav(MONTHS_L[m]+" "+y+" р.")}
+      <div class="grid7">${["пн","вт","ср","чт","пт","сб","нд"].map(w=>`<div class="wd">${w}</div>`).join("")}${cells}</div>
+      <div class="legend"><span><i></i>${esc(ev)}</span><span><i class="t"></i>Сьогодні</span></div></div>
+    <div class="dayhead"><h3>${WD_F[sd.getDay()]}, ${fmtDay(UI.sel)}</h3>${+sd===+today?"<small>сьогодні</small>":""}</div>
+    ${list.length?list.map(l=>evCard(l)).join(""):`<div class="noev">Цього дня подій немає.</div>`}`;
+  }else{
+    const ms=evs.filter(l=>{const d=parseD(l.date);return d.getFullYear()===y&&d.getMonth()===m}).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+    const done=ms.filter(isPast).length;const tk=ymd(today);
+    inner=`<div class="card cal" style="padding-bottom:6px">${nav(`${esc(S().eventsName||"Уроки")} · ${MONTHS_L[m]} ${y} р.`,`Відбулося ${done} з ${ms.length}`)}
+      <div class="card list" style="box-shadow:none">${ms.map(l=>{const p=isPast(l),d=parseD(l.date);return`<div class="li ${p?"past":""} ${l.date===tk?"todayrow":""}">
+        <span class="chk ${p?"on":""}">${p?ICON.check:""}</span><span class="d">${WD_S[d.getDay()]}, ${d.getDate()}</span>
+        <span class="t" title="${esc(l.title)}">${esc(l.title)}</span>
+        ${p&&l.parts.length?`<a class="btn sm" href="#/lesson/${encodeURIComponent(l.id)}">${ICON.play.replace('<svg','<svg width="12" height="12"')} Запис</a>`:`<span class="tm">${p?"скоро запис":esc(l.time||"")}</span>`}</div>`}).join("")||`<div class="empty">У цьому місяці уроків немає</div>`}</div></div>`;
+  }
+  $("#app").innerHTML=`<div class="calwrap"><h1 class="page">Кален<em>дар</em></h1>
+  <p class="sub">${schedText()}</p>
+  <div class="toggle"><div><button data-v="cal" class="${UI.calView==="cal"?"on":""}">Календар</button><button data-v="list" class="${UI.calView==="list"?"on":""}">Список</button></div></div>
+  ${inner}</div>${foot()}`;
+  document.querySelectorAll(".toggle button").forEach(b=>b.onclick=()=>{UI.calView=b.dataset.v;lsSet(LS.view,UI.calView);vCalendar()});
+  $("#pm").onclick=()=>{UI.month=new Date(y,m-1,1);vCalendar()};$("#nm").onclick=()=>{UI.month=new Date(y,m+1,1);vCalendar()};
+  document.querySelectorAll(".day").forEach(b=>b.onclick=()=>{UI.sel=b.dataset.d;const d=parseD(UI.sel);if(d.getMonth()!==m)UI.month=new Date(d.getFullYear(),d.getMonth(),1);vCalendar()});
+}
+function schedText(){const w=S().weekdays||{};const ks=Object.keys(w).map(Number).sort((a,b)=>((a+6)%7)-((b+6)%7));
+  if(!ks.length)return"Розклад уроків";return "Уроки щотижня: "+ks.map(k=>WD_F[k].toLowerCase()+(w[k]?" о "+w[k]:"")).join(" і ")}
+function evCard(l){const p=isPast(l);return`<div class="card ev"><span class="tm">${esc(l.time||"—")}</span><span style="min-width:0"><b>${esc(l.title)}</b>
+  <small>${p?(l.parts.length?"Відбувся · є запис":"Відбувся · запис скоро"):"Онлайн-урок"}</small></span>
+  ${p&&l.parts.length?`<a class="btn sm" href="#/lesson/${encodeURIComponent(l.id)}">${ICON.play.replace('<svg','<svg width="12" height="12"')} Запис</a>`:""}</div>`}
+
+/* ================== Адмінка ================== */
+let ADM=lsGet(LS.admin,null); // {email, pass, mode:'cloud'|'local'}
+let EDIT=null,dirty=false;
+async function sha256(s){const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(s));return[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("")}
+function vAdmin(){
+  if(!ADM){
+    $("#app").innerHTML=`<h1 class="page">Вхід для <em>адміна</em></h1><div class="card" style="padding:20px;max-width:440px">
+      <form id="lf"><div class="field"><label>Пошта</label><input id="le" type="email" autocomplete="username" required></div>
+      <div class="field"><label>Пароль</label><input id="lp" type="password" autocomplete="current-password"></div>
+      <button class="btn" style="width:100%">Увійти</button><p class="small" id="lerr"></p></form></div>`;
+    $("#lf").onsubmit=async e=>{e.preventDefault();const em=$("#le").value.trim().toLowerCase(),pw=$("#lp").value;$("#lerr").textContent="Перевіряю…";
+      try{const ok=await rpc("ms_admin_ok",{p_email:em,p_pass:pw});if(ok){ADM={email:em,pass:pw,mode:"cloud"};cloudState="ok"}else{$("#lerr").textContent="Невірна пошта або пароль";return}}
+      catch(err){ if(await sha256("ms-zapysy:"+em)===ADMIN_HASH){ADM={email:em,pass:"",mode:"local"}}else{$("#lerr").textContent=onWeb?"Невірна пошта або пароль":"Невірна пошта";return}}
+      lsSet(LS.admin,ADM);EDIT=JSON.parse(JSON.stringify(lsGet(LS.draft,null)||DATA));vAdmin()};
+    return}
+  if(!EDIT)EDIT=JSON.parse(JSON.stringify(lsGet(LS.draft,null)||DATA));
+  const T=UI.adminTab;
+  $("#app").innerHTML=`<h1 class="page">Адмін<em>ка</em></h1>
+  ${ADM.mode==="local"?`<div class="warn"><b>Локальний режим.</b> Хмару ще не підключено (у Supabase не виконано SQL), тому зміни видно лише в цьому браузері. Після SQL увійдіть ще раз з паролем — і кнопка «Опублікувати» збереже все для всіх.</div>`:""}
+  <div class="card abar"><span class="st" id="ast">${dirty?"Є неопубліковані зміни":"Усе опубліковано"} · ${esc(ADM.email)}</span>
+    <button class="btn sm" id="pub">${ADM.mode==="cloud"?"Опублікувати":"Зберегти"}</button>
+    <a class="btn sm ghost" href="#/zapysy">Переглянути сайт</a><button class="btn sm ghost" id="lo">Вийти</button></div>
+  <div class="atabs">${[["lessons","Уроки й записи"],["sched","Розклад"],["groups","Групи"],["settings","Налаштування"],["backup","Резерв"]].map(t=>`<button data-t="${t[0]}" class="${T===t[0]?"on":""}">${t[1]}</button>`).join("")}</div>
+  <div id="abody"></div>`;
+  document.querySelectorAll(".atabs button").forEach(b=>b.onclick=()=>{UI.adminTab=b.dataset.t;vAdmin()});
+  $("#lo").onclick=()=>{ADM=null;EDIT=null;try{localStorage.removeItem(LS.admin)}catch(e){}vAdmin()};
+  $("#pub").onclick=publish;
+  ({lessons:aLessons,sched:aSched,groups:aGroups,settings:aSettings,backup:aBackup})[T]();
+}
+function touch(){dirty=true;lsSet(LS.draft,EDIT);const s=$("#ast");if(s)s.textContent="Є неопубліковані зміни · "+ADM.email}
+async function publish(){
+  const b=$("#pub");b.disabled=true;
+  try{
+    if(ADM.mode==="cloud"){await rpc("ms_content_set",{p_email:ADM.email,p_pass:ADM.pass,p_data:EDIT})}
+    DATA=JSON.parse(JSON.stringify(EDIT));lsSet(LS.data,DATA);dirty=false;try{localStorage.removeItem(LS.draft)}catch(e){}
+    toast(ADM.mode==="cloud"?"Опубліковано для всіх ✓":"Збережено в цьому браузері ✓");vAdmin();
+  }catch(e){b.disabled=false;toast(/not admin/.test(e.message)?"Пароль змінився — увійдіть знову":"Помилка: "+e.message)}
+}
+function aLessons(){
+  const months=[...new Set(EDIT.lessons.map(l=>l.date?l.date.slice(0,7):"—"))].sort().reverse();
+  if(UI.adminMonth&&!months.includes(UI.adminMonth))UI.adminMonth="";
+  const cur=UI.adminMonth||(months.includes(ymd(new Date()).slice(0,7))?ymd(new Date()).slice(0,7):months[0]||"");
+  const ls=EDIT.lessons.filter(l=>(l.date?l.date.slice(0,7):"—")===cur).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+  const mn=k=>k==="—"?"Без дати (додаткові)":MONTHS[+k.slice(5)-1]+" "+k.slice(0,4);
+  $("#abody").innerHTML=`<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px">
+    <div class="field" style="margin:0;flex:1;min-width:180px"><select id="am">${months.map(k=>`<option value="${k}" ${k===cur?"selected":""}>${mn(k)}</option>`).join("")}</select></div>
+    <button class="btn" id="addL">+ Додати урок</button></div>
+  <div class="card">${ls.map(l=>`<div class="arow"><span class="d">${l.date?WD_S[parseD(l.date).getDay()]+", "+fmtDay(l.date):"—"}<br><small class="small">${esc(l.time||"")}</small></span>
+    <span class="t"><b>${esc(l.title)}</b><small>${pl(l.parts.length,"частина","частини","частин")} відео${l.slides?" · презентація":""}${l.notes?" · конспект":""}${l.group?" · група: "+esc(l.group):""}${l.hidden?" · приховано":""}</small></span>
+    <button class="btn sm ghost" data-e="${esc(l.id)}">Змінити</button></div>`).join("")||`<div class="empty">Немає уроків</div>`}</div>`;
+  $("#am").onchange=e=>{UI.adminMonth=e.target.value;aLessons()};
+  $("#addL").onclick=()=>editLesson(null,cur&&cur!=="—"?cur+"-01":"");
+  document.querySelectorAll("[data-e]").forEach(b=>b.onclick=()=>editLesson(b.dataset.e));
+}
+function editLesson(id,defDate){
+  const src=id?EDIT.lessons.find(l=>l.id===id):{id:"l"+uid(),date:defDate||ymd(new Date()),time:"19:00",title:"",group:"",desc:"",parts:[],slides:"",notes:"",hidden:false};
+  const L=JSON.parse(JSON.stringify(src));
+  const groups=[...new Set(EDIT.lessons.map(l=>l.group).filter(Boolean).concat(Object.keys(EDIT.groups||{})))];
+  const lay=$("#layer");
+  const draw=()=>{lay.innerHTML=`<div class="modal" id="md"><div class="card">
+    <h3>${id?"Змінити урок":"Новий урок"}</h3>
+    <div class="field"><label>Назва</label><input id="f_title" value="${esc(L.title)}" placeholder="Напр.: Квадратні рівняння"></div>
+    <div class="row2"><div class="field"><label>Дата (порожньо — не показувати в календарі)</label><input id="f_date" type="date" value="${esc(L.date)}"></div>
+      <div class="field"><label>Час</label><input id="f_time" type="time" value="${esc(L.time)}"></div></div>
+    <div class="field"><label>Група в «Записах»</label><select id="f_group"><option value="">Автоматично — за місяцем</option>${groups.map(g=>`<option ${g===L.group?"selected":""}>${esc(g)}</option>`).join("")}<option value="__new">+ Нова група…</option></select></div>
+    <div class="field"><label>Відео (частини запису): назва і посилання на .mp4, YouTube або Google Drive</label><div id="partsBox">${L.parts.map((p,i)=>`<div class="partedit">
+      <input data-pt="${i}" value="${esc(p.title)}" placeholder="Частина ${i+1}"><input data-pu="${i}" value="${esc(p.url)}" placeholder="https://…/video.mp4">
+      <button class="btn sm danger" data-pd="${i}">✕</button></div>`).join("")}</div>
+      <button class="btn sm ghost" id="addP" style="align-self:flex-start">+ Додати частину</button>
+      <span class="small">«Зберегти офлайн» працює для прямих посилань на файл (.mp4), напр. із Supabase Storage. YouTube — лише онлайн.</span></div>
+    <div class="row2"><div class="field"><label>Презентація (посилання на PDF / Google Slides / Drive)</label><input id="f_slides" value="${esc(L.slides)}"></div>
+      <div class="field"><label>Конспект (посилання)</label><input id="f_notes" value="${esc(L.notes)}"></div></div>
+    <div class="field"><label>Опис / домашнє завдання</label><textarea id="f_desc" rows="3">${esc(L.desc)}</textarea></div>
+    <label style="display:flex;gap:8px;align-items:center;margin-bottom:14px;font-weight:700"><input type="checkbox" id="f_hidden" ${L.hidden?"checked":""}> Приховати урок</label>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn" id="sv">Готово</button><button class="btn ghost" id="cn">Скасувати</button>
+      ${id?`<button class="btn danger" id="dl" style="margin-left:auto">${ICON.trash} Видалити урок</button>`:""}</div></div></div>`;
+    const read=()=>{L.title=$("#f_title").value.trim();L.date=$("#f_date").value;L.time=$("#f_time").value;L.slides=$("#f_slides").value.trim();L.notes=$("#f_notes").value.trim();L.desc=$("#f_desc").value;L.hidden=$("#f_hidden").checked;
+      document.querySelectorAll("[data-pt]").forEach(i=>L.parts[+i.dataset.pt].title=i.value);document.querySelectorAll("[data-pu]").forEach(i=>L.parts[+i.dataset.pu].url=i.value.trim())};
+    $("#f_group").onchange=e=>{if(e.target.value==="__new"){const n=(prompt("Назва нової групи","Додаткові уроки")||"").trim();read();if(n){L.group=n;if(!groups.includes(n))groups.push(n)}draw()}else L.group=e.target.value};
+    $("#addP").onclick=()=>{read();L.parts.push({title:"Частина "+(L.parts.length+1),url:""});draw()};
+    document.querySelectorAll("[data-pd]").forEach(b=>b.onclick=()=>{read();L.parts.splice(+b.dataset.pd,1);draw()});
+    $("#cn").onclick=()=>lay.innerHTML="";
+    $("#md").onclick=e=>{if(e.target.id==="md")lay.innerHTML=""};
+    $("#sv").onclick=()=>{read();if(!L.title){toast("Вкажіть назву");return}L.parts=L.parts.filter(p=>p.url);
+      if(!src.parts||JSON.stringify(src.parts)!==JSON.stringify(L.parts))L.updated=ymd(new Date());
+      const i=EDIT.lessons.findIndex(l=>l.id===L.id);if(i>=0)EDIT.lessons[i]=L;else EDIT.lessons.push(L);
+      if(L.group&&!(EDIT.groups=EDIT.groups||{})[L.group])EDIT.groups[L.group]={note:""};
+      UI.adminMonth=L.date?L.date.slice(0,7):"—";lay.innerHTML="";touch();aLessons()};
+    if(id)$("#dl").onclick=()=>{if(!confirm("Видалити урок «"+L.title+"»?"))return;EDIT.lessons=EDIT.lessons.filter(l=>l.id!==id);lay.innerHTML="";touch();aLessons()};
+  };draw();
+}
+function aSched(){
+  const w=EDIT.settings.weekdays=EDIT.settings.weekdays||{};const order=[1,2,3,4,5,6,0];
+  const t=new Date();const from=ymd(new Date(t.getFullYear(),t.getMonth(),1)),to=ymd(new Date(t.getFullYear(),t.getMonth()+2,0));
+  $("#abody").innerHTML=`<div class="card" style="padding:18px">
+    <h3 style="margin:0 0 6px">Дні уроків</h3><p class="small" style="margin:0 0 12px">Відмітьте дні тижня і час. Це видно в календарі як підпис «Уроки щотижня…».</p>
+    <div class="wdpick">${order.map(k=>`<label><input type="checkbox" data-w="${k}" ${w[k]!=null?"checked":""}> ${WD_F[k]} <input type="time" data-wt="${k}" value="${esc(w[k]||"19:00")}"></label>`).join("")}</div>
+    <h3 style="margin:22px 0 6px">Створити уроки за розкладом</h3><p class="small" style="margin:0 0 12px">Додасть порожні уроки на вибрані дні (дні, де урок уже є, пропускаються). Назви потім можна змінити.</p>
+    <div class="row2"><div class="field"><label>З</label><input type="date" id="gf" value="${from}"></div><div class="field"><label>По</label><input type="date" id="gt" value="${to}"></div></div>
+    <button class="btn" id="gen">Створити уроки</button>
+    <h3 style="margin:22px 0 6px">Скасувати уроки</h3><p class="small" style="margin:0 0 12px">Видалити всі уроки без запису в цьому проміжку (напр., канікули).</p>
+    <button class="btn danger" id="delr">Видалити уроки без запису в проміжку</button></div>`;
+  const readW=()=>{order.forEach(k=>{const c=document.querySelector(`[data-w="${k}"]`),tm=document.querySelector(`[data-wt="${k}"]`);if(c.checked)w[k]=tm.value;else delete w[k]})};
+  document.querySelectorAll("[data-w],[data-wt]").forEach(i=>i.onchange=()=>{readW();touch()});
+  $("#gen").onclick=()=>{readW();const a=parseD($("#gf").value),b=parseD($("#gt").value);if(!(a<=b)){toast("Перевірте дати");return}
+    const have=new Set(EDIT.lessons.map(l=>l.date));let n=0;
+    for(const d=new Date(a);d<=b;d.setDate(d.getDate()+1)){const k=d.getDay();if(w[k]==null)continue;const ds=ymd(d);if(have.has(ds))continue;
+      EDIT.lessons.push({id:"l"+uid(),date:ds,time:w[k],title:"Урок "+fmtDay(ds),group:"",desc:"",parts:[],slides:"",notes:"",hidden:false});n++}
+    touch();toast("Створено: "+n)};
+  $("#delr").onclick=()=>{const a=$("#gf").value,b=$("#gt").value;const del=EDIT.lessons.filter(l=>l.date&&l.date>=a&&l.date<=b&&!l.parts.length);
+    if(!del.length){toast("Немає уроків без запису в проміжку");return}if(!confirm("Видалити "+del.length+" ур.?"))return;
+    EDIT.lessons=EDIT.lessons.filter(l=>!del.includes(l));touch();toast("Видалено: "+del.length)};
+}
+function aGroups(){
+  EDIT.groups=EDIT.groups||{};const names=[...new Set(EDIT.lessons.map(l=>l.group).filter(Boolean).concat(Object.keys(EDIT.groups)))];
+  $("#abody").innerHTML=`<div class="card" style="padding:18px"><p class="small" style="margin-top:0">Уроки з датою самі потрапляють у групу свого місяця. Тут — власні групи (напр. «Додаткові уроки»). Призначити групу можна у вікні уроку.</p>
+    ${names.map((n,i)=>`<div class="row2" style="align-items:end"><div class="field"><label>Назва групи</label><input data-gn="${i}" value="${esc(n)}"></div>
+      <div class="field"><label>Примітка в дужках</label><input data-gx="${i}" value="${esc((EDIT.groups[n]||{}).note||"")}"></div></div>`).join("")||`<div class="empty">Власних груп ще немає</div>`}
+    <button class="btn sm ghost" id="ng">+ Нова група</button></div>`;
+  document.querySelectorAll("[data-gn]").forEach(inp=>inp.onchange=()=>{const old=names[+inp.dataset.gn],nw=inp.value.trim();if(!nw||nw===old)return;
+    EDIT.lessons.forEach(l=>{if(l.group===old)l.group=nw});EDIT.groups[nw]=EDIT.groups[old]||{note:""};delete EDIT.groups[old];touch();aGroups()});
+  document.querySelectorAll("[data-gx]").forEach(inp=>inp.onchange=()=>{const n=names[+inp.dataset.gx];(EDIT.groups[n]=EDIT.groups[n]||{}).note=inp.value.trim();touch()});
+  $("#ng").onclick=()=>{const n=(prompt("Назва групи")||"").trim();if(n){EDIT.groups[n]=EDIT.groups[n]||{note:""};touch();aGroups()}};
+}
+function aSettings(){
+  const s=EDIT.settings;
+  $("#abody").innerHTML=`<div class="card" style="padding:18px">
+    <div class="field"><label>Назва школи (зверху)</label><input id="s1" value="${esc(s.brand||"")}"></div>
+    <div class="field"><label>Предмет (мітка на групах)</label><input id="s2" value="${esc(s.subject||"")}"></div>
+    <div class="row2"><div class="field"><label>Подія в календарі (однина)</label><input id="s3" value="${esc(s.eventName||"")}" placeholder="Урок"></div>
+    <div class="field"><label>Заголовок списку (множина)</label><input id="s4" value="${esc(s.eventsName||"")}" placeholder="Уроки"></div></div></div>`;
+  [["s1","brand"],["s2","subject"],["s3","eventName"],["s4","eventsName"]].forEach(([i,k])=>$("#"+i).oninput=e=>{s[k]=e.target.value;touch()});
+}
+function aBackup(){
+  $("#abody").innerHTML=`<div class="card" style="padding:18px">
+    <p class="small" style="margin-top:0">Резервна копія всього вмісту одним файлом.</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn ghost" id="ex">${ICON.down} Завантажити копію (.json)</button>
+    <label class="btn ghost">Відновити з файлу<input type="file" id="im" accept=".json,application/json" hidden></label>
+    <button class="btn danger" id="rs">Повернути демо-вміст</button></div>
+    ${dirty?`<p style="margin-top:14px"><button class="btn sm ghost" id="disc">Скасувати неопубліковані зміни</button></p>`:""}</div>`;
+  $("#ex").onclick=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(EDIT,null,2)],{type:"application/json"}));a.download="zapysy-"+ymd(new Date())+".json";a.click()};
+  $("#im").onchange=async e=>{try{const d=JSON.parse(await e.target.files[0].text());if(!d.lessons)throw 0;EDIT=d;touch();toast("Завантажено. Натисніть «Опублікувати»");vAdmin()}catch(x){toast("Файл не підходить")}};
+  $("#rs").onclick=()=>{if(!confirm("Замінити весь вміст демо-даними?"))return;EDIT=demoData();touch();vAdmin()};
+  const d=$("#disc");if(d)d.onclick=()=>{EDIT=JSON.parse(JSON.stringify(DATA));dirty=false;try{localStorage.removeItem(LS.draft)}catch(e){}vAdmin()};
+}
+
+/* ================== Старт ================== */
+if(/[?&]embed=1/.test(location.search))document.body.classList.add("embed");
+$("#menuBtn").onclick=()=>$("#drawer").classList.add("on");
+$("#drawer").onclick=e=>{if(e.target.id==="drawer")$("#drawer").classList.remove("on")};
+dirty=!!lsGet(LS.draft,null);
+route();loadOff().then(render);loadCloud();
+if(onWeb&&"serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
+</script>
+</body>
+</html>
