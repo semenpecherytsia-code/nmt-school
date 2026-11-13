@@ -8,6 +8,13 @@ alter table public.ms_content enable row level security;  -- лише через
 
 -- Адмінів додає окремий приватний файл (insert into public.ms_admins ...), його в репозиторій не кладемо.
 
+create or replace function public.ms_is_admin(p_email text) returns boolean
+  language sql stable security definer set search_path = public as $$
+  select exists (select 1 from public.ms_admins where email = lower(trim(p_email)));
+$$;
+revoke all on function public.ms_is_admin(text) from public;
+grant execute on function public.ms_is_admin(text) to anon, authenticated;
+
 create or replace function public.ms_admin_ok(p_email text, p_pass text) returns boolean
   language sql stable security definer set search_path = public as $$
   select exists (select 1 from public.ms_admins a where a.email = lower(trim(p_email))
