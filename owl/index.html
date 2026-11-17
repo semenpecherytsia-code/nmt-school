@@ -1907,8 +1907,10 @@ function tirFill(G,sl){
   if(!G.seenAll)G.seenAll=new Set();
   /* одна й та сама хмаринка ніколи не висить двічі; якщо вільних немає — пробуємо інший тип */
   const free=src=>src.filter(x=>!live.some(i=>i.t===x.t));
-  let cand=free(ok?T.ok:T.no);if(!cand.length){ok=!ok;cand=free(ok?T.ok:T.no)}
-  if(!cand.length){sl.wait=.4;return null}
+  let cand=free(ok?T.ok:T.no);if(!cand.length){const alt=free(!ok?T.ok:T.no);if(alt.length&&!(ok&&okNow<2)){ok=!ok;cand=alt}}
+  /* виразів менше, ніж хмаринок: повтор дозволено, але не в тому самому ряду */
+  const rowFree=src=>src.filter(x=>!live.some(i=>i.t===x.t&&i.row===sl.row));
+  if(!cand.length){cand=rowFree(ok?T.ok:T.no);if(!cand.length){const alt=rowFree(!ok?T.ok:T.no);if(alt.length){ok=!ok;cand=alt}else cand=ok?T.ok:T.no}}
   const fresh=cand.filter(x=>!G.seenAll.has(x.t));const x=G.R.pick(fresh.length?fresh:cand);
   if(G.seenAll.size>(T.ok.length+T.no.length)*.7)G.seenAll.clear();
   G.seenAll.add(x.t);
@@ -2560,7 +2562,7 @@ let G=null,V=null,paused=false,keys={l:false,r:false},roundOpts=null,endTimer=nu
 function startRound(level,opts={}){
   closeAllModals();clearTimeout(endTimer);
   roundOpts={level,...opts};
-  const tirGrid=()=>{const W=innerWidth,H=innerHeight,rows=H<430?1:H<600?2:3;return{cols:Math.max(3,Math.min(8,Math.floor(12/rows),Math.round(W/210)+1)),rows}};
+  const tirGrid=()=>{const W=innerWidth,H=innerHeight;return{cols:Math.max(3,Math.min(8,Math.round(W/210)+1)),rows:H<430?1:H<600?2:3}};
   G=ARC.newRound({level,...(opts.tir||(!opts.tutorial&&ARCADE.LEVELS[level].tir)?{tir:true,...tirGrid()}:{}),math:opts.math!=null?opts.math:S.settings.math,speed:S.settings.speed,mode:opts.tutorial?"move":S.settings.control,calmTimer:S.settings.calmTimer,tutorial:!!opts.tutorial});
   G.rewarded=false;paused=false;keys.l=keys.r=false;V.owl.target=null;V.owl.nx=.5;V.aim=null;V.laser=null;
   go("game");
