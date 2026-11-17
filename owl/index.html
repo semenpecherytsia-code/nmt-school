@@ -1453,7 +1453,26 @@ const TRIG_ALL={};
 function trigAll(hard){const k=hard?1:0;if(TRIG_ALL[k])return TRIG_ALL[k];const seen=new Set(),out=[];
   for(const [t,vs,w] of (hard?TV_EASY.concat(TV_HARD):TV_EASY).concat(trigCombos())){const v=valOf(vs);if(v==null||seen.has(t))continue;seen.add(t);out.push({t,v,vs,w})}
   return TRIG_ALL[k]=out}
-OWL.ARCADE={CHAPTERS,LEVELS,V1_MAP,quadTxt,MIX_POOL,trigAll};
+/* тир: лише вирази, які обрав викладач */
+const S3=Math.sqrt(3),S2=Math.SQRT2;
+const TIR_SET=[
+ ["sin π/3",S3/2,"√3/2","π/3 = 60°, sin 60° = √3/2"],
+ ["sin(−2π)",0,"0","sin — непарна: sin(−2π) = −sin 2π = 0"],
+ ["cos(−π/4)",S2/2,"√2/2","cos — парна: cos(−π/4) = cos π/4 = √2/2"],
+ ["√3 · tg(−π/6)",-1,"−1","tg(−π/6) = −tg π/6 = −√3/3, тому √3 · (−√3/3) = −1"],
+ ["(cos π/3)⁻¹",2,"2","cos π/3 = 1/2, тому (1/2)⁻¹ = 2"],
+ ["√2 sin π/4",1,"1","sin π/4 = √2/2, тому √2 · √2/2 = 1"],
+ ["(tg π/3)²",3,"3","tg π/3 = √3, тому (√3)² = 3"],
+ ["sin 180° + 1",1,"1","sin 180° = 0, тому 0 + 1 = 1"],
+ ["−sin 3π/2",1,"1","sin 3π/2 = −1, тому −(−1) = 1"],
+ ["√3 sin π/6",S3/2,"√3/2","sin π/6 = 1/2, тому √3 · 1/2 = √3/2"],
+ ["tg π/6 · tg π/3",1,"1","tg π/6 = √3/3, tg π/3 = √3, добуток = 3/3 = 1"],
+ ["sin π/4 : cos π/4",1,"1","sin π/4 = cos π/4 = √2/2, тому частка = 1"],
+ ["√16 − cos π",5,"5","√16 = 4, cos π = −1, тому 4 − (−1) = 5"],
+ ["sin 450°",1,"1","період 360°: sin 450° = sin 90° = 1"],
+ ["tg 225°",1,"1","tg 225° = tg(180° + 45°) = tg 45° = 1"]];
+const tirSet=()=>TIR_SET.map(([t,v,vs,w])=>({t,v,vs,w}));
+OWL.ARCADE={CHAPTERS,LEVELS,V1_MAP,quadTxt,MIX_POOL,trigAll,tirSet};
 })();
 
 /* ---- state.js ---- */
@@ -1861,17 +1880,14 @@ function tutorialStep(G,dt,catchTest,ev){
 const TIR_GOAL=7,TIR_TIME=75;
 const E=1e-9;
 const TIR_RULES=[
-  {txt:"Лови вирази, значення яких більші за 1",f:v=>v>1+E,yes:"більше за 1",no:"не більше за 1"},
-  {txt:"Лови вирази з відʼємним значенням",f:v=>v<-E,yes:"відʼємне",no:"не відʼємне"},
-  {txt:"Лови вирази, що дорівнюють 0",f:v=>Math.abs(v)<E,yes:"дорівнює 0",no:"не 0"},
   {txt:"Лови вирази, що дорівнюють 1",f:v=>Math.abs(v-1)<E,yes:"дорівнює 1",no:"не 1"},
-  {txt:"Лови вирази, що дорівнюють 1/2",f:v=>Math.abs(v-.5)<E,yes:"дорівнює 1/2",no:"не 1/2"},
-  {txt:"Лови вирази з додатним значенням",f:v=>v>E,yes:"додатне",no:"не додатне"}];
+  {txt:"Лови вирази, значення яких більші за 1",f:v=>v>1+E,yes:"більше за 1",no:"не більше за 1"},
+  {txt:"Лови вирази, значення яких менші за 1",f:v=>v<1-E,yes:"менше за 1",no:"не менше за 1"}];
 function newTir(opts){
   const seed=opts.seed||OWL.newSeed(),R=OWL.makeRng(seed),math=opts.math||0;
   const cu=OWL.ARCADE.tirCustom;
   const ri=opts.rule!=null?opts.rule:R.int(0,TIR_RULES.length-1),rule=cu?{txt:cu.rule,custom:true}:TIR_RULES[ri];
-  const pool=cu?cu.items.map(x=>({t:x.t,w:x.why||(x.ok?"підходить під правило":"не підходить під правило"),ok:x.ok})):OWL.ARCADE.trigAll(!!math);
+  const pool=cu?cu.items.map(x=>({t:x.t,w:x.why||(x.ok?"підходить під правило":"не підходить під правило"),ok:x.ok})):OWL.ARCADE.tirSet();
   if(cu)rule.f=x=>x;
   const L={name:"Тригонометричний тир",rule:()=>rule.txt};
   const rows=opts.rows||3,cols=opts.cols||4;
@@ -1889,9 +1905,12 @@ function tirFill(G,sl){
   const okNow=live.filter(i=>i.ok).length;
   let ok=okNow<2?true:okNow>=Math.ceil(T.slots.length*.45)?false:G.R.chance(.4);
   if(!G.seenAll)G.seenAll=new Set();
-  const src=ok?T.ok:T.no;let x,tries=0;
-  do{x=G.R.pick(src);tries++}while(tries<120&&(G.seenAll.has(x.t)||live.some(i=>i.t===x.t)));
-  if(G.seenAll.size>(T.ok.length+T.no.length)*.8)G.seenAll.clear();
+  /* одна й та сама хмаринка ніколи не висить двічі; якщо вільних немає — пробуємо інший тип */
+  const free=src=>src.filter(x=>!live.some(i=>i.t===x.t));
+  let cand=free(ok?T.ok:T.no);if(!cand.length){ok=!ok;cand=free(ok?T.ok:T.no)}
+  if(!cand.length){sl.wait=.4;return null}
+  const fresh=cand.filter(x=>!G.seenAll.has(x.t));const x=G.R.pick(fresh.length?fresh:cand);
+  if(G.seenAll.size>(T.ok.length+T.no.length)*.7)G.seenAll.clear();
   G.seenAll.add(x.t);
   const why=T.rule.custom?x.w:`${x.w} — ${ok?T.rule.yes:T.rule.no}`;
   const it={id:G.nextId++,t:x.t,ok,why,rule:T.rule.txt,row:sl.row,col:sl.col,state:"live",age:0,w:0,h:0,fs:0,nx:.5,p:0};
@@ -2326,7 +2345,7 @@ function fromLines(txt){const out=[],bad=[];String(txt||"").split(/\r?\n/).forEa
 function sample(i,n=24,math=0){if(L[i]&&L[i].tir)return tirSample(n);const l=ORIG[i],R=OWL.makeRng(OWL.newSeed()),st=l.setup(R,math),rule=l.rule(st),seen=new Set(),items=[];
   for(let k=0;k<n*6&&items.length<n;k++){const ok=items.length%2===0;const it=l.gen(R,st,ok);if(seen.has(it.t))continue;seen.add(it.t);items.push({t:it.t,ok:it.ok,why:it.why||""})}
   return{rule,items}}
-function tirSample(n=24){const pool=A.trigAll(false),R=OWL.makeRng(OWL.newSeed()),rule=OWL.ARC.TIR_RULES[0],items=[];
+function tirSample(n=24){const pool=A.tirSet(),R=OWL.makeRng(OWL.newSeed()),rule=OWL.ARC.TIR_RULES[0],items=[];
   for(const ok of [true,false])R.shuffle(pool.filter(x=>rule.f(x.v)===ok)).slice(0,n/2).forEach(x=>items.push({t:x.t,ok,why:`${x.w} — ${ok?rule.yes:rule.no}`}));return{rule:rule.txt,items}}
 OWL.CFG={apply,clean,get:()=>CUR,isHidden,visible,cacheLoad,cacheSave,toLines,fromLines,sample,tirSample,ORIG};
 })();
@@ -2541,7 +2560,7 @@ let G=null,V=null,paused=false,keys={l:false,r:false},roundOpts=null,endTimer=nu
 function startRound(level,opts={}){
   closeAllModals();clearTimeout(endTimer);
   roundOpts={level,...opts};
-  const tirGrid=()=>{const W=innerWidth,H=innerHeight;return{cols:Math.max(3,Math.min(8,Math.round(W/210)+1)),rows:H<430?1:H<600?2:3}};
+  const tirGrid=()=>{const W=innerWidth,H=innerHeight,rows=H<430?1:H<600?2:3;return{cols:Math.max(3,Math.min(8,Math.floor(12/rows),Math.round(W/210)+1)),rows}};
   G=ARC.newRound({level,...(opts.tir||(!opts.tutorial&&ARCADE.LEVELS[level].tir)?{tir:true,...tirGrid()}:{}),math:opts.math!=null?opts.math:S.settings.math,speed:S.settings.speed,mode:opts.tutorial?"move":S.settings.control,calmTimer:S.settings.calmTimer,tutorial:!!opts.tutorial});
   G.rewarded=false;paused=false;keys.l=keys.r=false;V.owl.target=null;V.owl.nx=.5;V.aim=null;V.laser=null;
   go("game");
