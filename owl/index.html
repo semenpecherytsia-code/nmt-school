@@ -1437,7 +1437,7 @@ const LEVELS=[
   setup:(R,md)=>({r:R.pick(md?[-2,-1,2,3,4]:[1,2,3])}),rule:s=>`Лови рівняння, що мають корінь x = ${fmtNum(s.r)}`,
   gen:(R,s,ok)=>{const fac=R.chance(.3);let p,q;if(ok){p=s.r;q=R.int(-7,7);if(R.chance(.5))[p,q]=[q,p]}else do{p=R.int(-6,6);q=R.int(-6,6)}while(p===s.r||q===s.r);
     const t=quadTxt(p,q,fac);return{t,ok,why:`${t}: ${rootsWord(p,q)}`}}},
- {name:"Тригонометричний тир",trains:"таблиця значень — цілься і стріляй по правильних хмаринках",skill:"trig-values",tir:true,slow:1.35,tip:"π = 180°, тому π/6 = 30°, π/2 = 90°. За таблицею: sin 30° = cos 60° = 1/2, sin 90° = cos 0° = 1, sin 0° = cos 90° = 0.",
+ {name:"Тригонометричний тир",trains:"таблиця значень — натискай на правильні хмаринки",skill:"trig-values",tir:true,slow:1.35,tip:"π = 180°, тому π/6 = 30°, π/4 = 45°, π/3 = 60°. Таблиця: sin 30° = 1/2, sin 45° = √2/2, sin 60° = √3/2, sin 90° = 1; tg 30° = √3/3, tg 45° = 1, tg 60° = √3. Синус непарний: sin(−x) = −sin x; косинус парний: cos(−x) = cos x.",
   setup:(R,md)=>({hard:!!md,T:R.pick(md?["1","0","1/2","−1","−1/2"]:["1","0","1/2"])}),rule:s=>`Лови вирази, що дорівнюють ${s.T}`,gen:(R,s,ok)=>trigItem(R,ok,s.hard,s.T)},
  {name:"Логарифми",trains:"обчислення логарифмів",skill:"logs",slow:1.35,tip:"log₂ 8 = 3, бо 2³ = 8. Питання просте: у який степінь піднести основу?",
   setup:(R,md)=>({T:md?R.pick([2,3]):2}),rule:s=>`Лови вирази, що дорівнюють ${s.T}`,gen:(R,s,ok)=>logItem(R,ok,s.T)},
@@ -1880,9 +1880,10 @@ function tutorialStep(G,dt,catchTest,ev){
 const TIR_GOAL=7,TIR_TIME=75;
 const E=1e-9;
 const TIR_RULES=[
-  {txt:"Лови вирази, що дорівнюють 1",f:v=>Math.abs(v-1)<E,yes:"дорівнює 1",no:"не 1"},
-  {txt:"Лови вирази, значення яких більші за 1",f:v=>v>1+E,yes:"більше за 1",no:"не більше за 1"},
-  {txt:"Лови вирази, значення яких менші за 1",f:v=>v<1-E,yes:"менше за 1",no:"не менше за 1"}];
+  {txt:"Лови вирази, значення яких менші за 1",f:v=>v<1-E,yes:"менше за 1",no:"не менше за 1"},
+  {txt:"Лови вирази, значення яких не менші за 1",f:v=>v>1-E,yes:"не менше за 1",no:"менше за 1"},
+  {txt:"Лови вирази з додатним значенням",f:v=>v>E,yes:"додатне",no:"не додатне"},
+  {txt:"Лови вирази, що дорівнюють 1",f:v=>Math.abs(v-1)<E,yes:"дорівнює 1",no:"не 1"}];
 function newTir(opts){
   const seed=opts.seed||OWL.newSeed(),R=OWL.makeRng(seed),math=opts.math||0;
   const cu=OWL.ARCADE.tirCustom;
@@ -1892,8 +1893,9 @@ function newTir(opts){
   const L={name:"Тригонометричний тир",rule:()=>rule.txt};
   const rows=opts.rows||3,cols=opts.cols||4;
   const G={level:opts.level,L,R,seed,st:{},math,speed:1,mode:"tir",tir:{rule,ri,ok:pool.filter(x=>cu?x.ok:rule.f(x.v)),no:pool.filter(x=>cu?!x.ok:!rule.f(x.v)),rows,cols,off:[],v:[],slots:[]},
-    tutorial:false,goal:TIR_GOAL,lives:LIVES,missCosts:false,items:[],log:[],correct:0,wrongCaught:0,missed:0,streak:0,maxStreak:0,coins:0,
+    tutorial:false,goal:0,lives:LIVES,missCosts:false,items:[],log:[],correct:0,wrongCaught:0,missed:0,streak:0,maxStreak:0,coins:0,
     t:0,phase:"splash",splashT:SPLASH,splashText:rule.txt,ended:false,result:null,nextId:1,timeLimit:0,timeLeft:0};
+  G.goal=Math.max(1,Math.min(TIR_GOAL,G.tir.ok.length));G.used=new Set();
   const base=(math?.05:.034);
   for(let r=0;r<rows;r++){G.tir.off.push(R.f());G.tir.v.push((r%2?-1:1)*base*(.85+R.f()*.3))}
   for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){G.tir.slots.push({row:r,col:c,item:null,wait:0})}
@@ -1901,19 +1903,15 @@ function newTir(opts){
   return G;
 }
 function tirFill(G,sl){
+  /* кожен вираз — лише раз за рівень: збитий або вже показаний більше не з'являється */
   const T=G.tir,live=G.items.filter(i=>i.state==="live");
   const okNow=live.filter(i=>i.ok).length;
-  let ok=okNow<2?true:okNow>=Math.ceil(T.slots.length*.45)?false:G.R.chance(.4);
-  if(!G.seenAll)G.seenAll=new Set();
-  /* одна й та сама хмаринка ніколи не висить двічі; якщо вільних немає — пробуємо інший тип */
-  const free=src=>src.filter(x=>!live.some(i=>i.t===x.t));
-  let cand=free(ok?T.ok:T.no);if(!cand.length){const alt=free(!ok?T.ok:T.no);if(alt.length&&!(ok&&okNow<2)){ok=!ok;cand=alt}}
-  /* виразів менше, ніж хмаринок: повтор дозволено, але не в тому самому ряду */
-  const rowFree=src=>src.filter(x=>!live.some(i=>i.t===x.t&&i.row===sl.row));
-  if(!cand.length){cand=rowFree(ok?T.ok:T.no);if(!cand.length){const alt=rowFree(!ok?T.ok:T.no);if(alt.length){ok=!ok;cand=alt}else cand=ok?T.ok:T.no}}
-  const fresh=cand.filter(x=>!G.seenAll.has(x.t));const x=G.R.pick(fresh.length?fresh:cand);
-  if(G.seenAll.size>(T.ok.length+T.no.length)*.7)G.seenAll.clear();
-  G.seenAll.add(x.t);
+  const left=src=>src.filter(x=>!G.used.has(x.t));
+  const okL=left(T.ok),noL=left(T.no);
+  if(!okL.length&&!noL.length){sl.wait=1e9;return null}
+  const okNeed=G.goal-G.correct-okNow;          // скільки ще правильних треба показати
+  let ok;if(okNeed>0&&(okNow<2||!noL.length))ok=true;else if(!okL.length)ok=false;else if(!noL.length)ok=true;else ok=G.R.chance(okL.length/(okL.length+noL.length));
+  const x=G.R.pick(ok?okL:noL);G.used.add(x.t);
   const why=T.rule.custom?x.w:`${x.w} — ${ok?T.rule.yes:T.rule.no}`;
   const it={id:G.nextId++,t:x.t,ok,why,rule:T.rule.txt,row:sl.row,col:sl.col,state:"live",age:0,w:0,h:0,fs:0,nx:.5,p:0};
   sl.item=it;G.items.push(it);return it;
@@ -2022,12 +2020,13 @@ function Renderer(cv){
   };
   V.measureFs=function(it,maxW){const fs=it.fs,tw=mathWidth(ctx,it.t,fs);it.w=Math.min(maxW,Math.max(tw+fs*2.2,fs*5));it.h=fs*(/[\dπ]\/\d/.test(it.t)?3.3:2.6)};
   V.tirHit=function(G,px,py){let best=null;for(const it of G.items){if(it.state!=="live")continue;const {x,y}=V.itemXY(it);const dx=(px-x)/(it.w/2+6),dy=(py-y)/(it.h/2+6);const d=dx*dx+dy*dy;if(d<=1&&(!best||d<best.d))best={it,d,x,y}}return best};
-  V.tirLayout=function(G){const T=G.tir,sw=V.W/Math.max(1,T.cols-1);const top=(V.topPad||0)+6,bot=V.rimY()-150*V.SC*.35;return{sw,top,rowH:Math.max(40,(bot-top)/T.rows)}};
+  V.tirLayout=function(G){const T=G.tir,sw=V.W/Math.max(1,T.cols-1);const top=(V.topPad||0)+6,bot=V.H*.94;return{sw,top,rowH:Math.max(40,(bot-top)/T.rows)}};
   V.itemXY=function(it){
     const G=V.G;
     if(G&&G.mode==="tir"&&it.row!=null){
       const Lt=V.tirLayout(G);
-      if(!it.w){V.measure(it);const maxW=Lt.sw-14;if(it.w>maxW){it.fs=Math.max(11,it.fs*maxW/it.w);V.measureFs(it,maxW)}const mh=Lt.rowH*.86;if(it.h>mh){const k=mh/it.h;it.fs=Math.max(11,it.fs*k);V.measureFs(it,maxW)}}
+      if(!it.w){V.measure(it);const maxW=Lt.sw-14;if(it.w>maxW){it.fs=Math.max(11,it.fs*maxW/it.w);V.measureFs(it,maxW)}const mh=Lt.rowH*.86;if(it.h>mh){const k=mh/it.h;it.fs=Math.max(11,it.fs*k);V.measureFs(it,maxW)}
+        const up=Math.min(1.5,maxW*.82/it.w,mh*.9/it.h);if(up>1.04){it.fs*=up;V.measureFs(it,maxW)}}
       const u=tirU(G,it);return{x:u*(V.W+Lt.sw)-Lt.sw/2,y:Lt.top+Lt.rowH*(it.row+.5)};
     }
     if(!it.w)V.measure(it);
@@ -2225,9 +2224,9 @@ function Renderer(cv){
       ctx.fillStyle="#2b1906";ctx.font=`700 ${it.fs}px ${FONT}`;ctx.textAlign="center";ctx.textBaseline="middle";drawMath(ctx,it.t,x,y+it.h*.08,it.fs);
       if(fade){if(it.state==="wrong"){ctx.strokeStyle="#d23a3a";ctx.lineWidth=4;cloud(x,y,it.w,it.h);ctx.stroke()}ctx.restore()}
     }
-    if(!V.hideOwl)drawOwl(V.owlX(),V.groundY(),V.SC);
+    if(!V.hideOwl&&!(G&&G.mode==="tir"))drawOwl(V.owlX(),V.groundY(),V.SC);
     if(G&&G.mode==="tir"){
-      if(V.laser&&V.laser.life>0){const k=V.laser.life/.3;ctx.save();ctx.globalAlpha=k;ctx.strokeStyle=V.laser.ok?"#ff3b3b":"#ff3b3b";ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(V.owlX(),V.rimY()+8*V.SC);ctx.lineTo(V.laser.x,V.laser.y);ctx.stroke();ctx.restore()}
+      if(V.laser&&V.laser.life>0){const k=V.laser.life/.3;ctx.save();ctx.globalAlpha=k;ctx.strokeStyle="#ff8a00";ctx.lineWidth=4;ctx.beginPath();ctx.arc(V.laser.x,V.laser.y,(1-k)*34*V.SC+8,0,7);ctx.stroke();ctx.restore()}
       if(V.aim&&!G.ended){const {x,y}=V.aim,r=13*V.SC+4;ctx.save();ctx.strokeStyle="#e0262d";ctx.lineWidth=2.5;ctx.globalAlpha=.9;ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.moveTo(x-r-6,y);ctx.lineTo(x+r+6,y);ctx.moveTo(x,y-r-6);ctx.lineTo(x,y+r+6);ctx.stroke();ctx.restore()}
     }
     for(const p of V.parts){ctx.globalAlpha=Math.max(0,p.life/p.max);ctx.fillStyle=p.col;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,7);ctx.fill()}
@@ -2562,7 +2561,7 @@ let G=null,V=null,paused=false,keys={l:false,r:false},roundOpts=null,endTimer=nu
 function startRound(level,opts={}){
   closeAllModals();clearTimeout(endTimer);
   roundOpts={level,...opts};
-  const tirGrid=()=>{const W=innerWidth,H=innerHeight;return{cols:Math.max(3,Math.min(8,Math.round(W/210)+1)),rows:H<430?1:H<600?2:3}};
+  const tirGrid=()=>{const W=innerWidth,H=innerHeight,cw=Math.max(3,Math.min(8,Math.round(W/210)+1)),rows=H<430?2:(H>=700&&W<600?4:3),cols=Math.max(3,Math.min(cw,Math.floor(15/rows)));return{cols,rows}};
   G=ARC.newRound({level,...(opts.tir||(!opts.tutorial&&ARCADE.LEVELS[level].tir)?{tir:true,...tirGrid()}:{}),math:opts.math!=null?opts.math:S.settings.math,speed:S.settings.speed,mode:opts.tutorial?"move":S.settings.control,calmTimer:S.settings.calmTimer,tutorial:!!opts.tutorial});
   G.rewarded=false;paused=false;keys.l=keys.r=false;V.owl.target=null;V.owl.nx=.5;V.aim=null;V.laser=null;
   go("game");
