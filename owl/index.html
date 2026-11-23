@@ -1438,7 +1438,7 @@ const LEVELS=[
   gen:(R,s,ok)=>{const fac=R.chance(.3);let p,q;if(ok){p=s.r;q=R.int(-7,7);if(R.chance(.5))[p,q]=[q,p]}else do{p=R.int(-6,6);q=R.int(-6,6)}while(p===s.r||q===s.r);
     const t=quadTxt(p,q,fac);return{t,ok,why:`${t}: ${rootsWord(p,q)}`}}},
  {name:"Тригонометричний тир",trains:"таблиця значень — натискай на правильні хмаринки",skill:"trig-values",tir:true,slow:1.35,tip:"π = 180°, тому π/6 = 30°, π/4 = 45°, π/3 = 60°. Таблиця: sin 30° = 1/2, sin 45° = √2/2, sin 60° = √3/2, sin 90° = 1; tg 30° = √3/3, tg 45° = 1, tg 60° = √3. Синус непарний: sin(−x) = −sin x; косинус парний: cos(−x) = cos x.",
-  setup:(R,md)=>({hard:!!md,T:R.pick(md?["1","0","1/2","−1","−1/2"]:["1","0","1/2"])}),rule:s=>`Лови вирази, що дорівнюють ${s.T}`,gen:(R,s,ok)=>trigItem(R,ok,s.hard,s.T)},
+  setup:(R,md)=>({hard:!!md,T:"1"}),rule:s=>`Лови вирази, що дорівнюють ${s.T}`,gen:(R,s,ok)=>trigItem(R,ok,s.hard,s.T)},
  {name:"Логарифми",trains:"обчислення логарифмів",skill:"logs",slow:1.35,tip:"log₂ 8 = 3, бо 2³ = 8. Питання просте: у який степінь піднести основу?",
   setup:(R,md)=>({T:md?R.pick([2,3]):2}),rule:s=>`Лови вирази, що дорівнюють ${s.T}`,gen:(R,s,ok)=>logItem(R,ok,s.T)},
  {name:"Фінальний мікс",trains:"усе разом",skill:null,mix:true,slow:1.35,tip:"Правило змінюється кожні 4 правильні відповіді. Перед зміною гра зупиниться і покаже нове правило.",
@@ -1880,9 +1880,6 @@ function tutorialStep(G,dt,catchTest,ev){
 const TIR_GOAL=7,TIR_TIME=75;
 const E=1e-9;
 const TIR_RULES=[
-  {txt:"Лови вирази, значення яких менші за 1",f:v=>v<1-E,yes:"менше за 1",no:"не менше за 1"},
-  {txt:"Лови вирази, значення яких не менші за 1",f:v=>v>1-E,yes:"не менше за 1",no:"менше за 1"},
-  {txt:"Лови вирази з додатним значенням",f:v=>v>E,yes:"додатне",no:"не додатне"},
   {txt:"Лови вирази, що дорівнюють 1",f:v=>Math.abs(v-1)<E,yes:"дорівнює 1",no:"не 1"}];
 function newTir(opts){
   const seed=opts.seed||OWL.newSeed(),R=OWL.makeRng(seed),math=opts.math||0;
@@ -2673,7 +2670,7 @@ RENDER.game=function(){
      <span class="pill hud-score" aria-live="polite"><span class="sr">Зловлено </span><span id="hScore">${G.mode==="tir"?"Знайдено ":""}0 / ${G.goal}</span></span>
      <span class="hearts" id="hHearts" role="img" aria-label="Сердечок: ${G.lives}"></span>
      <div class="rule" id="hRule" aria-live="polite">${mt(ARC.ruleText(G))}</div>
-     <div class="hud-right">${G.timeLimit?`<span class="pill hud-time" id="hTime" role="timer" aria-label="Залишилось часу">${IC.clock||"⏱"}<span>${fmtClock(G.timeLeft)}</span></span>`:""}<button class="btn btn-primary" style="min-height:44px" data-act="pause">Пауза</button></div>
+     <div class="hud-right">${G.timeLimit?`<span class="pill hud-time" id="hTime" role="timer" aria-label="Залишилось часу">${IC.clock||"⏱"}<span>${fmtClock(G.timeLeft)}</span></span>`:""}<button class="btn btn-primary" style="min-height:44px" data-act="exit">Вийти</button></div>
      <div class="progress" aria-hidden="true"><i id="hProg" style="width:0"></i></div>
      <span class="streak" id="hStreak" hidden></span>
    </div>
@@ -2681,7 +2678,7 @@ RENDER.game=function(){
    ${G.tutorial?`<div class="tutmsg" id="tutMsg" role="status" aria-live="polite"></div>`:""}
    ${calm?`<div class="calm-bar"><div class="timer-bar" id="cTimer" ${G.calmTimer?"":"hidden"}><i></i></div><div class="btn-row"><button class="btn btn-ghost btn-big" data-act="skip">Пропустити</button><button class="btn btn-forest btn-big" data-act="catch">Ловити</button></div></div>`:""}
    <div class="sr" id="liveFb" aria-live="assertive"></div>`;
-  VACTS={pause:()=>pauseGame(),catch:()=>handleEvents(ARC.calmAct(G,"catch")),skip:()=>handleEvents(ARC.calmAct(G,"skip")),
+  VACTS={exit:()=>{const t=G&&G.tutorial&&roundOpts.from==="home";stopRound();go(t?"home":"map")},catch:()=>handleEvents(ARC.calmAct(G,"catch")),skip:()=>handleEvents(ARC.calmAct(G,"skip")),
     "@none":0};
   $("#splash").addEventListener("click",()=>{if(G&&G.phase==="splash")G.splashT=0});
   updateHud();
@@ -3060,7 +3057,6 @@ window.addEventListener("keydown",e=>{
   if(screen==="game"&&G){
     if(e.code==="ArrowLeft"||e.code==="KeyA"){keys.l=true;e.preventDefault()}
     if(e.code==="ArrowRight"||e.code==="KeyD"){keys.r=true;e.preventDefault()}
-    if(e.code==="Escape"||e.code==="KeyP"){e.preventDefault();pauseGame()}
     if(G.phase==="splash"&&(e.code==="Space"||e.code==="Enter")){G.splashT=0;e.preventDefault()}
   }
 });
@@ -3080,8 +3076,8 @@ function initPointer(cv){
   cv.addEventListener("pointercancel",e=>{end(e);resetInput()});
   cv.addEventListener("lostpointercapture",end);
 }
-window.addEventListener("blur",()=>{resetInput();if(screen==="game")pauseGame()});
-document.addEventListener("visibilitychange",()=>{if(document.hidden){resetInput();if(screen==="game")pauseGame()}});
+window.addEventListener("blur",()=>{resetInput()});
+document.addEventListener("visibilitychange",()=>{if(document.hidden){resetInput()}});
 window.addEventListener("resize",()=>{if(V)V.resize()});
 window.addEventListener("orientationchange",()=>setTimeout(()=>V&&V.resize(),200));
 if(mq.addEventListener)mq.addEventListener("change",applyMotion);
