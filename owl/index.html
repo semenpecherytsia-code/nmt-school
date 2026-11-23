@@ -1901,15 +1901,15 @@ function newTir(opts){
   return G;
 }
 function tirFill(G,sl){
-  /* кожен вираз — лише раз за рівень: збитий або вже показаний більше не з'являється */
+  /* збита хмаринка (будь-яка) зникає назавжди; незбиті не дублюються на екрані */
   const T=G.tir,live=G.items.filter(i=>i.state==="live");
-  const okNow=live.filter(i=>i.ok).length;
-  const left=src=>src.filter(x=>!G.used.has(x.t));
+  const okNow=live.filter(i=>i.ok).length,onScr=new Set(G.items.filter(i=>i.state==="live"||i.dead==null||i.dead<.45).map(i=>i.t));
+  const left=src=>src.filter(x=>!G.used.has(x.t)&&!onScr.has(x.t));
   const okL=left(T.ok),noL=left(T.no);
-  if(!okL.length&&!noL.length){sl.wait=1e9;return null}
+  if(!okL.length&&!noL.length){sl.wait=1;return null}
   const okNeed=G.goal-G.correct-okNow;          // скільки ще правильних треба показати
   let ok;if(okNeed>0&&(okNow<2||!noL.length))ok=true;else if(!okL.length)ok=false;else if(!noL.length)ok=true;else ok=G.R.chance(okL.length/(okL.length+noL.length));
-  const x=G.R.pick(ok?okL:noL);G.used.add(x.t);
+  const x=G.R.pick(ok?okL:noL);
   const why=T.rule.custom?x.w:`${x.w} — ${ok?T.rule.yes:T.rule.no}`;
   const it={id:G.nextId++,t:x.t,ok,why,rule:T.rule.txt,row:sl.row,col:sl.col,state:"live",age:0,w:0,h:0,fs:0,nx:.5,p:0};
   sl.item=it;G.items.push(it);return it;
@@ -1926,7 +1926,7 @@ function tirStep(G,dt,ev){
 function tirShoot(G,id){
   const ev=[];if(G.ended||G.phase!=="play"||G.mode!=="tir")return ev;
   const it=G.items.find(i=>i.id===id&&i.state==="live");if(!it)return ev;
-  it.state=it.ok?"hit":"wrong";
+  it.state=it.ok?"hit":"wrong";G.used.add(it.t);   // будь-яка збита хмаринка зникає назавжди
   const sl=G.tir.slots.find(s=>s.item===it);if(sl){sl.item=null;sl.wait=.9}
   ev.push({type:it.ok?"good":"bad",it});
   record(G,it,it.ok?"caught-ok":"caught-wrong");
