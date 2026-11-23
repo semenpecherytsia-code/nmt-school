@@ -1763,7 +1763,7 @@ function newRound(opts){
 }
 /* ліміт часу на рівень: з запасом для гравця без помилок */
 function timeFor(G){if(G.tutorial)return 0;if(G.mode==="tir")return TIR_TIME;if(G.mode==="buttons")return 150;return Math.ceil((G.goal*G.fall*1.6+15)/5)*5}
-function withTime(G){G.timeLimit=timeFor(G);G.timeLeft=G.timeLimit;return G}
+function withTime(G){G.timeLimit=0;G.timeLeft=0;G.el=0;return G}   /* без ліміту: лише секундомір G.el */
 function ruleText(G){return G.tutorial?"Лови вирази, що дорівнюють 10":G.L.rule(G.st)}
 function makeItem(G,ok,forced){
   let it;
@@ -1805,7 +1805,7 @@ function finish(G,won){
   G.ended=true;G.phase="end";
   const errors=G.wrongCaught+G.missed;
   const stars=won?(errors===0?3:errors<=2?2:1):0;
-  G.result={won,stars,timeout:!!G.timeout,tir:G.mode==="tir",correct:G.correct,wrong:G.wrongCaught,missed:G.missed,coins:won?[0,30,45,60][stars]:5+Math.floor(G.correct/2),maxStreak:G.maxStreak,log:G.log.slice(),level:G.level,tutorial:G.tutorial};
+  G.result={won,stars,lives:Math.max(0,G.lives),el:Math.round(G.el||0),timeout:!!G.timeout,tir:G.mode==="tir",correct:G.correct,wrong:G.wrongCaught,missed:G.missed,coins:won?[0,30,45,60][stars]:5+Math.floor(G.correct/2),maxStreak:G.maxStreak,log:G.log.slice(),level:G.level,tutorial:G.tutorial};
 }
 function rotateMix(G){
   const pool=OWL.ARCADE.MIX_POOL;let j;do{j=G.R.pick(pool)}while(j===G.st.i);
@@ -1819,6 +1819,7 @@ function step(G,dt,catchTest){
   const ev=[];if(G.ended)return ev;
   G.t+=dt;
   if(G.phase==="splash"){G.splashT-=dt;if(G.splashT<=0)G.phase="play";return ev}
+  G.el=(G.el||0)+dt;
   if(G.timeLimit){G.timeLeft=Math.max(0,G.timeLeft-dt);if(G.timeLeft<=0){G.timeout=true;finish(G,G.correct>=G.goal);ev.push({type:"timeout"});return ev}}
   if(G.mode==="tir")return tirStep(G,dt,ev);
   if(G.tutorial)return tutorialStep(G,dt,catchTest,ev);
@@ -2670,7 +2671,7 @@ RENDER.game=function(){
      <span class="pill hud-score" aria-live="polite"><span class="sr">Зловлено </span><span id="hScore">${G.mode==="tir"?"Знайдено ":""}0 / ${G.goal}</span></span>
      <span class="hearts" id="hHearts" role="img" aria-label="Сердечок: ${G.lives}"></span>
      <div class="rule" id="hRule" aria-live="polite">${mt(ARC.ruleText(G))}</div>
-     <div class="hud-right">${G.timeLimit?`<span class="pill hud-time" id="hTime" role="timer" aria-label="Залишилось часу">${IC.clock||"⏱"}<span>${fmtClock(G.timeLeft)}</span></span>`:""}<button class="btn btn-primary" style="min-height:44px" data-act="exit">Вийти</button></div>
+     <div class="hud-right">${!G.tutorial?`<span class="pill hud-time" id="hTime" role="timer" aria-label="Час гри">${IC.clock||"⏱"}<span>${fmtClock(Math.floor(G.el||0))}</span></span>`:""}<button class="btn btn-primary" style="min-height:44px" data-act="exit">Вийти</button></div>
      <div class="progress" aria-hidden="true"><i id="hProg" style="width:0"></i></div>
      <span class="streak" id="hStreak" hidden></span>
    </div>
@@ -2693,7 +2694,7 @@ function updateHud(){
 function fmtClock(t){t=Math.ceil(t);return Math.floor(t/60)+":"+String(t%60).padStart(2,"0")}
 function frameUi(){
   if(!G||screen!=="game")return;
-  const ht=$("#hTime");if(ht){const txt=fmtClock(G.timeLeft);const sp=ht.lastElementChild;if(sp.textContent!==txt){sp.textContent=txt;ht.classList.toggle("low",G.timeLeft<=10&&G.timeLimit>0)}}
+  const ht=$("#hTime");if(ht){const txt=fmtClock(Math.floor(G.el||0));const sp=ht.lastElementChild;if(sp.textContent!==txt)sp.textContent=txt}
   const sp=$("#splash");if(sp){const show=G.phase==="splash"&&!G.ended;sp.hidden=!show;if(show)$("#spTxt").textContent=G.splashText}
   if(G.tutorial&&$("#tutMsg")){const hd=$("#hud");if(hd){const tm=$("#tutMsg"),top=Math.round(hd.getBoundingClientRect().bottom+10);tm.style.top=top+"px";const hb=top+(tm.offsetHeight||(innerWidth<600?75:52))+8,ch=90,rim=V.rimY();G.tutStartP=Math.max(0,Math.min(.5,(hb+ch)/(rim+ch)))}$("#tutMsg").textContent=G.tut.msg;$("#tutMsg").hidden=G.phase!=="play"}
   if(G.mode==="buttons"){const t=$("#cTimer");if(t&&G.calmTimer&&G.calm){t.querySelector("i").style.width=Math.max(0,100-(Math.max(0,G.calm.t-1.2)/ARC.CALM_TIME)*100)+"%"}
@@ -2723,14 +2724,14 @@ function onRoundEnd(){
     if(r.won&&!prev){r.parts.push(["Перше проходження",40]);r.coins+=40}
     if(r.won&&r.stars===3&&prev<3){r.parts.push(["Перші 3 зірки",30]);r.coins+=30}
     if(r.won&&r.stars>prev)S.tir.stars=r.stars;S.tir.best=Math.max(S.tir.best||0,r.correct);
-    r.coinsFrom=S.coins;S.coins+=r.coins;S.arcade.results++;r.pts=r.correct+(r.won?r.stars*5:0);ST.addWeekPts(S,now(),r.pts);
+    r.coinsFrom=S.coins;S.coins+=r.coins;S.arcade.results++;r.pts=r.correct+(r.won?r.lives:0);ST.addWeekPts(S,now(),r.pts);
         save();if(r.won){sfx("win");V.confetti();V.owl.jumpT=1.2}else{sfx("lose");V.owl.mood=2;V.owl.moodT=1.2}
     const res={...r};endTimer=setTimeout(()=>go("result",{res}),r.won?1100:800);return}
   const prevStars=S.arcade.stars[lv]||0;r.parts=[];
   if(r.won)r.parts.push([`За ${r.stars} ${r.stars===1?"зірку":"зірки"}`,r.coins]);else if(r.coins)r.parts.push(["За спробу",r.coins]);
   if(r.won&&!prevStars){r.parts.push(["Перше проходження",40]);r.coins+=40}
   if(r.won&&r.stars===3&&prevStars<3){r.parts.push(["Перші 3 зірки",30]);r.coins+=30}
-  r.coinsFrom=S.coins;S.coins+=r.coins;S.arcade.results++;r.pts=r.correct+(r.won?r.stars*5:0);ST.addWeekPts(S,now(),r.pts);
+  r.coinsFrom=S.coins;S.coins+=r.coins;S.arcade.results++;r.pts=r.correct+(r.won?r.lives:0);ST.addWeekPts(S,now(),r.pts);
     if(r.won){const prev=S.arcade.stars[lv]||0;if(r.stars>prev)S.arcade.stars[lv]=r.stars;if(lv+2>S.arcade.open)S.arcade.open=Math.min(12,lv+2);}
   save();
   if(r.won){sfx("win");V.confetti();V.owl.jumpT=1.2}else{sfx("lose");V.owl.mood=2;V.owl.moodT=1.2}
@@ -2821,6 +2822,7 @@ RENDER.result=function({res}){
       ${r.won?starsHtml(r.stars,"stars big-stars"):`<p class="muted">${r.timeout?"Час вийшов.":"Сердечка закінчились."} Розбери помилки — і спробуй ще раз.</p>`}
       ${!r.special&&!r.tirOnly&&r.won&&nx!=null&&S.arcade.open===lv+2&&!(S.arcade.stars[nx]>0)?`<p class="tag good">Відкрито: ${esc(L[nx].name)}</p>`:""}</div>
     <div class="tally"><div><b><span aria-hidden="true">✓</span>${r.correct}</b>правильно впіймано</div><div><b><span aria-hidden="true">✗</span>${r.wrong}</b>неправильно впіймано</div><div><b><span aria-hidden="true">↓</span>${r.missed}</b>пропущено правильних</div></div>
+    <p class="small" style="text-align:center"><b>+${r.pts||0} ${(r.pts||0)%10===1&&(r.pts||0)%100!==11?"бал":[2,3,4].includes((r.pts||0)%10)&&![12,13,14].includes((r.pts||0)%100)?"бали":"балів"}</b> · відповіді ${r.correct}${r.won?` + сердечка ${r.lives}`:""} · час ${fmtClock(r.el||0)}</p>
     ${r.maxStreak>=5?`<p class="small muted" style="text-align:center">Найдовша серія ×${r.maxStreak}</p>`:""}
     <div class="btn-row"><button class="btn btn-primary btn-big" data-act="again">Ще одна спроба</button>${hasNext?`<button class="btn btn-forest btn-big" data-act="next">Наступний рівень</button>`:""}</div>
     <div class="btn-row"><button class="btn btn-ghost" data-act="review" aria-expanded="false" id="rvBtn">Розібрати${bad.length+miss.length?` (${bad.length+miss.length})`:""}</button><button class="btn btn-ghost" data-act="map">До карти</button></div>
@@ -2965,7 +2967,7 @@ function checkStreak(){}
 async function openLeaderboard(){
   const wk=ST.weekKey(now()),mine=S.lb.week===wk?S.lb.pts:0;
   const end=ST.weekStart(now())+7*ST.DAY,left=end-now(),dd=Math.floor(left/864e5),hh=Math.floor(left%864e5/36e5);
-  const head=`<h2>${IC.trophy.replace("<svg",'<svg width="28" height="28" style="vertical-align:-5px"')} Рейтинг тижня</h2><p class="muted small">Очки: правильно впіймана хмаринка +1, кожна зірка +5. Новий тиждень через ${dd} д ${hh} год.</p><p class="lb-mine">Твої очки цього тижня: <b>${mine}</b></p>`;
+  const head=`<h2>${IC.trophy.replace("<svg",'<svg width="28" height="28" style="vertical-align:-5px"')} Рейтинг тижня</h2><p class="muted small">Очки: правильна відповідь +1, кожне сердечко, що залишилось після перемоги, +1. Новий тиждень через ${dd} д ${hh} год.</p><p class="lb-mine">Твої очки цього тижня: <b>${mine}</b></p>`;
   const m=openModal({label:"Рейтинг тижня",html:head+`<p class="muted">Завантаження…</p>`,acts:{close:()=>closeModal()}});
   if(!CL||!CL.enabled||!CL.user){setModalHtml(m,head+`<p class="notice">Рейтинг працює на сайті, коли ти граєш зі своєю поштою.</p><button class="btn btn-primary" data-act="close">Закрити</button>`);return}
   if(mine>0)CL.push(S,true);
