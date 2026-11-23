@@ -530,6 +530,31 @@ body.tir #world{cursor:none}
 .gstat{background:#fff;border:2px solid var(--line);border-radius:16px;padding:12px 14px;margin:0 0 14px}.gstat h3{margin:0 0 4px}.gstat .adm-tbl{border:0;margin:8px 0 0}
 .gstat td small{display:block;font-size:12px;color:#8a6a4a;white-space:normal;max-width:220px}.gstat td,.gstat th{white-space:normal}.gstat th:not(:first-child),.gstat td:not(:first-child){text-align:right}
 
+/* рейтинг рівнів */
+.lb-lv select{width:100%;min-height:44px;border-radius:12px;border:1.5px solid #f0d9bd;padding:6px 10px;font:inherit;background:#fff;margin:4px 0 8px}
+.lb-tabs{display:flex;gap:6px;margin-bottom:6px}
+.lb-tab{flex:1;min-height:40px;border-radius:999px;border:1.5px solid #f0d9bd;background:#fff;font:inherit;font-weight:700;cursor:pointer}
+.lb-tab.on{background:#ff8a00;border-color:#ff8a00;color:#fff}
+.lb-head{display:flex;align-items:center;gap:10px;padding:0 12px 4px;font-size:13px;color:var(--muted,#8a7a6a);font-weight:700}
+.lb-head .lb-pts{font-weight:700}
+.lb-sec,.lb-date{width:52px;text-align:right;font-variant-numeric:tabular-nums}.lb-date{width:46px;color:var(--muted,#8a7a6a);font-size:13px}
+.lb-pts{width:44px;text-align:right}
+.lb-row.gold{background:linear-gradient(90deg,#ffe9a8,#fff7dc)}.lb-row.silver{background:linear-gradient(90deg,#e6e9ee,#f7f8fa)}.lb-row.bronze{background:linear-gradient(90deg,#f6d2b4,#fdf0e6)}
+.lb-row.gold .lb-pos,.lb-row.silver .lb-pos,.lb-row.bronze .lb-pos{border-radius:50%;width:28px;height:28px;line-height:28px;color:#fff}
+.lb-row.gold .lb-pos{background:#e0a800}.lb-row.silver .lb-pos{background:#9aa4b1}.lb-row.bronze .lb-pos{background:#c0773a}
+.lb-row.pin{margin-top:8px;position:sticky;bottom:0}
+.lb-name{display:flex;align-items:center;gap:4px}
+.lb-arr{border:0;background:none;cursor:pointer;font-size:16px;line-height:1;padding:4px 6px;border-radius:8px;color:#a0602a;transition:transform .15s}
+.lb-arr.open{transform:rotate(180deg)}.lb-arr:hover{background:#ffe9d1}
+.lb-tries{margin:-2px 0 4px 38px;display:flex;flex-direction:column;gap:2px}
+.lb-try{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:13px;padding:4px 10px;border-radius:8px;background:#fffaf3}
+.lb-try.counted{background:#fff0dc}
+.linkbtn{border:0;background:none;color:#c85f00;text-decoration:underline;cursor:pointer;font:inherit;padding:0}
+.linkbtn.danger{color:#b3362b}
+.lb-place{text-align:center}
+@media (max-width:420px){.lb-date{display:none}.lb-sec{width:44px}}
+.lb-n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}.lb-arr{flex:none}
+
 </style>
 <div id="app">
   <canvas id="world" aria-hidden="true"></canvas>
@@ -2350,7 +2375,7 @@ const norm=e=>String(e||"").trim().toLowerCase();
 C.validEmail=e=>/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(norm(e));
 
 async function rpc(fn,body){
-  const r=await fetch(`${CFG.url}/rest/v1/rpc/${fn}`,{method:"POST",keepalive:fn==="owl_save",
+  const r=await fetch(`${CFG.url}/rest/v1/rpc/${fn}`,{method:"POST",keepalive:fn==="owl_save"||fn==="owl_round_finish",
     headers:{"Content-Type":"application/json",apikey:CFG.key},body:JSON.stringify(body)});
   if(!r.ok){let t="";try{t=await r.text()}catch(e){}throw new Error(r.status+" "+t.slice(0,200))}
   const t=await r.text();return t?JSON.parse(t):null;
@@ -2375,6 +2400,12 @@ C.adminLogin=async(e,pass)=>{const ok=!!(await rpc("owl_admin_ok",{p_email:norm(
 C.adminRestore=async()=>{if(!C.user)return false;let p=null;try{p=localStorage.getItem(PASS_KEY)}catch(x){}if(!p)return false;try{return await C.adminLogin(C.user.email,p)}catch(x){return false}};
 C.leaderboard=async week=>rpc("owl_leaderboard",{p_week:week,p_email:C.user?C.user.email:""});
 C.onWeb=onWeb;
+/* рейтинг рівнів: старт/фініш раунду фіксує сервер, бали рахує сервер */
+C.roundStart=async lv=>{if(!C.user)return null;try{return await rpc("owl_round_start",{p_email:C.user.email,p_level:lv})}catch(e){return null}};
+C.roundFinish=(id,r)=>rpc("owl_round_finish",{p_id:id,p_email:C.user.email,p_correct:r.correct|0,p_lives:r.lives|0,p_won:!!r.won,p_sec:Math.round(r.el||0)});
+C.lb=(lv,per)=>rpc("owl_lb",{p_level:lv,p_period:per,p_email:C.user?C.user.email:""});
+C.lbTries=(lv,pid,per)=>rpc("owl_lb_tries",{p_level:lv,p_pid:pid,p_period:per});
+C.lbHide=(id,pid,h)=>rpc("owl_lb_hide",{p_email:C.user.email,p_pass:C.adminPass,p_id:id,p_pid:pid,p_hidden:h});
 C.nickFree=async nick=>{try{const r=await rpc("owl_nick_free",{p_nick:nick,p_email:C.user?C.user.email:""});return r!==false}catch(x){return true}};
 C.configGet=async()=>rpc("owl_config_get",{});
 C.configSet=async data=>rpc("owl_config_set",{p_email:C.user.email,p_pass:C.adminPass,p_data:data});
@@ -2600,7 +2631,7 @@ RENDER.home=function(){
    ${storageNotice()}${adminBar()}
    <div class="next"><div class="txt"><div class="eyebrow">${first?"З чого почати":"Продовжити"}</div><h3>${first?"Коротке навчання: дві хмаринки":esc(ARCADE.LEVELS[next].name)}</h3><p class="muted small">${first?"Покаже, як ловити хмаринки кошиком.":`Зібрано зірок: ${stars} із ${CF.visible().length*3}`}</p></div>
     <div class="btn-row" style="flex:1 1 260px"><button class="btn btn-primary" data-act="${first?"tut":"play"}">${first?"Почати навчання":"Грати"}</button><button class="btn btn-ghost" data-act="arcade">Усі рівні</button></div></div>
-   <div class="home-extra"><button class="btn btn-ghost lb-btn" data-act="lb">${IC.trophy} Рейтинг тижня</button></div>
+   <div class="home-extra"><button class="btn btn-ghost lb-btn" data-act="lb">${IC.trophy} Рейтинг</button></div>
    <div class="home-spacer" aria-hidden="true"></div></div>`;
   VACTS={...commonActs,...adminActs,lb:()=>openLeaderboard(),arcade:()=>go("map"),tut:()=>startRound(0,{tutorial:true,from:"home"}),play:()=>{go("map");playLevel(next)}};
   refreshBadges();
@@ -2662,9 +2693,14 @@ function startRound(level,opts={}){
   const tirGrid=()=>{const W=innerWidth,H=innerHeight,cw=Math.max(3,Math.min(8,Math.round(W/210)+1)),rows=H<430?2:(H>=700&&W<600?4:3),cols=Math.max(3,Math.min(cw,Math.floor(15/rows)));return{cols,rows}};
   G=ARC.newRound({level,...(opts.tir||(!opts.tutorial&&ARCADE.LEVELS[level].tir)?{tir:true,...tirGrid()}:{}),math:opts.math!=null?opts.math:S.settings.math,speed:S.settings.speed,mode:opts.tutorial?"move":S.settings.control,calmTimer:S.settings.calmTimer,tutorial:!!opts.tutorial});
   G.rewarded=false;paused=false;keys.l=keys.r=false;V.owl.target=null;V.owl.nx=.5;V.aim=null;V.laser=null;
+  cloudStart(G);
   go("game");
 }
-function stopRound(){G=null;paused=false;clearTimeout(endTimer)}
+function stopRound(){if(G&&!G.ended)cloudFinish(G,{correct:G.correct,lives:G.lives,won:false,el:G.el});G=null;paused=false;clearTimeout(endTimer)}
+/* рейтинг: сервер запам'ятовує старт і фініш кожного раунду (крім навчання) */
+function cloudStart(g){g.cp=null;if(g.tutorial||!CL||!CL.enabled||!CL.user)return;g.cp=CL.roundStart(g.level).catch(()=>null)}
+function cloudFinish(g,r){if(!g||!g.cp||g.sent)return null;g.sent=true;return g.cp.then(id=>id?CL.roundFinish(id,r):null).catch(()=>null)}
+window.addEventListener("pagehide",()=>{if(screen==="game"&&G&&!G.ended)cloudFinish(G,{correct:G.correct,lives:G.lives,won:false,el:G.el})});
 RENDER.game=function(){
   const calm=G.mode==="buttons";
   view().innerHTML=`<div id="hud">
@@ -2718,7 +2754,7 @@ function onRoundEnd(){
   const r=G.result,lv=G.level;
   if(r.tutorial){S.arcade.tutDone=true;save();sfx("win");V.confetti();V.owl.jumpT=1;
     endTimer=setTimeout(()=>{const after=roundOpts.after,asp=roundOpts.afterSp;if(asp){go("map");toast("Навчання пройдено!");playSpecial(asp)}else if(after!=null)openIntroAfterTut(after);else{go(roundOpts.from==="home"?"home":"map");toast("Навчання пройдено! Тепер обери рівень.")}},900);return}
-  recordStats(r,lv);
+  recordStats(r,lv);r.lbP=cloudFinish(G,r);
   if(roundOpts.tir){if(!S.tir)S.tir={stars:0,best:0};const prev=S.tir.stars||0;r.parts=[];r.levelName="Тригонометричний тир";r.tirOnly=true;
     if(r.won)r.parts.push([`За ${r.stars} ${r.stars===1?"зірку":"зірки"}`,r.coins]);else if(r.coins)r.parts.push(["За спробу",r.coins]);
     if(r.won&&!prev){r.parts.push(["Перше проходження",40]);r.coins+=40}
@@ -2826,7 +2862,9 @@ RENDER.result=function({res}){
     ${r.maxStreak>=5?`<p class="small muted" style="text-align:center">Найдовша серія ×${r.maxStreak}</p>`:""}
     <div class="btn-row"><button class="btn btn-primary btn-big" data-act="again">Ще одна спроба</button>${hasNext?`<button class="btn btn-forest btn-big" data-act="next">Наступний рівень</button>`:""}</div>
     <div class="btn-row"><button class="btn btn-ghost" data-act="review" aria-expanded="false" id="rvBtn">Розібрати${bad.length+miss.length?` (${bad.length+miss.length})`:""}</button><button class="btn btn-ghost" data-act="map">До карти</button></div>
+    <p class="small lb-place" id="lbPlace" hidden></p>
     <div id="rvBox" hidden></div></div></div>`;
+  if(r.lbP)resultPlace(r);
   const item=(x,kind)=>`<div class="rv"><div class="expr">${mt(x.t)}</div>
      <div>${kind==="bad"?'<span class="tag bad">✗ Впіймано, але не підходить</span>':kind==="miss"?'<span class="tag warn">↓ Підходило, але пропущено</span>':'<span class="tag good">✓ Впіймано правильно</span>'}</div>
      <p class="small"><b>Правило:</b> ${mt(x.rule)}</p><p><b>Чому:</b> ${mt(x.why)}</p>
@@ -2963,21 +3001,60 @@ async function cloudBoot(){
 let streakReady=false;
 const plDays=n=>{const a=n%10,b=n%100;return a===1&&b!==11?"день":a>=2&&a<=4&&(b<12||b>14)?"дні":"днів"};
 function checkStreak(){}
-/* ---------- РЕЙТИНГ ТИЖНЯ ---------- */
-async function openLeaderboard(){
-  const wk=ST.weekKey(now()),mine=S.lb.week===wk?S.lb.pts:0;
+/* ---------- РЕЙТИНГ РІВНІВ ---------- */
+/* у рейтинг іде лише перша спроба гравця; порядок: бали ↓, час ↑, хто раніше */
+let LB={lv:null,per:"week"};
+const lbDate=t=>{const d=new Date(t);return String(d.getDate()).padStart(2,"0")+"."+String(d.getMonth()+1).padStart(2,"0")};
+const lbDT=t=>{const d=new Date(t);return lbDate(t)+" "+String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0")};
+const plPts=n=>{const a=n%10,b=n%100;return a===1&&b!==11?"бал":a>=2&&a<=4&&(b<12||b>14)?"бали":"балів"};
+async function resultPlace(r){
+  const ok=await r.lbP;const el=$("#lbPlace");if(!el||!CL||!CL.user)return;
+  if(ok===false){el.hidden=false;el.textContent="Ця спроба не потрапила в рейтинг (надто швидко).";return}
+  let rows=null;try{rows=await CL.lb(r.level,"week")}catch(e){}
+  const el2=$("#lbPlace");if(!el2||!rows)return;const me=rows.find(x=>x.me);if(!me)return;
+  el2.hidden=false;el2.innerHTML=`${IC.trophy.replace("<svg",'<svg width="18" height="18" style="vertical-align:-3px"')} Місце в рейтингу тижня: <b>${me.pos}</b> з ${Math.max(rows.length,me.pos)}${me.tries>1?` <span class="muted">(рахується перша спроба)</span>`:""} · <button class="linkbtn" data-act="lbOpen">Відкрити рейтинг</button>`;
+  const b=el2.querySelector("[data-act=lbOpen]");if(b)b.onclick=()=>openLeaderboard(r.level);
+}
+async function openLeaderboard(lv){
+  const vis=CF.visible();
+  if(lv!=null)LB.lv=lv;if(LB.lv==null||!vis.includes(LB.lv))LB.lv=vis.includes(nextLevel())?nextLevel():vis[0];
+  const L=ARCADE.LEVELS;
   const end=ST.weekStart(now())+7*ST.DAY,left=end-now(),dd=Math.floor(left/864e5),hh=Math.floor(left%864e5/36e5);
-  const head=`<h2>${IC.trophy.replace("<svg",'<svg width="28" height="28" style="vertical-align:-5px"')} Рейтинг тижня</h2><p class="muted small">Очки: правильна відповідь +1, кожне сердечко, що залишилось після перемоги, +1. Новий тиждень через ${dd} д ${hh} год.</p><p class="lb-mine">Твої очки цього тижня: <b>${mine}</b></p>`;
-  const m=openModal({label:"Рейтинг тижня",html:head+`<p class="muted">Завантаження…</p>`,acts:{close:()=>closeModal()}});
-  if(!CL||!CL.enabled||!CL.user){setModalHtml(m,head+`<p class="notice">Рейтинг працює на сайті, коли ти граєш зі своєю поштою.</p><button class="btn btn-primary" data-act="close">Закрити</button>`);return}
-  if(mine>0)CL.push(S,true);
-  let rows=null;try{rows=await CL.leaderboard(wk)||[]}catch(e){}
-  if(!rows){setModalHtml(m,head+`<p class="err">Не вдалося завантажити рейтинг. Перевір інтернет.</p><button class="btn btn-primary" data-act="close">Закрити</button>`);return}
-  const medal=i=>i===0?"🥇":i===1?"🥈":i===2?"🥉":String(i+1);
-  const meIn=rows.some(r=>r.me);
-  setModalHtml(m,head+`<div class="lb-list">${rows.length?rows.map((r,i)=>`<div class="lb-row${r.me?" me":""}"><span class="lb-pos">${medal(i)}</span><span class="lb-name">${esc(r.name)}${r.me?" (ти)":""}</span><b class="lb-pts">${r.pts}</b></div>`).join(""):`<p class="muted">Цього тижня ще ніхто не грав. Будь першим!</p>`}</div>
-    ${!meIn&&rows.length&&mine>0?`<p class="small muted">Ти поки поза топ-20. Грай ще — і потрапиш у список!</p>`:""}
-    <button class="btn btn-primary" data-act="close">Закрити</button>`);
+  const head=()=>`<h2>${IC.trophy.replace("<svg",'<svg width="28" height="28" style="vertical-align:-5px"')} Рейтинг</h2>
+    <label class="lb-lv"><span class="sr">Рівень</span><select id="lbLv">${vis.map(i=>`<option value="${i}"${i===LB.lv?" selected":""}>${i+1}. ${esc(L[i].name)}</option>`).join("")}</select></label>
+    <div class="lb-tabs" role="tablist"><button class="lb-tab${LB.per==="week"?" on":""}" role="tab" aria-selected="${LB.per==="week"}" data-act="per" data-p="week">Тиждень</button><button class="lb-tab${LB.per==="all"?" on":""}" role="tab" aria-selected="${LB.per==="all"}" data-act="per" data-p="all">За весь час</button></div>
+    <p class="muted small">Рахується лише перша спроба. Спершу бали (правильна відповідь +1, сердечко після перемоги +1), при рівних балах вище той, хто швидше.${LB.per==="week"?` Новий тиждень через ${dd} д ${hh} год.`:""}</p>`;
+  const close=`<button class="btn btn-primary" data-act="close">Закрити</button>`;
+  const cls=p=>p===1?" gold":p===2?" silver":p===3?" bronze":"";
+  const row=(r,pin)=>`<div class="lb-row${r.me?" me":""}${pin?" pin":""}${cls(r.pos)}" data-pid="${esc(r.pid)}"><span class="lb-pos">${r.pos}</span>
+     <span class="lb-name"><span class="lb-n">${esc(r.name)}${r.me?" (ти)":""}</span>${!pin?`<button class="lb-arr" data-act="tries" data-pid="${esc(r.pid)}" aria-expanded="false" aria-label="Усі спроби (${r.tries})" title="Усі спроби">▾</button>`:""}</span>
+     <b class="lb-pts">${r.pts}</b><span class="lb-sec">${fmtClock(r.sec)}</span><span class="lb-date">${lbDate(r.at)}</span></div>${!pin?`<div class="lb-tries" data-for="${esc(r.pid)}" hidden></div>`:""}`;
+  let m;
+  const load=async()=>{
+    setModalHtml(m,head()+`<p class="muted">Завантаження…</p>`+close);
+    if(!CL||!CL.enabled){setModalHtml(m,head()+`<p class="notice">Рейтинг працює на сайті, коли ти граєш зі своєю поштою.</p>`+close);return}
+    const want={lv:LB.lv,per:LB.per};let rows=null;try{rows=await CL.lb(LB.lv,LB.per)||[]}catch(e){}
+    if(!modals.includes(m)||want.lv!==LB.lv||want.per!==LB.per)return;
+    if(!rows){setModalHtml(m,head()+`<p class="err">Не вдалося завантажити рейтинг. Перевір інтернет або попроси адміна оновити базу.</p>`+close);return}
+    const top=rows.filter(r=>r.pos<=50),me=rows.find(r=>r.me);
+    setModalHtml(m,head()+(rows.length?`<div class="lb-head"><span class="lb-pos">#</span><span class="lb-name">Нік</span><b class="lb-pts">Бали</b><span class="lb-sec">Час</span><span class="lb-date">Дата</span></div>
+      <div class="lb-list">${top.map(r=>row(r)).join("")}</div>${me?row(me,true):CL.user?`<p class="small muted">Тебе ще немає в цьому рейтингу. Зіграй рівень — і перша спроба потрапить сюди.</p>`:""}`
+      :`<p class="muted">${LB.per==="week"?"Цього тижня на цьому рівні ще ніхто не грав.":"На цьому рівні ще ніхто не грав."} Будь першим!</p>`)+close);
+  };
+  const tries=async b=>{
+    const pid=b.dataset.pid,box=m.el.querySelector(`.lb-tries[data-for="${CSS.escape(pid)}"]`);if(!box)return;
+    const open=box.hidden;box.hidden=!open;b.setAttribute("aria-expanded",open);b.classList.toggle("open",open);if(!open)return;
+    box.innerHTML=`<p class="small muted">Завантаження…</p>`;let t=null;try{t=await CL.lbTries(LB.lv,pid,LB.per)}catch(e){}
+    if(!t){box.innerHTML=`<p class="small err">Не вдалося завантажити.</p>`;return}
+    const adm=CL.admin;
+    box.innerHTML=t.map(x=>`<div class="lb-try${x.counted?" counted":""}"><span>${lbDT(x.at)}</span><span>${x.pts} ${plPts(x.pts)}</span><span>${fmtClock(x.sec)}</span><span>${x.counted?'<span class="tag good">у рейтингу</span>':""}</span>${adm?`<button class="linkbtn" data-act="hideTry" data-id="${x.id}">Сховати</button>`:""}</div>`).join("")
+      +(adm?`<div class="lb-try"><button class="linkbtn danger" data-act="hidePl" data-pid="${esc(pid)}">Сховати гравця з рейтингу</button></div>`:"");
+  };
+  const hide=async(id,pid)=>{try{await CL.lbHide(id,pid,true);toast("Сховано");load()}catch(e){toast("Не вдалося: потрібен вхід адміна")}};
+  m=openModal({label:"Рейтинг",wide:true,html:head()+`<p class="muted">Завантаження…</p>`+close,acts:{close:()=>closeModal(),
+    per:b=>{LB.per=b.dataset.p;load()},tries,hideTry:b=>hide(+b.dataset.id,null),hidePl:b=>hide(null,b.dataset.pid),
+    "@change":el=>{if(el.id==="lbLv"){LB.lv=+el.value;load()}}}});
+  load();
 }
 /* ---------- МУЗИКА (генерується в браузері, без файлів) ---------- */
 const MUS=(()=>{let ctx=null,gain=null,timer=0,step=0,nextT=0,on=false,unlocked=false;
