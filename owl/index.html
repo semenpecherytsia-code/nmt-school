@@ -2404,7 +2404,7 @@ C.onWeb=onWeb;
 C.roundStart=async lv=>{if(!C.user)return null;try{return await rpc("owl_round_start",{p_email:C.user.email,p_level:lv})}catch(e){return null}};
 C.roundFinish=(id,r)=>rpc("owl_round_finish",{p_id:id,p_email:C.user.email,p_correct:r.correct|0,p_lives:r.lives|0,p_won:!!r.won,p_sec:Math.round(r.el||0)});
 C.lb=(lv,per)=>rpc("owl_lb",{p_level:lv,p_period:per,p_email:C.user?C.user.email:""});
-C.lbTries=(lv,pid,per)=>rpc("owl_lb_tries",{p_level:lv,p_pid:pid,p_period:per});
+C.lbTries=(lv,pid,per)=>rpc("owl_lb_tries",{p_level:lv,p_pid:pid,p_period:per,p_email:C.user?C.user.email:"",p_pass:C.admin?C.adminPass:null});
 C.lbHide=(id,pid,h)=>rpc("owl_lb_hide",{p_email:C.user.email,p_pass:C.adminPass,p_id:id,p_pid:pid,p_hidden:h});
 C.nickFree=async nick=>{try{const r=await rpc("owl_nick_free",{p_nick:nick,p_email:C.user?C.user.email:""});return r!==false}catch(x){return true}};
 C.configGet=async()=>rpc("owl_config_get",{});
@@ -3027,7 +3027,7 @@ async function openLeaderboard(lv){
   const close=`<button class="btn btn-primary" data-act="close">Закрити</button>`;
   const cls=p=>p===1?" gold":p===2?" silver":p===3?" bronze":"";
   const row=(r,pin)=>`<div class="lb-row${r.me?" me":""}${pin?" pin":""}${cls(r.pos)}" data-pid="${esc(r.pid)}"><span class="lb-pos">${r.pos}</span>
-     <span class="lb-name"><span class="lb-n">${esc(r.name)}${r.me?" (ти)":""}</span>${!pin?`<button class="lb-arr" data-act="tries" data-pid="${esc(r.pid)}" aria-expanded="false" aria-label="Усі спроби (${r.tries})" title="Усі спроби">▾</button>`:""}</span>
+     <span class="lb-name"><span class="lb-n">${esc(r.name)}${r.me?" (ти)":""}</span>${!pin&&(r.me||CL.admin)?`<button class="lb-arr" data-act="tries" data-pid="${esc(r.pid)}" aria-expanded="false" aria-label="Усі спроби (${r.tries})" title="Усі спроби">▾</button>`:""}</span>
      <b class="lb-pts">${r.pts}</b><span class="lb-sec">${fmtClock(r.sec)}</span><span class="lb-date">${lbDate(r.at)}</span></div>${!pin?`<div class="lb-tries" data-for="${esc(r.pid)}" hidden></div>`:""}`;
   let m;
   const load=async()=>{
