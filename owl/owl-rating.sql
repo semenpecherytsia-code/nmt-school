@@ -90,10 +90,18 @@ language sql stable security definer set search_path = public as $$
   select * from ranked where pos <= 50 or me order by pos;
 $$;
 
--- усі спроби гравця на рівні (за датою); counted = саме вона в рейтингу
-create or replace function public.owl_lb_tries(p_level integer, p_pid text, p_period text)
+-- усі спроби гравця на рівні (за датою); counted = саме вона в рейтингу.
+-- Звичайний гравець бачить лише свої спроби, адмін (з паролем) — усіх.
+drop function if exists public.owl_lb_tries(integer, text, text);
+create or replace function public.owl_lb_tries(p_level integer, p_pid text, p_period text, p_email text, p_pass text default null)
 returns table(id bigint, pts integer, sec integer, at timestamptz, won boolean, counted boolean)
-language sql stable security definer set search_path = public as $$
+language plpgsql stable security definer set search_path = public as $$
+declare e text := lower(trim(coalesce(p_email,'')));
+begin
+  if e = '' or (left(md5('owl' || e), 12) <> p_pid and not public.owl_admin_ok(p_email, coalesce(p_pass,''))) then
+    raise exception 'not allowed';
+  end if;
+  return query
   with lim as (
     select case when p_period = 'week'
       then (date_trunc('week', now() at time zone 'EET')) at time zone 'EET'
@@ -102,9 +110,9 @@ language sql stable security definer set search_path = public as $$
     select a.* from public.owl_attempts a, lim
     where a.level = p_level and left(md5('owl' || a.email), 12) = p_pid
       and a.finished_at is not null and not a.sus and not a.hidden and a.started_at >= lim.t0
-  ), f as (select min(started_at) t from mine)
+  ), f as (select min(mine.started_at) t from mine)
   select m.id, m.pts, m.sec, m.finished_at, m.won, m.started_at = f.t from mine m, f order by m.started_at asc limit 100;
-$$;
+end $$;
 
 -- адмін: сховати / показати спробу (p_id) або всього гравця (p_pid)
 create or replace function public.owl_lb_hide(p_email text, p_pass text, p_id bigint, p_pid text, p_hidden boolean)
@@ -125,10 +133,10 @@ end $$;
 revoke all on function public.owl_round_start(text, integer) from public;
 revoke all on function public.owl_round_finish(bigint, text, integer, integer, boolean, integer) from public;
 revoke all on function public.owl_lb(integer, text, text) from public;
-revoke all on function public.owl_lb_tries(integer, text, text) from public;
+revoke all on function public.owl_lb_tries(integer, text, text, text, text) from public;
 revoke all on function public.owl_lb_hide(text, text, bigint, text, boolean) from public;
 grant execute on function public.owl_round_start(text, integer) to anon, authenticated;
 grant execute on function public.owl_round_finish(bigint, text, integer, integer, boolean, integer) to anon, authenticated;
 grant execute on function public.owl_lb(integer, text, text) to anon, authenticated;
-grant execute on function public.owl_lb_tries(integer, text, text) to anon, authenticated;
+grant execute on function public.owl_lb_tries(integer, text, text, text, text) to anon, authenticated;
 grant execute on function public.owl_lb_hide(text, text, bigint, text, boolean) to anon, authenticated;
